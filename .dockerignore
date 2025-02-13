@@ -1,0 +1,23 @@
+# Go-related
+/tmp/
+*.log
+*.out
+*.test
+*.exe
+*.swp
+vendor/
+bin/
+pkg/
+
+# Git-related
+.git
+.gitignore
+
+# IDE/Editor-related
+.vscode/
+.idea/
+*.iml
+
+# Docker-related
+Dockerfile
+docker-compose.yml

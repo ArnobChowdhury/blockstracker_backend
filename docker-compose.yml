@@ -1,0 +1,44 @@
+services:
+  app:
+    build: .
+    container_name: go_app
+    ports:
+      - "5000:8080"
+    volumes:
+      - .:/app
+      - /app/tmp
+    depends_on:
+      - db
+      - redis
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: go_cache
+      PORT: 8080
+    command: air
+
+  db:
+    image: postgres:15
+    container_name: go_db
+    restart: always
+    volumes:
+      - go_db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:7
+    container_name: go_cache
+    restart: always
+    ports:
+      - "6379:6379"
+
+volumes:
+  go_db_data:

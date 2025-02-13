@@ -1,0 +1,8 @@
+root = "."
+tmp_dir = "tmp"
+[build]
+  bin = "tmp/main"
+  cmd = "go build -o tmp/main main.go"
+  exclude_dir = ["vendor", "tmp", "scripts"]
+[log]
+  time = false

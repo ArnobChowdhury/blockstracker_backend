@@ -1,0 +1,25 @@
+# Binaries
+/tmp/
+*.exe
+*.out
+*.test
+*.log
+
+# Go dependencies
+/vendor/
+
+# IDE/editor files
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+*.env
+
+# Air (if using Air for hot reloading)
+.air.toml
