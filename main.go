@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"blockstracker_backend/routes"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,9 +16,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	r := gin.Default()
 
-	r.GET("/", func(c *gin.Context) {
-		c.String(200, "Wow! This works :)")
-	})
+	routes.RegisterTaskRoutes(r)
 
 	fmt.Println("Server started on :8080")
 	r.Run(":8080")
