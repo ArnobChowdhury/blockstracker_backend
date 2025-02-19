@@ -35,9 +35,10 @@ func RegisterTaskRoutes(r *gin.Engine) {
 		taskGroup.GET("/active/one-off/space/:spaceId", handlers.GetOneOffActiveTasksWithSpaceID)
 		taskGroup.GET("/active/daily/space/:spaceId", handlers.GetDailyActiveTasksWithSpaceID)
 		taskGroup.GET("/active/specific-days-in-a-week/space/:spaceId", handlers.GetSpecificDaysInAWeekActiveTasksWithSpaceID)
-		taskGroup.GET("/active/unscheduled", handlers.GetUnscheduledActiveTasksWithoutSpace)
-		taskGroup.GET("/active/one-off", handlers.GetOneOffActiveTasksWithoutSpace)
-		taskGroup.GET("/active/daily", handlers.GetDailyActiveTasksWithoutSpace)
+		taskGroup.GET("/active/unscheduled/without-space", handlers.GetUnscheduledActiveTasksWithoutSpace)
+		taskGroup.GET("/active/one-off/without-space", handlers.GetOneOffActiveTasksWithoutSpace)
+		taskGroup.GET("/active/daily/without-space", handlers.GetDailyActiveTasksWithoutSpace)
+		taskGroup.GET("/active/specific-days-in-a-week/without-space", handlers.GetSpecificDaysInAWeekActiveTasksWithoutSpace)
 
 	}
 }

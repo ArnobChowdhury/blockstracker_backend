@@ -318,3 +318,10 @@ func GetDailyActiveTasksWithoutSpace(c *gin.Context) {
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "Daily active tasks without space fetched successfully"})
 }
+
+// GetSpecificDaysInAWeekActiveTasksWithSpaceID retrieves tasks based on specific days in a week and space ID
+func GetSpecificDaysInAWeekActiveTasksWithoutSpace(c *gin.Context) {
+	// c.Param("spaceId") - Get space ID from the URL
+	// Implement logic here
+	c.JSON(http.StatusOK, gin.H{"message": "Tasks for specific days in a week for space fetched successfully"})
+}
