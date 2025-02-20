@@ -30,7 +30,7 @@ type Task struct {
 }
 
 type RepetitiveTaskTemplate struct {
-	ID                       uint           `gorm:"primaryKey" json:"id"`
+	ID                       uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	IsActive                 bool           `gorm:"default:true" json:"isActive"`
 	Title                    string         `gorm:"not null" json:"title"`
 	Description              *string        `json:"description"`
