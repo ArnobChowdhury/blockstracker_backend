@@ -9,6 +9,7 @@ RUN apk add --no-cache bash
 
 COPY . .
 
+RUN go install github.com/go-task/task/v3/cmd/task@latest
 RUN go install github.com/air-verse/air@latest
 
 CMD ["air"]

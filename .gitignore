@@ -18,7 +18,6 @@
 Thumbs.db
 
 # Docker
-docker-compose.override.yml
 *.env
 
 # Air (if using Air for hot reloading)
