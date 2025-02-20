@@ -10,6 +10,7 @@ RUN apk add --no-cache bash
 COPY . .
 
 RUN go install github.com/go-task/task/v3/cmd/task@latest
+RUN go install -tags='no_mysql no_sqlite3 no_ydb no_clickhouse no_libsql no_mssql no_vertica' github.com/pressly/goose/v3/cmd/goose@latest
 RUN go install github.com/air-verse/air@latest
 
 CMD ["air"]
