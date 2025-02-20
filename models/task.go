@@ -3,12 +3,12 @@ package models
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-// Task model definition
 type Task struct {
-	ID                       uint                    `gorm:"primaryKey" json:"id"`
+	ID                       uuid.UUID               `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	IsActive                 bool                    `gorm:"default:true" json:"isActive"`
 	Title                    string                  `gorm:"not null" json:"title"`
 	Description              string                  `json:"description"`
@@ -26,10 +26,33 @@ type Task struct {
 	Tags                     []Tag                   `json:"tags"`
 	Space                    *Space                  `json:"space"`
 	SpaceId                  int                     `json:"spaceId"`
+	DeletedAt                gorm.DeletedAt          `gorm:"index" json:"-"`
+}
 
-	// Unique constraint across repetitiveTaskTemplateId and dueDate
-	// GORM does not enforce this automatically in the database, but you can add it in migrations manually
-	gorm.Model
+type RepetitiveTaskTemplate struct {
+	ID                       uint           `gorm:"primaryKey" json:"id"`
+	IsActive                 bool           `gorm:"default:true" json:"isActive"`
+	Title                    string         `gorm:"not null" json:"title"`
+	Description              *string        `json:"description"`
+	Schedule                 string         `gorm:"not null" json:"schedule"`
+	Priority                 int            `gorm:"default:3" json:"priority"`
+	ShouldBeScored           *bool          `gorm:"default:false" json:"shouldBeScored"`
+	Monday                   *bool          `gorm:"default:false" json:"monday"`
+	Tuesday                  *bool          `gorm:"default:false" json:"tuesday"`
+	Wednesday                *bool          `gorm:"default:false" json:"wednesday"`
+	Thursday                 *bool          `gorm:"default:false" json:"thursday"`
+	Friday                   *bool          `gorm:"default:false" json:"friday"`
+	Saturday                 *bool          `gorm:"default:false" json:"saturday"`
+	Sunday                   *bool          `gorm:"default:false" json:"sunday"`
+	TimeOfDay                *string        `json:"timeOfDay"`
+	LastDateOfTaskGeneration *time.Time     `json:"lastDateOfTaskGeneration"`
+	CreatedAt                time.Time      `gorm:"autoCreateTime" json:"createdAt"`
+	ModifiedAt               time.Time      `gorm:"autoUpdateTime" json:"modifiedAt"`
+	Tags                     []Tag          `gorm:"many2many:repetitive_task_template_tags" json:"tags"`
+	Tasks                    []Task         `json:"tasks"`
+	Space                    *Space         `json:"space"`
+	SpaceID                  *uint          `json:"spaceId"`
+	DeletedAt                gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 type CreateTaskRequest struct {
