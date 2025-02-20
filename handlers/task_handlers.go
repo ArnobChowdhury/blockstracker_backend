@@ -125,31 +125,31 @@ func GetSpecificDaysInAWeekTasksMonthlyReport(c *gin.Context) {
 
 func GetOverdueTasks(c *gin.Context) {
 	// Get today's date to compare with due dates
-	today := time.Now().Format("2006-01-02")
+	// today := time.Now().Format("2006-01-02")
 
 	// Sample overdue tasks (mock data)
-	overdueTasks := []models.Task{
-		{
-			ID:        1,
-			Title:     "Overdue Task 1",
-			DueDate:   "2025-02-10", // Past due date
-			Completed: false,
-		},
-		{
-			ID:        2,
-			Title:     "Overdue Task 2",
-			DueDate:   "2025-02-08", // Past due date
-			Completed: false,
-		},
-	}
+	// overdueTasks := []models.Task{
+	// 	{
+	// 		// ID:        1,
+	// 		Title: "Overdue Task 1",
+	// 		// DueDate:   "2025-02-10", // Past due date
+	// 		// Completed: false,
+	// 	},
+	// 	{
+	// 		// ID:        2,
+	// 		Title: "Overdue Task 2",
+	// 		// DueDate:   "2025-02-08", // Past due date
+	// 		// Completed: false,
+	// 	},
+	// }
 
 	// Filter overdue tasks (tasks that are not completed and have a due date in the past)
 	var filteredTasks []models.Task
-	for _, task := range overdueTasks {
-		if task.DueDate < today && !task.Completed {
-			filteredTasks = append(filteredTasks, task)
-		}
-	}
+	// for _, task := range overdueTasks {
+	// 	if task.DueDate < today && !task.Completed {
+	// 		filteredTasks = append(filteredTasks, task)
+	// 	}
+	// }
 
 	// Return the overdue tasks
 	c.JSON(http.StatusOK, gin.H{
@@ -163,18 +163,18 @@ func MarkTaskAsFailure(c *gin.Context) {
 	// taskID := c.Param("id")
 
 	// [mock] make a call to the db with the taskID to find the original task
-	task := models.Task{
-		ID:        1,
-		Title:     "Overdue Task 1",
-		DueDate:   "2025-02-10", // Past due date
-		Completed: false,
-	}
+	// task := models.Task{
+	// 	ID:        1,
+	// 	Title:     "Overdue Task 1",
+	// 	DueDate:   "2025-02-10", // Past due date
+	// 	Completed: false,
+	// }
 
 	// Respond with the updated task
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Task marked as failure successfully",
-		"task":    task,
-	})
+	// c.JSON(http.StatusOK, gin.H{
+	// 	"message": "Task marked as failure successfully",
+	// 	"task":    task,
+	// })
 }
 
 func RescheduleTask(c *gin.Context) {
