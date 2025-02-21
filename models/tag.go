@@ -3,11 +3,12 @@ package models
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Tag struct {
-	ID              uint                     `gorm:"primaryKey" json:"id"`
+	ID              uuid.UUID                `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	Name            string                   `gorm:"not null" json:"name"`
 	Tasks           []Task                   `gorm:"many2many:task_tags" json:"tasks"`
 	RepetitiveTasks []RepetitiveTaskTemplate `gorm:"many2many:repetitive_task_template_tags" json:"repetitiveTasks"`
