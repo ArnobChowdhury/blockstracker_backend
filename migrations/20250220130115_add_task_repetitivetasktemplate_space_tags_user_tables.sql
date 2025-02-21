@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR,
     provider VARCHAR,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    modified_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMPTZ,
     CONSTRAINT password_or_provider CHECK (
         password IS NOT NULL OR provider IS NOT NULL
