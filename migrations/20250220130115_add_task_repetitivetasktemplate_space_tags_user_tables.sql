@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS repetitive_task_templates (
     last_date_of_task_generation TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    space_id INT,
+    space_id UUID,
     deleted_at TIMESTAMPTZ,
     FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE SET NULL
 );
@@ -53,10 +53,10 @@ CREATE TABLE IF NOT EXISTS tasks (
     should_be_scored BOOLEAN,
     score INT,
     time_of_day VARCHAR,
-    repetitive_task_template_id INT,
+    repetitive_task_template_id UUID,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    space_id INT,
+    space_id UUID,
     deleted_at TIMESTAMPTZ,
     FOREIGN KEY (repetitive_task_template_id) REFERENCES repetitive_task_templates(id),
     FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
