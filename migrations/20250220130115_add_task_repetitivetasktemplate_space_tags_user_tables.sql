@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS tags (
 -- Indexes
 CREATE INDEX idx_tags_name ON tags(name);
 
+CREATE TYPE task_time_of_day AS ENUM ('morning', 'afternoon', 'evening', 'night');
+
 CREATE TABLE IF NOT EXISTS repetitive_task_templates (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     is_active BOOLEAN DEFAULT TRUE,
@@ -37,7 +39,7 @@ CREATE TABLE IF NOT EXISTS repetitive_task_templates (
     friday BOOLEAN DEFAULT FALSE,
     saturday BOOLEAN DEFAULT FALSE,
     sunday BOOLEAN DEFAULT FALSE,
-    time_of_day VARCHAR,
+    time_of_day task_time_of_day,
     last_date_of_task_generation TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -63,7 +65,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     due_date TIMESTAMPTZ,
     should_be_scored BOOLEAN,
     score INT,
-    time_of_day VARCHAR,
+    time_of_day task_time_of_day,
     repetitive_task_template_id UUID NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
