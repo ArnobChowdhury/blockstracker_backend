@@ -12,7 +12,7 @@ type Space struct {
 	Name            string                   `gorm:"unique;not null" json:"name"`
 	Tasks           []Task                   `json:"tasks"`
 	RepetitiveTasks []RepetitiveTaskTemplate `json:"repetitiveTasks"`
-	CreatedAt       time.Time                `gorm:"autoCreateTime" json:"createdAt"`
+	CreatedAt       time.Time                `gorm:"type:timestamp" json:"createdAt"`
 	ModifiedAt      time.Time                `gorm:"type:timestamp" json:"modifiedAt"`
 	DeletedAt       gorm.DeletedAt           `gorm:"index" json:"-"`
 }

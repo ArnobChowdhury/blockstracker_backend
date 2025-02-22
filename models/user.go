@@ -12,7 +12,7 @@ type User struct {
 	Email      string         `gorm:"not null;unique" json:"email"`
 	Password   string         `gorm:"not null" json:"-"` // Excluded from JSON responses
 	Provider   string         `json:"provider"`
-	CreatedAt  time.Time      `json:"createdAt"`
+	CreatedAt  time.Time      `gorm:"type:timestamp" json:"createdAt"`
 	ModifiedAt time.Time      `gorm:"type:timestamp" json:"modifiedAt"`
 	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
 }

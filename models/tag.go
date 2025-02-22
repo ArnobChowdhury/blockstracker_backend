@@ -12,7 +12,7 @@ type Tag struct {
 	Name            string                   `gorm:"not null" json:"name"`
 	Tasks           []Task                   `gorm:"many2many:task_tags" json:"tasks"`
 	RepetitiveTasks []RepetitiveTaskTemplate `gorm:"many2many:repetitive_task_template_tags" json:"repetitiveTasks"`
-	CreatedAt       time.Time                `gorm:"autoCreateTime" json:"createdAt"`
+	CreatedAt       time.Time                `gorm:"type:timestamp" json:"createdAt"`
 	ModifiedAt      time.Time                `gorm:"type:timestamp" json:"modifiedAt"`
 	DeletedAt       gorm.DeletedAt           `gorm:"index" json:"-"`
 }

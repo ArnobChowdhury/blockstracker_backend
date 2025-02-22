@@ -21,7 +21,7 @@ type Task struct {
 	TimeOfDay                *string                 `json:"timeOfDay"`
 	RepetitiveTaskTemplate   *RepetitiveTaskTemplate `json:"repetitiveTaskTemplate"`
 	RepetitiveTaskTemplateId int                     `json:"repetitiveTaskTemplateId"`
-	CreatedAt                time.Time               `json:"createdAt"`
+	CreatedAt                time.Time               `gorm:"type:timestamp" json:"createdAt"`
 	ModifiedAt               time.Time               `gorm:"type:timestamp" json:"modifiedAt"`
 	Tags                     []Tag                   `json:"tags"`
 	Space                    *Space                  `json:"space"`
@@ -45,8 +45,8 @@ type RepetitiveTaskTemplate struct {
 	Saturday                 *bool          `gorm:"default:false" json:"saturday"`
 	Sunday                   *bool          `gorm:"default:false" json:"sunday"`
 	TimeOfDay                *string        `json:"timeOfDay"`
-	LastDateOfTaskGeneration *time.Time     `json:"lastDateOfTaskGeneration"`
-	CreatedAt                time.Time      `gorm:"autoCreateTime" json:"createdAt"`
+	LastDateOfTaskGeneration *time.Time     `gorm:"type:timestamp" json:"lastDateOfTaskGeneration"`
+	CreatedAt                time.Time      `gorm:"type:timestamp" json:"createdAt"`
 	ModifiedAt               time.Time      `gorm:"type:timestamp" json:"modifiedAt"`
 	Tags                     []Tag          `gorm:"many2many:repetitive_task_template_tags" json:"tags"`
 	Tasks                    []Task         `json:"tasks"`
