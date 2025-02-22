@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+  migrate-up:
+    cmds:
+      - goose up
+    description: "Run goose migrations (up)"
+
+  migrate-down:
+    cmds:
+      - goose down
+    description: "Rollback goose migrations (down)"
