@@ -22,7 +22,7 @@ type Task struct {
 	RepetitiveTaskTemplate   *RepetitiveTaskTemplate `json:"repetitiveTaskTemplate"`
 	RepetitiveTaskTemplateId int                     `json:"repetitiveTaskTemplateId"`
 	CreatedAt                time.Time               `json:"createdAt"`
-	ModifiedAt               time.Time               `json:"modifiedAt"`
+	ModifiedAt               time.Time               `gorm:"type:timestamp" json:"modifiedAt"`
 	Tags                     []Tag                   `json:"tags"`
 	Space                    *Space                  `json:"space"`
 	SpaceId                  int                     `json:"spaceId"`
@@ -47,7 +47,7 @@ type RepetitiveTaskTemplate struct {
 	TimeOfDay                *string        `json:"timeOfDay"`
 	LastDateOfTaskGeneration *time.Time     `json:"lastDateOfTaskGeneration"`
 	CreatedAt                time.Time      `gorm:"autoCreateTime" json:"createdAt"`
-	ModifiedAt               time.Time      `gorm:"autoUpdateTime" json:"modifiedAt"`
+	ModifiedAt               time.Time      `gorm:"type:timestamp" json:"modifiedAt"`
 	Tags                     []Tag          `gorm:"many2many:repetitive_task_template_tags" json:"tags"`
 	Tasks                    []Task         `json:"tasks"`
 	Space                    *Space         `json:"space"`
