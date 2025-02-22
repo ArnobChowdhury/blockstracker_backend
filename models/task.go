@@ -21,8 +21,8 @@ type Task struct {
 	TimeOfDay                *string                 `json:"timeOfDay"`
 	RepetitiveTaskTemplate   *RepetitiveTaskTemplate `json:"repetitiveTaskTemplate"`
 	RepetitiveTaskTemplateId int                     `json:"repetitiveTaskTemplateId"`
-	CreatedAt                time.Time               `json:"createdAt"`
-	ModifiedAt               time.Time               `json:"modifiedAt"`
+	CreatedAt                time.Time               `gorm:"autoCreateTime" json:"createdAt"`
+	ModifiedAt               time.Time               `gorm:"autoUpdateTime" json:"modifiedAt"`
 	Tags                     []Tag                   `json:"tags"`
 	Space                    *Space                  `json:"space"`
 	SpaceId                  int                     `json:"spaceId"`

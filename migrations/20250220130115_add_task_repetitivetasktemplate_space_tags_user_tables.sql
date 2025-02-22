@@ -4,8 +4,8 @@ SELECT 'up SQL query';
 CREATE TABLE IF NOT EXISTS spaces (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR NOT NULL UNIQUE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    modified_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ,
+    modified_at TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ
 );
 
@@ -15,8 +15,8 @@ CREATE INDEX idx_spaces_name ON spaces(name);
 CREATE TABLE IF NOT EXISTS tags (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    modified_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ,
+    modified_at TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ
 );
 -- Indexes
@@ -41,8 +41,8 @@ CREATE TABLE IF NOT EXISTS repetitive_task_templates (
     sunday BOOLEAN DEFAULT FALSE,
     time_of_day task_time_of_day,
     last_date_of_task_generation TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    modified_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ,
+    modified_at TIMESTAMPTZ,
     space_id UUID,
     deleted_at TIMESTAMPTZ,
     FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE SET NULL
@@ -67,8 +67,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     score INT,
     time_of_day task_time_of_day,
     repetitive_task_template_id UUID NULL,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    modified_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ,
+    modified_at TIMESTAMPTZ,
     space_id UUID,
     deleted_at TIMESTAMPTZ,
     FOREIGN KEY (repetitive_task_template_id) REFERENCES repetitive_task_templates(id) ON DELETE SET NULL,
@@ -112,8 +112,8 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR NOT NULL UNIQUE,
     password VARCHAR,
     provider VARCHAR,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    modified_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ,
+    modified_at TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ,
     CONSTRAINT password_or_provider CHECK (
         password IS NOT NULL OR provider IS NOT NULL
