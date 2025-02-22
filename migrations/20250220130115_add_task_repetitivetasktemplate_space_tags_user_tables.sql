@@ -151,4 +151,5 @@ DROP TABLE IF EXISTS spaces CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
 DROP TYPE IF EXISTS task_status;
+DROP TYPE IF EXISTS task_time_of_day;
 -- +goose StatementEnd
