@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterTaskRoutes(r *gin.Engine) {
-	taskGroup := r.Group("/task")
+func RegisterTaskRoutes(rg *gin.RouterGroup) {
+	taskGroup := rg.Group("/task")
 	{
 		taskGroup.POST("/create", handlers.CreateTask)
 		taskGroup.PUT("/update", handlers.UpdateTask)
