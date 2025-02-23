@@ -16,3 +16,8 @@ type User struct {
 	ModifiedAt time.Time      `gorm:"autoUpdateTime" json:"modifiedAt"`
 	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deletedAt"`
 }
+
+type SignUpRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,strongpassword"`
+}

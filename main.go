@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	_ "blockstracker_backend/docs"
+	"blockstracker_backend/internal/validators"
 	"blockstracker_backend/routes"
 
 	"github.com/gin-gonic/gin"
@@ -23,6 +24,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 // @host localhost:5000
 // @BasePath /api/v1
 func main() {
+	validators.RegisterCustomValidators()
+
 	r := gin.Default()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// Example API route

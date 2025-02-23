@@ -1,6 +1,7 @@
 package responsemsg
 
 const (
-	TaskCreatedSuccess = "Task created successfully"
-	TaskUpdatedSuccess = "Task updated successfully"
+	UserCreationSuccess = "User registration successful"
+	TaskCreatedSuccess  = "Task created successfully"
+	TaskUpdatedSuccess  = "Task updated successfully"
 )
