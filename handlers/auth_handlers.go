@@ -5,14 +5,24 @@ import (
 	"net/http"
 
 	responsemsg "blockstracker_backend/constants"
+	"blockstracker_backend/internal/repositories"
 	"blockstracker_backend/internal/validators"
 	"blockstracker_backend/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func SignupUser(c *gin.Context) {
+type AuthHandler struct {
+	userRepo *repositories.UserRepository
+}
+
+func NewAuthHandler(userRepo *repositories.UserRepository) *AuthHandler {
+	return &AuthHandler{userRepo: userRepo}
+}
+
+func (h *AuthHandler) SignupUser(c *gin.Context) {
 	var req models.SignUpRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -27,7 +37,25 @@ func SignupUser(c *gin.Context) {
 			errors = append(errors, fmt.Sprintf("Field %s is invalid: %s", e.Field(), e.Tag()))
 		}
 
-		c.JSON(http.StatusBadRequest, gin.H{"errors": errors})
+		c.JSON(http.StatusBadRequest, gin.H{"error": errors})
+		return
+	}
+
+	hashedPassword, pwHashingError := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if pwHashingError != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": responsemsg.InternalServerError})
+		return
+	}
+
+	hashedPasswordString := string(hashedPassword)
+
+	user := models.User{
+		Email:    req.Email,
+		Password: &hashedPasswordString,
+	}
+
+	if err := h.userRepo.CreateUser(&user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": responsemsg.UserCreationFailed})
 		return
 	}
 
