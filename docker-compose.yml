@@ -11,6 +11,9 @@ services:
       - db
       - redis
     environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
       GOOSE_DRIVER: postgres
       GOOSE_DBSTRING: postgres://${DB_USER}:${DB_PASSWORD}@db/${DB_NAME}?sslmode=disable
       GOOSE_MIGRATION_DIR: /app/migrations
