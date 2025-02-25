@@ -26,16 +26,12 @@ func (h *AuthHandler) SignupUser(c *gin.Context) {
 	var req models.SignUpRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		if validationErrors, ok := err.(validator.ValidationErrors); ok {
-			for _, err := range validationErrors {
-				message := validators.GetCustomMessage(err, req)
-
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error": message,
-				})
+		if err := c.ShouldBindJSON(&req); err != nil {
+			if validationErrors, ok := err.(validator.ValidationErrors); ok && len(validationErrors) > 0 {
+				message := validators.GetCustomMessage(validationErrors[0], req)
+				c.JSON(http.StatusBadRequest, gin.H{"error": message})
 				return
 			}
-		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": responsemsg.MalformedRequest})
 			return
 		}
