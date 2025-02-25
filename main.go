@@ -26,11 +26,11 @@ func main() {
 	r := gin.Default()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Versioned API group
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/ping", PingHandler)
-		routes.RegisterTaskRoutes(v1) // Register task routes under /api/v1
+		routes.RegisterAuthRoutes(v1)
+		routes.RegisterTaskRoutes(v1)
 	}
 
 	fmt.Println(strings.Repeat("🚀", 25))

@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	responsemsg "blockstracker_backend/constants"
 	"blockstracker_backend/internal/repositories"
+
 	"blockstracker_backend/internal/validators"
 	"blockstracker_backend/models"
 
@@ -26,19 +26,19 @@ func (h *AuthHandler) SignupUser(c *gin.Context) {
 	var req models.SignUpRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+			for _, err := range validationErrors {
+				message := validators.GetCustomMessage(err, req)
 
-	if err := validators.Validate.Struct(req); err != nil {
-		var errors []string
-
-		for _, e := range err.(validator.ValidationErrors) {
-			errors = append(errors, fmt.Sprintf("Field %s is invalid: %s", e.Field(), e.Tag()))
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": message,
+				})
+				return
+			}
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": responsemsg.MalformedRequest})
+			return
 		}
-
-		c.JSON(http.StatusBadRequest, gin.H{"error": errors})
-		return
 	}
 
 	hashedPassword, pwHashingError := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)

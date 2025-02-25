@@ -9,12 +9,12 @@ import (
 )
 
 func RegisterAuthRoutes(rg *gin.RouterGroup) {
-	taskGroup := rg.Group("/auth")
+	authGroup := rg.Group("/auth")
 	userRepo := repositories.NewUserRepository(database.DB)
 	authHandler := handlers.NewAuthHandler(userRepo)
 
 	{
-		taskGroup.POST("/signup", authHandler.SignupUser)
+		authGroup.POST("/signup", authHandler.SignupUser)
 
 	}
 }
