@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+	"strings"
 
 	_ "blockstracker_backend/docs"
+	"blockstracker_backend/internal/database"
+	"blockstracker_backend/internal/validators"
 	"blockstracker_backend/routes"
 
 	"github.com/gin-gonic/gin"
@@ -12,32 +14,26 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// probably we can get rid of it
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Air hot reload is working!")
-}
-
 // @title Your API Title
 // @version 1.0
 // @description This is your API description.
 // @host localhost:5000
 // @BasePath /api/v1
 func main() {
+	validators.RegisterCustomValidators()
+	database.ConnectDatabase()
+
 	r := gin.Default()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	// Example API route
-	// r.GET("/ping", PingHandler)
 
-	// Versioned API group
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/ping", PingHandler)
-		routes.RegisterTaskRoutes(v1) // Register task routes under /api/v1
+		routes.RegisterAuthRoutes(v1)
+		routes.RegisterTaskRoutes(v1)
 	}
 
-	// routes.RegisterTaskRoutes(r)
-
-	fmt.Println("Server started on :8080")
+	fmt.Println(strings.Repeat("🚀", 25))
 	r.Run(":8080")
 }
 
