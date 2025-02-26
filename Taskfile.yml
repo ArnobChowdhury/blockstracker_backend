@@ -10,3 +10,8 @@ tasks:
     cmds:
       - goose down
     description: "Rollback goose migrations (down)"
+  
+  test:
+    cmds:
+      - go test ./... -v
+    description: "Run all tests"
