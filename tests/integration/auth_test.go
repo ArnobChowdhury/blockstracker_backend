@@ -73,4 +73,21 @@ func TestSignupUserIntegration(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.Code)
 		assert.Contains(t, resp.Body.String(), responsemsg.UserCreationFailed)
 	})
+
+	t.Run("Failure - Weak Password", func(t *testing.T) {
+		requestBody := map[string]string{
+			"email":    "test@example.com",
+			"password": "weakpassword",
+		}
+		jsonBody, _ := json.Marshal(requestBody)
+
+		req, _ := http.NewRequest(http.MethodPost, "/signup", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp := httptest.NewRecorder()
+
+		router.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Contains(t, resp.Body.String(), responsemsg.NotStrongPassword)
+	})
 }
