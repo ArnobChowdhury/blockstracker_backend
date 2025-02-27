@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+	"log"
 	"net/http"
 
 	responsemsg "blockstracker_backend/constants"
@@ -12,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
@@ -49,8 +52,14 @@ func (h *AuthHandler) SignupUser(c *gin.Context) {
 	}
 
 	if err := h.userRepo.CreateUser(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": responsemsg.UserCreationFailed})
-		return
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": responsemsg.UserCreationFailed})
+			return
+		} else {
+			log.Printf("%s: %v", responsemsg.UnexpectedErrorDuringUserCreation, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": responsemsg.InternalServerError})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": responsemsg.UserCreationSuccess})

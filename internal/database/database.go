@@ -7,6 +7,8 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"blockstracker_backend/config"
 )
 
 var DB *gorm.DB
@@ -21,7 +23,7 @@ func ConnectDatabase() {
 		dbUser, dbPassword, dbName,
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), config.GormConfig)
 	if err != nil {
 		log.Fatal("Failed to connect to the database:", err)
 	}

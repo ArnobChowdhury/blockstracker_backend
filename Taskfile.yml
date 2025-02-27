@@ -11,7 +11,12 @@ tasks:
       - goose down
     description: "Rollback goose migrations (down)"
   
-  test:
+  unit-test:
     cmds:
-      - go test ./... -v
-    description: "Run all tests"
+      - go test ./tests/unit... -v
+    description: "Run unit tests"
+
+  integration-test:
+    cmds:
+      - go test ./tests/integration... -v
+    description: "Run integration tests"
