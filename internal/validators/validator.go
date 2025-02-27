@@ -27,7 +27,7 @@ var Validate = validator.New()
 
 func RegisterCustomValidators() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("strongpassword", StrongPassword)
+		v.RegisterValidation("strongpassword", StrongPasswordValidator)
 	}
 
 }

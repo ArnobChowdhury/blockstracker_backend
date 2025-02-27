@@ -10,9 +10,13 @@ var lowercaseRegexp = regexp.MustCompile(`[a-z]`)
 var uppercaseRegexp = regexp.MustCompile(`[A-Z]`)
 var digitRegexp = regexp.MustCompile(`[0-9]`)
 
-func StrongPassword(fl validator.FieldLevel) bool {
+// Wrapper function for validator
+func StrongPasswordValidator(fl validator.FieldLevel) bool {
 	password := fl.Field().String()
+	return StrongPassword(password)
+}
 
+func StrongPassword(password string) bool {
 	if len(password) < 8 {
 		return false
 	}

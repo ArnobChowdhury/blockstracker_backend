@@ -10,3 +10,13 @@ tasks:
     cmds:
       - goose down
     description: "Rollback goose migrations (down)"
+  
+  unit-test:
+    cmds:
+      - go test ./tests/unit... -v
+    description: "Run unit tests"
+
+  integration-test:
+    cmds:
+      - go test ./tests/integration... -v
+    description: "Run integration tests"
