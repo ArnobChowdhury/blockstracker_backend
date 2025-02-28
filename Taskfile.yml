@@ -20,3 +20,8 @@ tasks:
     cmds:
       - go test ./tests/integration... -v
     description: "Run integration tests"
+
+  test:
+    cmds:
+      - go test ./tests/... -v
+    description: "Run all tests"
