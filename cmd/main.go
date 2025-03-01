@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	_ "blockstracker_backend/docs"
 	"blockstracker_backend/internal/database"
 	"blockstracker_backend/internal/validators"
+	"blockstracker_backend/pkg/logger"
 	"blockstracker_backend/routes"
 
 	"github.com/gin-gonic/gin"
@@ -20,6 +22,7 @@ import (
 // @host localhost:5000
 // @BasePath /api/v1
 func main() {
+	defer logger.Log.Sync()
 	validators.RegisterCustomValidators()
 	database.ConnectDatabase()
 
@@ -34,7 +37,7 @@ func main() {
 	}
 
 	fmt.Println(strings.Repeat("🚀", 25))
-	r.Run(":8080")
+	r.Run(":" + os.Getenv("PORT"))
 }
 
 // PingHandler example

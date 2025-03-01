@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	responsemsg "blockstracker_backend/constants"
+	"blockstracker_backend/messages"
 	"blockstracker_backend/models"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +16,7 @@ func CreateTask(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": responsemsg.TaskCreatedSuccess})
+	c.JSON(http.StatusOK, gin.H{"message": messages.MsgTaskCreatedSuccess})
 }
 
 func UpdateTask(c *gin.Context) {
@@ -25,7 +25,7 @@ func UpdateTask(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": responsemsg.TaskUpdatedSuccess})
+	c.JSON(http.StatusOK, gin.H{"message": messages.MsgTaskUpdatedSuccess})
 }
 
 func UpdateRepetitiveTask(c *gin.Context) {
@@ -34,7 +34,7 @@ func UpdateRepetitiveTask(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": responsemsg.TaskUpdatedSuccess})
+	c.JSON(http.StatusOK, gin.H{"message": messages.MsgTaskUpdatedSuccess})
 }
 
 func GetTasksToday(c *gin.Context) {

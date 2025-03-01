@@ -1,7 +1,7 @@
 package validators
 
 import (
-	responsemsg "blockstracker_backend/constants"
+	"blockstracker_backend/messages"
 	"reflect"
 
 	"github.com/gin-gonic/gin/binding"
@@ -15,9 +15,9 @@ func GetCustomMessage(err validator.FieldError, req any) string {
 	case "required":
 		return field.Name + " is required"
 	case "email":
-		return responsemsg.InvalidEmail
+		return messages.ErrInvalidEmail
 	case "strongpassword":
-		return responsemsg.NotStrongPassword
+		return messages.ErrNotStrongPassword
 	default:
 		return "Validation failed for " + field.Name
 	}

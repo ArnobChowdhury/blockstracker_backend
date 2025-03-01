@@ -7,10 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	responsemsg "blockstracker_backend/constants"
 	"blockstracker_backend/handlers"
 	"blockstracker_backend/internal/repositories"
+	"blockstracker_backend/messages"
 	"blockstracker_backend/models"
+	"blockstracker_backend/pkg/logger"
 
 	// "blockstracker_backend/tests"
 	// "blockstracker_backend/tests/integration"
@@ -21,11 +22,10 @@ import (
 )
 
 func setupRouter(db *gorm.DB) *gin.Engine {
-
 	gin.SetMode(gin.TestMode)
 
 	userRepo := repositories.NewUserRepository(db)
-	authHandler := handlers.NewAuthHandler(userRepo)
+	authHandler := handlers.NewAuthHandler(userRepo, logger.Log)
 
 	router := gin.Default()
 	router.POST("/signup", authHandler.SignupUser)
@@ -49,7 +49,7 @@ func TestSignupUserIntegration(t *testing.T) {
 		router.ServeHTTP(resp, req)
 
 		assert.Equal(t, http.StatusOK, resp.Code)
-		assert.Contains(t, resp.Body.String(), responsemsg.UserCreationSuccess)
+		assert.Contains(t, resp.Body.String(), messages.MsgUserCreationSuccess)
 
 		var user models.User
 		err := TestDB.Where("email = ?", "test@example.com").First(&user).Error
@@ -71,7 +71,7 @@ func TestSignupUserIntegration(t *testing.T) {
 		router.ServeHTTP(resp, req)
 
 		assert.Equal(t, http.StatusBadRequest, resp.Code)
-		assert.Contains(t, resp.Body.String(), responsemsg.UserCreationFailed)
+		assert.Contains(t, resp.Body.String(), messages.ErrUserCreationFailed)
 	})
 
 	t.Run("Failure - Weak Password", func(t *testing.T) {
@@ -88,6 +88,6 @@ func TestSignupUserIntegration(t *testing.T) {
 		router.ServeHTTP(resp, req)
 
 		assert.Equal(t, http.StatusBadRequest, resp.Code)
-		assert.Contains(t, resp.Body.String(), responsemsg.NotStrongPassword)
+		assert.Contains(t, resp.Body.String(), messages.ErrNotStrongPassword)
 	})
 }

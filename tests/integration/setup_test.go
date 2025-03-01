@@ -3,6 +3,8 @@ package integration
 import (
 	"blockstracker_backend/config"
 	"blockstracker_backend/internal/validators"
+	"blockstracker_backend/pkg/logger"
+
 	"database/sql"
 	"fmt"
 	"log"
@@ -18,6 +20,7 @@ var TestDB *gorm.DB
 var originalGooseDBString string
 
 func TestMain(m *testing.M) {
+	defer logger.Log.Sync()
 	validators.RegisterCustomValidators()
 
 	db, err := createTestDB()
