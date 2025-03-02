@@ -17,6 +17,7 @@ func RegisterAuthRoutes(rg *gin.RouterGroup) {
 
 	{
 		authGroup.POST("/signup", authHandler.SignupUser)
+		authGroup.POST("/signin", authHandler.EmailSignIn)
 
 	}
 }

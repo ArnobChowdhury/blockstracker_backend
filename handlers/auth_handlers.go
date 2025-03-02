@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"os"
 
 	"blockstracker_backend/internal/repositories"
 	messages "blockstracker_backend/messages"
@@ -38,11 +39,13 @@ func (h *AuthHandler) SignupUser(c *gin.Context) {
 
 		if validationErrors, ok := err.(validator.ValidationErrors); ok && len(validationErrors) > 0 {
 			msg := validators.GetCustomMessage(validationErrors[0], req)
-			c.JSON(http.StatusBadRequest, utils.CreateJSONResponse(messages.Error, msg))
+			c.JSON(http.StatusBadRequest,
+				utils.CreateJSONResponse(messages.Error, msg, nil))
 			return
 		}
 
-		c.JSON(http.StatusBadRequest, utils.CreateJSONResponse(messages.Error, messages.ErrMalformedRequest))
+		c.JSON(http.StatusBadRequest,
+			utils.CreateJSONResponse(messages.Error, messages.ErrMalformedRequest, nil))
 		return
 	}
 
@@ -50,7 +53,8 @@ func (h *AuthHandler) SignupUser(c *gin.Context) {
 	if pwHashingError != nil {
 		h.logger.Errorw(messages.ErrHashingPassword, messages.Error, pwHashingError)
 
-		c.JSON(http.StatusInternalServerError, utils.CreateJSONResponse(messages.Error, messages.ErrHashingPassword))
+		c.JSON(http.StatusInternalServerError,
+			utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
 		return
 	}
 
@@ -64,16 +68,97 @@ func (h *AuthHandler) SignupUser(c *gin.Context) {
 	if err := h.userRepo.CreateUser(&user); err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			h.logger.Errorw(messages.ErrUniqueConstraintFailed, "email", user.Email)
-			c.JSON(http.StatusBadRequest, utils.CreateJSONResponse(messages.Error, messages.ErrUserCreationFailed))
+			c.JSON(http.StatusBadRequest,
+				utils.CreateJSONResponse(messages.Error, messages.ErrUserCreationFailed, nil))
 			return
 
 		} else {
 			h.logger.Errorw(messages.ErrUnexpectedErrorDuringUserCreation, "email", user.Email, messages.Error, err)
-			c.JSON(http.StatusInternalServerError, utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError))
+			c.JSON(http.StatusInternalServerError,
+				utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
 			return
 		}
 	}
 
 	h.logger.Infow(messages.MsgUserCreationSuccess, "email", user.Email)
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgUserCreationSuccess))
+	c.JSON(http.StatusOK,
+		utils.CreateJSONResponse(messages.Success, messages.MsgUserCreationSuccess, nil))
+}
+
+func (h *AuthHandler) EmailSignIn(c *gin.Context) {
+	var req models.EmailSignInRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		h.logger.Errorw(messages.ErrInvalidRequestBody, messages.Error, err)
+		c.JSON(http.StatusBadRequest,
+			utils.CreateJSONResponse(messages.Error, messages.ErrMalformedRequest, nil))
+		return
+	}
+
+	user, err := h.userRepo.GetUserByEmail(req.Email)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			h.logger.Errorw(messages.ErrEmailNotFoundDuringSignIn, "email", req.Email)
+			c.JSON(http.StatusUnauthorized,
+				utils.CreateJSONResponse(messages.Error, messages.ErrInvalidCredentials, nil))
+			return
+		} else {
+			h.logger.Errorw(messages.ErrUnexpectedErrorDuringUserRetrieval, "email", req.Email, messages.Error, err)
+			c.JSON(http.StatusInternalServerError,
+				utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
+			return
+		}
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(req.Password))
+	if err != nil {
+		h.logger.Errorw(messages.ErrMismatchingPasswordDuringSignIn,
+			"email", req.Email,
+			messages.Error, err)
+
+		c.JSON(http.StatusInternalServerError,
+			utils.CreateJSONResponse(messages.Error, messages.ErrInvalidCredentials, nil))
+		return
+	}
+
+	accessTokenClaims := utils.GetClaims(user, "access")
+	refreshTokenClaims := utils.GetClaims(user, "refresh")
+
+	accessSecretKey, ok := os.LookupEnv("JWT_ACCESS_SECRET")
+	if !ok {
+		h.logger.Errorw(messages.ErrJWTAccessSecretNotFoundInEnvironment, messages.Error, err)
+		c.JSON(http.StatusInternalServerError,
+			utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
+		return
+	}
+
+	refreshSecretKey, ok := os.LookupEnv("JWT_REFRESH_SECRET")
+	if !ok {
+		h.logger.Errorw(messages.ErrJWTRefreshSecretNotFoundInEnvironment, messages.Error, err)
+		c.JSON(http.StatusInternalServerError,
+			utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
+		return
+	}
+
+	accessToken, err := utils.GenerateJWT(accessTokenClaims, accessSecretKey)
+	if err != nil {
+		h.logger.Errorw(messages.ErrGeneratingJWT, messages.Error, err)
+		c.JSON(http.StatusInternalServerError,
+			utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
+		return
+	}
+
+	refreshToken, err := utils.GenerateJWT(refreshTokenClaims, refreshSecretKey)
+	if err != nil {
+		h.logger.Errorw(messages.ErrGeneratingJWT, "error", err)
+		c.JSON(http.StatusInternalServerError,
+			utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
+		return
+	}
+
+	c.JSON(http.StatusOK,
+		utils.CreateJSONResponse(messages.Success, messages.MsgSignInSuccessful, gin.H{
+			"accessToken":  accessToken,
+			"refreshToken": refreshToken,
+		}))
 }
