@@ -3,11 +3,11 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"os"
 
 	"blockstracker_backend/internal/repositories"
 	messages "blockstracker_backend/messages"
 
+	"blockstracker_backend/config"
 	"blockstracker_backend/internal/utils"
 	"blockstracker_backend/internal/validators"
 	"blockstracker_backend/models"
@@ -116,7 +116,7 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 			"email", req.Email,
 			messages.Error, err)
 
-		c.JSON(http.StatusInternalServerError,
+		c.JSON(http.StatusUnauthorized,
 			utils.CreateJSONResponse(messages.Error, messages.ErrInvalidCredentials, nil))
 		return
 	}
@@ -124,23 +124,7 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 	accessTokenClaims := utils.GetClaims(user, "access")
 	refreshTokenClaims := utils.GetClaims(user, "refresh")
 
-	accessSecretKey, ok := os.LookupEnv("JWT_ACCESS_SECRET")
-	if !ok {
-		h.logger.Errorw(messages.ErrJWTAccessSecretNotFoundInEnvironment, messages.Error, err)
-		c.JSON(http.StatusInternalServerError,
-			utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
-		return
-	}
-
-	refreshSecretKey, ok := os.LookupEnv("JWT_REFRESH_SECRET")
-	if !ok {
-		h.logger.Errorw(messages.ErrJWTRefreshSecretNotFoundInEnvironment, messages.Error, err)
-		c.JSON(http.StatusInternalServerError,
-			utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
-		return
-	}
-
-	accessToken, err := utils.GenerateJWT(accessTokenClaims, accessSecretKey)
+	accessToken, err := utils.GenerateJWT(accessTokenClaims, config.AuthSecrets.AccessSecret)
 	if err != nil {
 		h.logger.Errorw(messages.ErrGeneratingJWT, messages.Error, err)
 		c.JSON(http.StatusInternalServerError,
@@ -148,7 +132,7 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 		return
 	}
 
-	refreshToken, err := utils.GenerateJWT(refreshTokenClaims, refreshSecretKey)
+	refreshToken, err := utils.GenerateJWT(refreshTokenClaims, config.AuthSecrets.RefreshScret)
 	if err != nil {
 		h.logger.Errorw(messages.ErrGeneratingJWT, "error", err)
 		c.JSON(http.StatusInternalServerError,

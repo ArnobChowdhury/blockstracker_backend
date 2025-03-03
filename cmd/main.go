@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
+	"blockstracker_backend/config"
 	_ "blockstracker_backend/docs"
 	"blockstracker_backend/internal/database"
 	"blockstracker_backend/internal/validators"
@@ -23,6 +25,12 @@ import (
 // @BasePath /api/v1
 func main() {
 	defer logger.Log.Sync()
+
+	err := config.LoadAuthConfig()
+	if err != nil {
+		log.Fatalf("Error loading auth config: %v", err)
+	}
+
 	validators.RegisterCustomValidators()
 	database.ConnectDatabase()
 
