@@ -20,14 +20,16 @@ import (
 )
 
 type AuthHandler struct {
-	userRepo *repositories.UserRepository
-	logger   *zap.SugaredLogger
+	userRepo   *repositories.UserRepository
+	logger     *zap.SugaredLogger
+	authConfig *config.AuthConfig
 }
 
-func NewAuthHandler(userRepo *repositories.UserRepository, logger *zap.SugaredLogger) *AuthHandler {
+func NewAuthHandler(userRepo *repositories.UserRepository, logger *zap.SugaredLogger, authConfig *config.AuthConfig) *AuthHandler {
 	return &AuthHandler{
-		userRepo: userRepo,
-		logger:   logger,
+		userRepo:   userRepo,
+		logger:     logger,
+		authConfig: authConfig,
 	}
 }
 
@@ -124,7 +126,7 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 	accessTokenClaims := utils.GetClaims(user, "access")
 	refreshTokenClaims := utils.GetClaims(user, "refresh")
 
-	accessToken, err := utils.GenerateJWT(accessTokenClaims, config.AuthSecrets.AccessSecret)
+	accessToken, err := utils.GenerateJWT(accessTokenClaims, h.authConfig.AccessSecret)
 	if err != nil {
 		h.logger.Errorw(messages.ErrGeneratingJWT, messages.Error, err)
 		c.JSON(http.StatusInternalServerError,
@@ -132,7 +134,7 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 		return
 	}
 
-	refreshToken, err := utils.GenerateJWT(refreshTokenClaims, config.AuthSecrets.RefreshScret)
+	refreshToken, err := utils.GenerateJWT(refreshTokenClaims, h.authConfig.RefreshScret)
 	if err != nil {
 		h.logger.Errorw(messages.ErrGeneratingJWT, "error", err)
 		c.JSON(http.StatusInternalServerError,

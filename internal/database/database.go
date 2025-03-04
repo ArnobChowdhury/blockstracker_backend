@@ -31,3 +31,7 @@ func ConnectDatabase() {
 	DB = db
 	fmt.Println("Connected to the database!")
 }
+
+func DBProvider() *gorm.DB {
+	return DB
+}

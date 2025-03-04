@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"blockstracker_backend/config"
+	"blockstracker_backend/di"
 	_ "blockstracker_backend/docs"
 	"blockstracker_backend/internal/database"
 	"blockstracker_backend/internal/validators"
@@ -26,10 +26,10 @@ import (
 func main() {
 	defer logger.Log.Sync()
 
-	err := config.LoadAuthConfig()
-	if err != nil {
-		log.Fatalf("Error loading auth config: %v", err)
-	}
+	// err := config.LoadAuthConfig()
+	// if err != nil {
+	// 	log.Fatalf("Error loading auth config: %v", err)
+	// }
 
 	validators.RegisterCustomValidators()
 	database.ConnectDatabase()
@@ -37,10 +37,14 @@ func main() {
 	r := gin.Default()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	authHandler, err := di.InitializeAuthHandler()
+	if err != nil {
+		log.Fatalf("Error loading auth config: %v", err)
+	}
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/ping", PingHandler)
-		routes.RegisterAuthRoutes(v1)
+		routes.RegisterAuthRoutes(v1, authHandler)
 		routes.RegisterTaskRoutes(v1)
 	}
 

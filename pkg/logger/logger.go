@@ -10,3 +10,7 @@ func init() {
 	rawLogger, _ := zap.NewProduction()
 	Log = rawLogger.Sugar()
 }
+
+func LoggerProvider() *zap.SugaredLogger {
+	return Log
+}
