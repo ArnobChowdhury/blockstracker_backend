@@ -2,7 +2,6 @@ package utils
 
 import (
 	"blockstracker_backend/models"
-	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,24 +15,16 @@ const (
 )
 
 func CreateJSONResponse(status string, message string, data interface{}) gin.H {
-	response := gin.H{
-		"result": gin.H{
-			"status":  status,
-			"message": message,
-		},
+	result := gin.H{
+		"status":  status,
+		"message": message,
 	}
 
 	if data != nil {
-		if ginData, ok := data.(gin.H); ok {
-			response["result"].(gin.H)["data"] = ginData
-		} else {
-			response["data"] = data
-		}
-	} else {
-		fmt.Printf("Warning: Data is not a gin.H. Type: %T\n", data)
+		result["data"] = data
 	}
 
-	return response
+	return gin.H{"result": result}
 }
 
 func GenerateJWT(claims models.Claims, secretKey string) (string, error) {
