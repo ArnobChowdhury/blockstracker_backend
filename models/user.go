@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -20,4 +21,15 @@ type User struct {
 type SignUpRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,strongpassword"`
+}
+
+type EmailSignInRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
+type Claims struct {
+	UserID uuid.UUID `json:"user_id"`
+	Email  string    `json:"email"`
+	jwt.RegisteredClaims
 }
