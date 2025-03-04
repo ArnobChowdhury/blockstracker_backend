@@ -7,8 +7,8 @@ import (
 )
 
 type AuthConfig struct {
-	AccessSecret string
-	RefreshScret string
+	AccessSecret  string
+	RefreshSecret string
 }
 
 var AuthSecrets *AuthConfig
@@ -25,7 +25,7 @@ func LoadAuthConfig() (*AuthConfig, error) {
 	}
 
 	return &AuthConfig{
-		AccessSecret: accessSecretKey,
-		RefreshScret: refreshSecretKey,
+		AccessSecret:  accessSecretKey,
+		RefreshSecret: refreshSecretKey,
 	}, nil
 }

@@ -26,11 +26,6 @@ import (
 func main() {
 	defer logger.Log.Sync()
 
-	// err := config.LoadAuthConfig()
-	// if err != nil {
-	// 	log.Fatalf("Error loading auth config: %v", err)
-	// }
-
 	validators.RegisterCustomValidators()
 	database.ConnectDatabase()
 

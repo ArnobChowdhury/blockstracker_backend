@@ -33,6 +33,11 @@ func NewAuthHandler(userRepo *repositories.UserRepository, logger *zap.SugaredLo
 	}
 }
 
+func (h *AuthHandler) respondWithError(c *gin.Context, status int, logMsg string, err error, clientMsg string) {
+	h.logger.Errorw(logMsg, messages.Error, err)
+	c.JSON(status, utils.CreateJSONResponse(messages.Error, clientMsg, nil))
+}
+
 func (h *AuthHandler) SignupUser(c *gin.Context) {
 	var req models.SignUpRequest
 
@@ -53,10 +58,8 @@ func (h *AuthHandler) SignupUser(c *gin.Context) {
 
 	hashedPassword, pwHashingError := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if pwHashingError != nil {
-		h.logger.Errorw(messages.ErrHashingPassword, messages.Error, pwHashingError)
-
-		c.JSON(http.StatusInternalServerError,
-			utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
+		h.respondWithError(c, http.StatusInternalServerError,
+			messages.ErrHashingPassword, pwHashingError, messages.ErrInternalServerError)
 		return
 	}
 
@@ -91,9 +94,8 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 	var req models.EmailSignInRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.logger.Errorw(messages.ErrInvalidRequestBody, messages.Error, err)
-		c.JSON(http.StatusBadRequest,
-			utils.CreateJSONResponse(messages.Error, messages.ErrMalformedRequest, nil))
+		h.respondWithError(c, http.StatusBadRequest,
+			messages.ErrInvalidRequestBody, err, messages.ErrMalformedRequest)
 		return
 	}
 
@@ -105,21 +107,16 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 				utils.CreateJSONResponse(messages.Error, messages.ErrInvalidCredentials, nil))
 			return
 		} else {
-			h.logger.Errorw(messages.ErrUnexpectedErrorDuringUserRetrieval, "email", req.Email, messages.Error, err)
-			c.JSON(http.StatusInternalServerError,
-				utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
+			h.respondWithError(c, http.StatusInternalServerError,
+				messages.ErrUnexpectedErrorDuringUserRetrieval, err, messages.ErrInternalServerError)
 			return
 		}
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(req.Password))
 	if err != nil {
-		h.logger.Errorw(messages.ErrMismatchingPasswordDuringSignIn,
-			"email", req.Email,
-			messages.Error, err)
-
-		c.JSON(http.StatusUnauthorized,
-			utils.CreateJSONResponse(messages.Error, messages.ErrInvalidCredentials, nil))
+		h.respondWithError(c, http.StatusUnauthorized,
+			messages.ErrMismatchingPasswordDuringSignIn, err, messages.ErrInvalidCredentials)
 		return
 	}
 
@@ -128,17 +125,13 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 
 	accessToken, err := utils.GenerateJWT(accessTokenClaims, h.authConfig.AccessSecret)
 	if err != nil {
-		h.logger.Errorw(messages.ErrGeneratingJWT, messages.Error, err)
-		c.JSON(http.StatusInternalServerError,
-			utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
+		h.respondWithError(c, http.StatusInternalServerError, messages.ErrGeneratingJWT, err, messages.ErrInternalServerError)
 		return
 	}
 
-	refreshToken, err := utils.GenerateJWT(refreshTokenClaims, h.authConfig.RefreshScret)
+	refreshToken, err := utils.GenerateJWT(refreshTokenClaims, h.authConfig.RefreshSecret)
 	if err != nil {
-		h.logger.Errorw(messages.ErrGeneratingJWT, "error", err)
-		c.JSON(http.StatusInternalServerError,
-			utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
+		h.respondWithError(c, http.StatusInternalServerError, messages.ErrGeneratingJWT, err, messages.ErrInternalServerError)
 		return
 	}
 
