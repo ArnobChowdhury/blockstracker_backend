@@ -39,38 +39,49 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 		return
 	}
 
-	splitToken := strings.Split(authHeader, " ")
-	if len(splitToken) != 2 || strings.ToLower(splitToken[0]) != "bearer" {
+	tokenString, err := extractBearerToken(authHeader)
+	if err != nil {
 		abortUnauthorized(c, m.logger, messages.ErrInvalidAuthorizationHeader, errors.New(messages.ErrUnauthorized))
 		return
 	}
 
-	tokenString := splitToken[1]
-
-	token, err := jwt.ParseWithClaims(tokenString, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New(messages.ErrUnexpectedSigningMethod)
-		}
-		return []byte(m.authConfig.AccessSecret), nil
-	})
-
+	claims, err := parseToken(tokenString, m.authConfig)
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
 			abortUnauthorized(c, m.logger, messages.ErrTokenExpired, err)
 			return
 		}
-
-		abortUnauthorized(c, m.logger, messages.ErrInvalidToken, err)
+		// Optionally check for token expiration here if needed
+		abortUnauthorized(c, m.logger, err.Error(), err)
 		return
 	}
 
-	if claims, ok := token.Claims.(*models.Claims); ok && token.Valid {
-		c.Set("userID", claims.UserID)
-		c.Set("email", claims.Email)
+	c.Set("userID", claims.UserID)
+	c.Set("email", claims.Email)
+	c.Next()
 
-		c.Next()
-	} else {
-		abortUnauthorized(c, m.logger, messages.ErrInvalidToken, errors.New(messages.ErrUnauthorized))
+}
+
+func extractBearerToken(header string) (string, error) {
+	splitToken := strings.Split(header, " ")
+	if len(splitToken) != 2 || strings.ToLower(splitToken[0]) != "bearer" {
+		return "", errors.New(messages.ErrInvalidAuthorizationHeader)
 	}
+	return splitToken[1], nil
+}
 
+func parseToken(tokenString string, authConfig *config.AuthConfig) (*models.Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New(messages.ErrUnexpectedSigningMethod)
+		}
+		return []byte(authConfig.AccessSecret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(*models.Claims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, errors.New(messages.ErrInvalidToken)
 }
