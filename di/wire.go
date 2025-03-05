@@ -12,7 +12,6 @@ import (
 	"blockstracker_backend/internal/repositories"
 	"blockstracker_backend/pkg/logger"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
 
@@ -26,11 +25,11 @@ func InitializeAuthHandler() (*handlers.AuthHandler, error) {
 	return &handlers.AuthHandler{}, nil
 
 }
-func InitializeAuthMiddleware() (gin.HandlerFunc, error) {
+func InitializeAuthMiddleware() (*middleware.AuthMiddleware, error) {
 	wire.Build(
 		logger.LoggerProvider,
 		config.LoadAuthConfig,
 		middleware.NewAuthMiddleware,
 	)
-	return nil, nil
+	return &middleware.AuthMiddleware{}, nil
 }

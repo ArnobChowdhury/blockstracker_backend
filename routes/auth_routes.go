@@ -20,7 +20,7 @@ func RegisterAuthRoutes(rg *gin.RouterGroup) error {
 	{
 		authGroup.POST("/signup", authHandler.SignupUser)
 		authGroup.POST("/signin", authHandler.EmailSignIn)
-		authGroup.Use(authMiddleware).POST("/signout", authHandler.Signout)
+		authGroup.Use(authMiddleware.Handle).POST("/signout", authHandler.Signout)
 	}
 	return nil
 }

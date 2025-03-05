@@ -13,7 +13,6 @@ import (
 	"blockstracker_backend/internal/repositories"
 	"blockstracker_backend/middleware"
 	"blockstracker_backend/pkg/logger"
-	"github.com/gin-gonic/gin"
 )
 
 // Injectors from wire.go:
@@ -30,12 +29,12 @@ func InitializeAuthHandler() (*handlers.AuthHandler, error) {
 	return authHandler, nil
 }
 
-func InitializeAuthMiddleware() (gin.HandlerFunc, error) {
+func InitializeAuthMiddleware() (*middleware.AuthMiddleware, error) {
 	sugaredLogger := logger.LoggerProvider()
 	authConfig, err := config.LoadAuthConfig()
 	if err != nil {
 		return nil, err
 	}
-	handlerFunc := middleware.NewAuthMiddleware(sugaredLogger, authConfig)
-	return handlerFunc, nil
+	authMiddleware := middleware.NewAuthMiddleware(sugaredLogger, authConfig)
+	return authMiddleware, nil
 }
