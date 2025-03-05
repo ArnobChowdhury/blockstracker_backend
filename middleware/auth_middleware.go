@@ -14,22 +14,23 @@ import (
 	"go.uber.org/zap"
 )
 
+func abortUnauthorized(c *gin.Context, logger *zap.SugaredLogger, errMsg string, err error) {
+	logger.Errorw(errMsg, "error", err)
+	c.AbortWithStatusJSON(http.StatusUnauthorized, utils.CreateJSONResponse(messages.Error, errMsg, nil))
+}
+
 func NewAuthMiddleware(logger *zap.SugaredLogger, authConfig *config.AuthConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 
 		if authHeader == "" {
-			logger.Errorw(messages.ErrNoAuthorizationHeader)
-			c.AbortWithStatusJSON(http.StatusUnauthorized,
-				utils.CreateJSONResponse(messages.Error, messages.ErrUnauthorized, nil))
+			abortUnauthorized(c, logger, messages.ErrNoAuthorizationHeader, errors.New(messages.ErrUnauthorized))
 			return
 		}
 
 		splitToken := strings.Split(authHeader, " ")
 		if len(splitToken) != 2 || strings.ToLower(splitToken[0]) != "bearer" {
-			logger.Errorw(messages.ErrInvalidAuthorizationHeader)
-			c.AbortWithStatusJSON(http.StatusUnauthorized,
-				utils.CreateJSONResponse(messages.Error, messages.ErrUnauthorized, nil))
+			abortUnauthorized(c, logger, messages.ErrInvalidAuthorizationHeader, errors.New(messages.ErrUnauthorized))
 			return
 		}
 
@@ -44,15 +45,11 @@ func NewAuthMiddleware(logger *zap.SugaredLogger, authConfig *config.AuthConfig)
 
 		if err != nil {
 			if errors.Is(err, jwt.ErrTokenExpired) {
-				logger.Errorw(messages.ErrTokenExpired, messages.Error, err)
-				c.AbortWithStatusJSON(http.StatusUnauthorized,
-					utils.CreateJSONResponse(messages.Error, messages.ErrTokenExpired, nil))
+				abortUnauthorized(c, logger, messages.ErrTokenExpired, err)
 				return
 			}
 
-			logger.Errorw(messages.ErrInvalidToken, messages.Error, err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized,
-				utils.CreateJSONResponse(messages.Error, messages.ErrUnauthorized, nil))
+			abortUnauthorized(c, logger, messages.ErrInvalidToken, err)
 			return
 		}
 
@@ -62,9 +59,7 @@ func NewAuthMiddleware(logger *zap.SugaredLogger, authConfig *config.AuthConfig)
 
 			c.Next()
 		} else {
-			logger.Errorw(messages.ErrInvalidToken)
-			c.AbortWithStatusJSON(http.StatusUnauthorized,
-				utils.CreateJSONResponse(messages.Error, messages.ErrUnauthorized, nil))
+			abortUnauthorized(c, logger, messages.ErrInvalidToken, errors.New(messages.ErrUnauthorized))
 		}
 
 	}
