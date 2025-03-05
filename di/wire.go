@@ -16,21 +16,21 @@ import (
 	"github.com/google/wire"
 )
 
-func InitializeAuthHandler() *handlers.AuthHandler {
+func InitializeAuthHandler() (*handlers.AuthHandler, error) {
 	wire.Build(
 		database.DBProvider,
 		repositories.NewUserRepository,
 		logger.LoggerProvider,
-		config.AuthConfigProvider,
+		config.LoadAuthConfig,
 		handlers.NewAuthHandler)
-	return &handlers.AuthHandler{}
+	return &handlers.AuthHandler{}, nil
 
 }
-func InitializeAuthMiddleware() gin.HandlerFunc {
+func InitializeAuthMiddleware() (gin.HandlerFunc, error) {
 	wire.Build(
 		logger.LoggerProvider,
-		config.AuthConfigProvider,
+		config.LoadAuthConfig,
 		middleware.NewAuthMiddleware,
 	)
-	return nil
+	return nil, nil
 }

@@ -18,18 +18,24 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeAuthHandler() *handlers.AuthHandler {
+func InitializeAuthHandler() (*handlers.AuthHandler, error) {
 	db := database.DBProvider()
 	userRepository := repositories.NewUserRepository(db)
 	sugaredLogger := logger.LoggerProvider()
-	authConfig := config.AuthConfigProvider()
+	authConfig, err := config.LoadAuthConfig()
+	if err != nil {
+		return nil, err
+	}
 	authHandler := handlers.NewAuthHandler(userRepository, sugaredLogger, authConfig)
-	return authHandler
+	return authHandler, nil
 }
 
-func InitializeAuthMiddleware() gin.HandlerFunc {
+func InitializeAuthMiddleware() (gin.HandlerFunc, error) {
 	sugaredLogger := logger.LoggerProvider()
-	authConfig := config.AuthConfigProvider()
+	authConfig, err := config.LoadAuthConfig()
+	if err != nil {
+		return nil, err
+	}
 	handlerFunc := middleware.NewAuthMiddleware(sugaredLogger, authConfig)
-	return handlerFunc
+	return handlerFunc, nil
 }

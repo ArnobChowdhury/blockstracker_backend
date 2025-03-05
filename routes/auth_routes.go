@@ -6,13 +6,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterAuthRoutes(rg *gin.RouterGroup, authMiddleware gin.HandlerFunc) {
+func RegisterAuthRoutes(rg *gin.RouterGroup) error {
 	authGroup := rg.Group("/auth")
-	authHandler := di.InitializeAuthHandler()
+	authHandler, err := di.InitializeAuthHandler()
+	if err != nil {
+		return err
+	}
+	authMiddleware, err := di.InitializeAuthMiddleware()
+	if err != nil {
+		return err
+	}
 
 	{
 		authGroup.POST("/signup", authHandler.SignupUser)
 		authGroup.POST("/signin", authHandler.EmailSignIn)
 		authGroup.Use(authMiddleware).POST("/signout", authHandler.Signout)
 	}
+	return nil
 }
