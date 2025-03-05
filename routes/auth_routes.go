@@ -1,21 +1,14 @@
 package routes
 
 import (
-	"blockstracker_backend/di"
+	"blockstracker_backend/handlers"
+	"blockstracker_backend/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterAuthRoutes(rg *gin.RouterGroup) error {
+func RegisterAuthRoutes(rg *gin.RouterGroup, authHandler *handlers.AuthHandler, authMiddleware *middleware.AuthMiddleware) error {
 	authGroup := rg.Group("/auth")
-	authHandler, err := di.InitializeAuthHandler()
-	if err != nil {
-		return err
-	}
-	authMiddleware, err := di.InitializeAuthMiddleware()
-	if err != nil {
-		return err
-	}
 
 	{
 		authGroup.POST("/signup", authHandler.SignupUser)
