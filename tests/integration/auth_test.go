@@ -3,6 +3,7 @@ package integration
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -22,19 +23,26 @@ import (
 	"gorm.io/gorm"
 )
 
-func setupRouter(db *gorm.DB) *gin.Engine {
+func setupRouter(db *gorm.DB) (*gin.Engine, error) {
 	gin.SetMode(gin.TestMode)
 
 	userRepo := repositories.NewUserRepository(db)
-	authHandler := handlers.NewAuthHandler(userRepo, logger.Log, config.AuthConfigProvider())
+	authConfig, err := config.LoadAuthConfig()
+	if err != nil {
+		return nil, fmt.Errorf("Error loading auth config: %v", err)
+	}
+	authHandler := handlers.NewAuthHandler(userRepo, logger.Log, authConfig)
 
 	router := gin.Default()
 	router.POST("/signup", authHandler.SignupUser)
-	return router
+	return router, nil
 }
 
 func TestSignupUserIntegration(t *testing.T) {
-	router := setupRouter(TestDB)
+	router, err := setupRouter(TestDB)
+	if err != nil {
+		t.Fatalf("Error setting up router: %v", err)
+	}
 
 	t.Run("Success - Valid Request", func(t *testing.T) {
 		requestBody := map[string]string{

@@ -23,11 +23,6 @@ func TestMain(m *testing.M) {
 	defer logger.Log.Sync()
 	validators.RegisterCustomValidators()
 
-	err := config.LoadAuthConfig()
-	if err != nil {
-		log.Fatalf("Error loading auth config: %v", err)
-	}
-
 	db, err := createTestDB()
 	if err != nil {
 		log.Fatal(err)
