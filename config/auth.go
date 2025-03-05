@@ -13,19 +13,24 @@ type AuthConfig struct {
 
 var AuthSecrets *AuthConfig
 
-func LoadAuthConfig() (*AuthConfig, error) {
+func LoadAuthConfig() error {
 	accessSecretKey, ok := os.LookupEnv("JWT_ACCESS_SECRET")
 	if !ok {
-		return nil, fmt.Errorf(messages.ErrJWTAccessSecretNotFoundInEnvironment)
+		return fmt.Errorf(messages.ErrJWTAccessSecretNotFoundInEnvironment)
 	}
 
 	refreshSecretKey, ok := os.LookupEnv("JWT_REFRESH_SECRET")
 	if !ok {
-		return nil, fmt.Errorf(messages.ErrJWTRefreshSecretNotFoundInEnvironment)
+		return fmt.Errorf(messages.ErrJWTRefreshSecretNotFoundInEnvironment)
 	}
 
-	return &AuthConfig{
+	AuthSecrets = &AuthConfig{
 		AccessSecret:  accessSecretKey,
 		RefreshSecret: refreshSecretKey,
-	}, nil
+	}
+	return nil
+}
+
+func AuthConfigProvider() *AuthConfig {
+	return AuthSecrets
 }

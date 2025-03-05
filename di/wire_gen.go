@@ -11,19 +11,25 @@ import (
 	"blockstracker_backend/handlers"
 	"blockstracker_backend/internal/database"
 	"blockstracker_backend/internal/repositories"
+	"blockstracker_backend/middleware"
 	"blockstracker_backend/pkg/logger"
+	"github.com/gin-gonic/gin"
 )
 
 // Injectors from wire.go:
 
-func InitializeAuthHandler() (*handlers.AuthHandler, error) {
+func InitializeAuthHandler() *handlers.AuthHandler {
 	db := database.DBProvider()
 	userRepository := repositories.NewUserRepository(db)
 	sugaredLogger := logger.LoggerProvider()
-	authConfig, err := config.LoadAuthConfig()
-	if err != nil {
-		return nil, err
-	}
+	authConfig := config.AuthConfigProvider()
 	authHandler := handlers.NewAuthHandler(userRepository, sugaredLogger, authConfig)
-	return authHandler, nil
+	return authHandler
+}
+
+func InitializeAuthMiddleware() gin.HandlerFunc {
+	sugaredLogger := logger.LoggerProvider()
+	authConfig := config.AuthConfigProvider()
+	handlerFunc := middleware.NewAuthMiddleware(sugaredLogger, authConfig)
+	return handlerFunc
 }

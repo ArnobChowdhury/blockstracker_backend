@@ -141,3 +141,9 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 			"refreshToken": refreshToken,
 		}))
 }
+
+func (h *AuthHandler) Signout(c *gin.Context) {
+	// to be implemented separately
+	c.JSON(http.StatusOK,
+		utils.CreateJSONResponse(messages.Success, "ok, you are signed out", nil))
+}

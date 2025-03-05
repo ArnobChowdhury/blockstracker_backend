@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"blockstracker_backend/config"
 	"blockstracker_backend/handlers"
 	"blockstracker_backend/internal/repositories"
 	"blockstracker_backend/messages"
@@ -25,7 +26,7 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	userRepo := repositories.NewUserRepository(db)
-	authHandler := handlers.NewAuthHandler(userRepo, logger.Log)
+	authHandler := handlers.NewAuthHandler(userRepo, logger.Log, config.AuthConfigProvider())
 
 	router := gin.Default()
 	router.POST("/signup", authHandler.SignupUser)

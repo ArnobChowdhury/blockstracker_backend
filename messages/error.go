@@ -21,4 +21,10 @@ const (
 	ErrJWTRefreshSecretNotFoundInEnvironment = "JWT_REFRESH_SECRET not found in environment variables"
 	ErrGeneratingJWT                         = "Failed to generate JWT"
 	ErrMismatchingPasswordDuringSignIn       = "Mismatching password during sign in"
+	ErrNoAuthorizationHeader                 = "No Authorization header"
+	ErrInvalidAuthorizationHeader            = "Invalid authorization header"
+	ErrUnexpectedSigningMethod               = "Unexpected signing method"
+	ErrUnauthorized                          = "Unauthorized"
+	ErrInvalidToken                          = "Invalid token"
+	ErrTokenExpired                          = "Token expired"
 )
