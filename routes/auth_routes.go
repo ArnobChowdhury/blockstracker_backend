@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterAuthRoutes(rg *gin.RouterGroup, authHandler *handlers.AuthHandler, authMiddleware *middleware.AuthMiddleware) error {
+func RegisterAuthRoutes(rg *gin.RouterGroup, authHandler *handlers.AuthHandler, authMiddleware *middleware.AuthMiddleware) {
 	authGroup := rg.Group("/auth")
 
 	{
@@ -15,5 +15,4 @@ func RegisterAuthRoutes(rg *gin.RouterGroup, authHandler *handlers.AuthHandler, 
 		authGroup.POST("/signin", authHandler.EmailSignIn)
 		authGroup.Use(authMiddleware.Handle).POST("/signout", authHandler.Signout)
 	}
-	return nil
 }
