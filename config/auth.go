@@ -11,8 +11,6 @@ type AuthConfig struct {
 	RefreshSecret string
 }
 
-var AuthSecrets *AuthConfig
-
 func LoadAuthConfig() (*AuthConfig, error) {
 	accessSecretKey, ok := os.LookupEnv("JWT_ACCESS_SECRET")
 	if !ok {

@@ -5,6 +5,7 @@ package di
 
 import (
 	"blockstracker_backend/handlers"
+	"blockstracker_backend/middleware"
 
 	"blockstracker_backend/config"
 	"blockstracker_backend/internal/database"
@@ -23,4 +24,12 @@ func InitializeAuthHandler() (*handlers.AuthHandler, error) {
 		handlers.NewAuthHandler)
 	return &handlers.AuthHandler{}, nil
 
+}
+func InitializeAuthMiddleware() (*middleware.AuthMiddleware, error) {
+	wire.Build(
+		logger.LoggerProvider,
+		config.LoadAuthConfig,
+		middleware.NewAuthMiddleware,
+	)
+	return &middleware.AuthMiddleware{}, nil
 }

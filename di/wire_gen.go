@@ -11,6 +11,7 @@ import (
 	"blockstracker_backend/handlers"
 	"blockstracker_backend/internal/database"
 	"blockstracker_backend/internal/repositories"
+	"blockstracker_backend/middleware"
 	"blockstracker_backend/pkg/logger"
 )
 
@@ -26,4 +27,14 @@ func InitializeAuthHandler() (*handlers.AuthHandler, error) {
 	}
 	authHandler := handlers.NewAuthHandler(userRepository, sugaredLogger, authConfig)
 	return authHandler, nil
+}
+
+func InitializeAuthMiddleware() (*middleware.AuthMiddleware, error) {
+	sugaredLogger := logger.LoggerProvider()
+	authConfig, err := config.LoadAuthConfig()
+	if err != nil {
+		return nil, err
+	}
+	authMiddleware := middleware.NewAuthMiddleware(sugaredLogger, authConfig)
+	return authMiddleware, nil
 }

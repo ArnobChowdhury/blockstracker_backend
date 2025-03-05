@@ -29,17 +29,23 @@ func main() {
 	validators.RegisterCustomValidators()
 	database.ConnectDatabase()
 
+	authHandler, err := di.InitializeAuthHandler()
+	if err != nil {
+		log.Fatalf("Error initializing auth handler: %s", err.Error())
+	}
+	authMiddleware, err := di.InitializeAuthMiddleware()
+	if err != nil {
+		log.Fatalf("Error initializing auth middleware: %s", err.Error())
+	}
+
 	r := gin.Default()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	authHandler, err := di.InitializeAuthHandler()
-	if err != nil {
-		log.Fatalf("Error loading auth config: %v", err)
-	}
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/ping", PingHandler)
-		routes.RegisterAuthRoutes(v1, authHandler)
+
+		routes.RegisterAuthRoutes(v1, authHandler, authMiddleware)
 		routes.RegisterTaskRoutes(v1)
 	}
 
