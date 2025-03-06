@@ -33,6 +33,17 @@ func (m *AuthMiddleware) abortUnauthorized(c *gin.Context, logTitle string, logE
 		utils.CreateJSONResponse(messages.Error, resErrMsg, nil))
 }
 
+func (m *AuthMiddleware) mapAuthError(err error) (logTitle, logErrMsg, resErrMsg string) {
+	switch {
+	case errors.Is(err, jwt.ErrTokenExpired):
+		return "JWT expired", err.Error(), apperrors.ErrTokenExpired.Error()
+	case func() bool { _, ok := err.(*apperrors.AuthError); return ok }():
+		return "JWT parsing error", err.Error(), apperrors.ErrUnauthorized.Error()
+	default:
+		return "JWT parsing error", err.Error(), apperrors.ErrUnauthorized.Error()
+	}
+}
+
 func (m *AuthMiddleware) Handle(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 
@@ -52,21 +63,8 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 
 	claims, parseErr := parseToken(tokenString, m.authConfig)
 	if parseErr != nil {
-		if errors.Is(parseErr, jwt.ErrTokenExpired) {
-			m.abortUnauthorized(c, "JWT expired",
-				parseErr.Error(),
-				apperrors.ErrTokenExpired.Error())
-			return
-		}
-
-		if authError, ok := parseErr.(*apperrors.AuthError); ok {
-			m.abortUnauthorized(c, "JWT parsing error",
-				authError.LogError(),
-				apperrors.ErrTokenExpired.Error())
-			return
-		}
-
-		m.abortUnauthorized(c, "JWT parsing error", err.Error(), apperrors.ErrUnauthorized.Error())
+		logTitle, logErrMsg, resErrMsg := m.mapAuthError(parseErr)
+		m.abortUnauthorized(c, logTitle, logErrMsg, resErrMsg)
 		return
 	}
 
