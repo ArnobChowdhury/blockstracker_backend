@@ -7,7 +7,6 @@ import (
 	"blockstracker_backend/messages"
 	"blockstracker_backend/models"
 	"errors"
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -27,20 +26,20 @@ func NewAuthMiddleware(logger *zap.SugaredLogger, authConfig *config.AuthConfig)
 	}
 }
 
-func (m *AuthMiddleware) abortUnauthorized(c *gin.Context, logTitle string, logErrMsg string, resErrMsg string) {
+func (m *AuthMiddleware) abortUnauthorized(c *gin.Context, logTitle string, logErrMsg string, resErr *apperrors.AuthError) {
 	m.logger.Errorw(logTitle, messages.Error, logErrMsg)
-	c.AbortWithStatusJSON(http.StatusUnauthorized,
-		utils.CreateJSONResponse(messages.Error, resErrMsg, nil))
+	c.AbortWithStatusJSON(resErr.StatusCode(),
+		utils.CreateJSONResponse(messages.Error, resErr.Error(), nil))
 }
 
-func (m *AuthMiddleware) mapAuthError(err error) (logTitle, logErrMsg, resErrMsg string) {
+func (m *AuthMiddleware) mapAuthError(err error) (logTitle, logErrMsg string, resErr *apperrors.AuthError) {
 	switch {
 	case errors.Is(err, jwt.ErrTokenExpired):
-		return "JWT expired", err.Error(), apperrors.ErrTokenExpired.Error()
+		return "JWT expired", err.Error(), apperrors.ErrTokenExpired
 	case func() bool { _, ok := err.(*apperrors.AuthError); return ok }():
-		return "JWT parsing error", err.Error(), apperrors.ErrUnauthorized.Error()
+		return "JWT parsing error", err.Error(), apperrors.ErrUnauthorized
 	default:
-		return "JWT parsing error", err.Error(), apperrors.ErrUnauthorized.Error()
+		return "JWT parsing error", err.Error(), apperrors.ErrUnauthorized
 	}
 }
 
@@ -50,21 +49,21 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 	if authHeader == "" {
 		m.abortUnauthorized(c, "No Auth Header",
 			apperrors.ErrNoAuthorizationHeader.LogError(),
-			apperrors.ErrUnauthorized.Error())
+			apperrors.ErrUnauthorized)
 		return
 	}
 
 	tokenString, err := extractBearerToken(authHeader)
 	if err != nil {
 		m.abortUnauthorized(c, "Invalid Auth Header",
-			err.LogError(), apperrors.ErrUnauthorized.Error())
+			err.LogError(), apperrors.ErrUnauthorized)
 		return
 	}
 
 	claims, parseErr := parseToken(tokenString, m.authConfig)
 	if parseErr != nil {
-		logTitle, logErrMsg, resErrMsg := m.mapAuthError(parseErr)
-		m.abortUnauthorized(c, logTitle, logErrMsg, resErrMsg)
+		logTitle, logErrMsg, resErr := m.mapAuthError(parseErr)
+		m.abortUnauthorized(c, logTitle, logErrMsg, resErr)
 		return
 	}
 

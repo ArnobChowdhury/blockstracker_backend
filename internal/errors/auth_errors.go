@@ -1,10 +1,26 @@
 package apperrors
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 type AuthError struct {
-	code    string
-	message string
+	code       string
+	message    string
+	statusCode int
+}
+
+func NewAuthError(code, message string, statusCode int) *AuthError {
+	return &AuthError{
+		code:       code,
+		message:    message,
+		statusCode: statusCode,
+	}
+}
+
+func (e *AuthError) StatusCode() int {
+	return e.statusCode
 }
 
 func (e *AuthError) Error() string {
@@ -12,14 +28,14 @@ func (e *AuthError) Error() string {
 }
 
 func (e *AuthError) LogError() string {
-	return fmt.Sprintf("AuthError - Code: %s, Message: %s", e.code, e.message)
+	return fmt.Sprintf("AuthError - Code: %s, Message: %s, Status Code: %d", e.code, e.message, e.statusCode)
 }
 
 var (
-	ErrUnauthorized            = &AuthError{"UNAUTHORIZED", "Unauthorized"}
-	ErrNoAuthorizationHeader   = &AuthError{"NO_AUTH_HEADER", "No Authorization header"}
-	ErrInvalidAuthHeader       = &AuthError{"INVALID_AUTH_HEADER", "Invalid Authorization header"}
-	ErrTokenExpired            = &AuthError{"TOKEN_EXPIRED", "Token expired"}
-	ErrInvalidToken            = &AuthError{"INVALID_TOKEN", "Invalid token"}
-	ErrUnexpectedSigningMethod = &AuthError{"UNEXPECTED_SIGNING_METHOD", "Unexpected signing method"}
+	ErrUnauthorized            = NewAuthError("UNAUTHORIZED", "Unauthorized", http.StatusUnauthorized)
+	ErrNoAuthorizationHeader   = NewAuthError("NO_AUTH_HEADER", "No Authorization header", http.StatusUnauthorized)
+	ErrInvalidAuthHeader       = NewAuthError("INVALID_AUTH_HEADER", "Invalid Authorization header", http.StatusUnauthorized)
+	ErrTokenExpired            = NewAuthError("TOKEN_EXPIRED", "Token expired", http.StatusUnauthorized)
+	ErrInvalidToken            = NewAuthError("INVALID_TOKEN", "Invalid token", http.StatusUnauthorized)
+	ErrUnexpectedSigningMethod = NewAuthError("UNEXPECTED_SIGNING_METHOD", "Unexpected signing method", http.StatusUnauthorized)
 )
