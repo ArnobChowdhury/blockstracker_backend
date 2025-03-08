@@ -2,7 +2,6 @@ package integration
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,30 +15,30 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 )
 
-func setupRouter(db *gorm.DB) (*gin.Engine, error) {
+var router *gin.Engine
+
+func setup(t *testing.T) {
+	t.Helper()
+	var err error
 	gin.SetMode(gin.TestMode)
 
-	userRepo := repositories.NewUserRepository(db)
+	userRepo := repositories.NewUserRepository(TestDB)
 	authConfig, err := config.LoadAuthConfig()
 	if err != nil {
-		return nil, fmt.Errorf("Error loading auth config: %v", err)
+		t.Fatalf("Error loading auth config: %v", err)
 	}
 	authHandler := handlers.NewAuthHandler(userRepo, logger.Log, authConfig)
 
-	router := gin.Default()
+	router = gin.Default()
 	router.POST("/signup", authHandler.SignupUser)
 	router.POST("/signin", authHandler.EmailSignIn)
-	return router, nil
+
 }
 
 func TestSignupUserIntegration(t *testing.T) {
-	router, err := setupRouter(TestDB)
-	if err != nil {
-		t.Fatalf("Error setting up router: %v", err)
-	}
+	setup(t)
 
 	testCases := []struct {
 		name           string
@@ -85,10 +84,7 @@ func TestSignupUserIntegration(t *testing.T) {
 }
 
 func TestSigninUserIntegration(t *testing.T) {
-	router, err := setupRouter(TestDB)
-	if err != nil {
-		t.Fatalf("Error setting up router: %v", err)
-	}
+	setup(t)
 
 	testCases := []struct {
 		name           string
