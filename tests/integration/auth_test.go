@@ -35,6 +35,7 @@ func setupRouter(db *gorm.DB) (*gin.Engine, error) {
 
 	router := gin.Default()
 	router.POST("/signup", authHandler.SignupUser)
+	router.POST("/signin", authHandler.EmailSignIn)
 	return router, nil
 }
 
@@ -98,5 +99,108 @@ func TestSignupUserIntegration(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, resp.Code)
 		assert.Contains(t, resp.Body.String(), messages.ErrNotStrongPassword)
+	})
+}
+
+func TestSigninUserIntegration(t *testing.T) {
+	router, err := setupRouter(TestDB)
+	if err != nil {
+		t.Fatalf("Error setting up router: %v", err)
+	}
+
+	t.Run("Success - Valid Credentials", func(t *testing.T) {
+		requestBody := map[string]string{
+			"email":    "test@example.com",
+			"password": "StrongPassword123!",
+		}
+
+		jsonBody, _ := json.Marshal(requestBody)
+
+		req, _ := http.NewRequest(http.MethodPost, "/signin", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp := httptest.NewRecorder()
+
+		router.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		var responseBody map[string]interface{}
+		err = json.Unmarshal(resp.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+		result, ok := responseBody["result"].(map[string]interface{})
+		assert.True(t, ok)
+		data, ok := result["data"].(map[string]interface{})
+		assert.True(t, ok)
+		_, accessTokenExists := data["accessToken"].(string)
+		_, refreshTokenExists := data["refreshToken"].(string)
+		assert.True(t, accessTokenExists && refreshTokenExists)
+		assert.Contains(t, resp.Body.String(), messages.MsgSignInSuccessful)
+	})
+
+	t.Run("Failure - User Not Found", func(t *testing.T) {
+		requestBody := map[string]string{
+			"email":    "nonexistent@example.com",
+			"password": "anypassword",
+		}
+		jsonBody, _ := json.Marshal(requestBody)
+
+		req, _ := http.NewRequest(http.MethodPost, "/signin", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp := httptest.NewRecorder()
+
+		router.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusUnauthorized, resp.Code)
+		assert.Contains(t, resp.Body.String(), messages.ErrInvalidCredentials)
+	})
+
+	t.Run("Failure - Invalid Credentials", func(t *testing.T) {
+		requestBody := map[string]string{
+			"email":    "test@example.com",
+			"password": "wrongpassword",
+		}
+		jsonBody, _ := json.Marshal(requestBody)
+
+		req, _ := http.NewRequest(http.MethodPost, "/signin", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp := httptest.NewRecorder()
+
+		router.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusUnauthorized, resp.Code)
+		assert.Contains(t, resp.Body.String(), messages.ErrInvalidCredentials)
+	})
+
+	t.Run("Failure - Empty Email", func(t *testing.T) {
+		requestBody := map[string]string{
+			"email":    "",
+			"password": "StrongPassword123!",
+		}
+		jsonBody, _ := json.Marshal(requestBody)
+
+		req, _ := http.NewRequest(http.MethodPost, "/signin", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp := httptest.NewRecorder()
+
+		router.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Contains(t, resp.Body.String(), messages.ErrMalformedRequest)
+	})
+
+	t.Run("Failure - Invalid Email Format", func(t *testing.T) {
+		requestBody := map[string]string{
+			"email":    "test",
+			"password": "StrongPassword123!",
+		}
+		jsonBody, _ := json.Marshal(requestBody)
+
+		req, _ := http.NewRequest(http.MethodPost, "/signin", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp := httptest.NewRecorder()
+
+		router.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Contains(t, resp.Body.String(), messages.ErrMalformedRequest)
 	})
 }
