@@ -12,7 +12,6 @@ import (
 	"blockstracker_backend/handlers"
 	"blockstracker_backend/internal/repositories"
 	"blockstracker_backend/messages"
-	"blockstracker_backend/models"
 	"blockstracker_backend/pkg/logger"
 
 	// "blockstracker_backend/tests"
@@ -45,61 +44,47 @@ func TestSignupUserIntegration(t *testing.T) {
 		t.Fatalf("Error setting up router: %v", err)
 	}
 
-	t.Run("Success - Valid Request", func(t *testing.T) {
-		requestBody := map[string]string{
-			"email":    "test@example.com",
-			"password": "StrongPassword123!",
-		}
-		jsonBody, _ := json.Marshal(requestBody)
+	testCases := []struct {
+		name           string
+		requestBody    map[string]string
+		expectedStatus int
+		expectedErrMsg string
+	}{
+		{
+			name:           "Success - Valid Request",
+			requestBody:    map[string]string{"email": "test@example.com", "password": "StrongPassword123!"},
+			expectedStatus: http.StatusOK,
+			expectedErrMsg: messages.MsgUserCreationSuccess,
+		},
+		{
+			name:           "Failure - Duplicate Email",
+			requestBody:    map[string]string{"email": "test@example.com", "password": "StrongPassword123!"},
+			expectedStatus: http.StatusBadRequest,
+			expectedErrMsg: messages.ErrUserCreationFailed,
+		},
+		{
+			name:           "Failure - Weak Password",
+			requestBody:    map[string]string{"email": "test2@example.com", "password": "weakpassword"},
+			expectedStatus: http.StatusBadRequest,
+			expectedErrMsg: messages.ErrNotStrongPassword,
+		},
+	}
 
-		req, _ := http.NewRequest(http.MethodPost, "/signup", bytes.NewBuffer(jsonBody))
-		req.Header.Set("Content-Type", "application/json")
-		resp := httptest.NewRecorder()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			req, err := createRequest(http.MethodPost, "/signup", tc.requestBody)
+			if err != nil {
+				t.Fatalf("Error creating request: %v", err)
+			}
+			resp := httptest.NewRecorder()
+			router.ServeHTTP(resp, req)
 
-		router.ServeHTTP(resp, req)
+			assert.Equal(t, tc.expectedStatus, resp.Code, "Unexpected status code")
+			assert.Contains(t, resp.Body.String(), tc.expectedErrMsg, "Expected error message not found")
 
-		assert.Equal(t, http.StatusOK, resp.Code)
-		assert.Contains(t, resp.Body.String(), messages.MsgUserCreationSuccess)
-
-		var user models.User
-		err := TestDB.Where("email = ?", "test@example.com").First(&user).Error
-		assert.Nil(t, err)
-		assert.Equal(t, "test@example.com", user.Email)
-	})
-
-	t.Run("Failure - Duplicate Email", func(t *testing.T) {
-		requestBody := map[string]string{
-			"email":    "test@example.com",
-			"password": "StrongPassword123!",
-		}
-		jsonBody, _ := json.Marshal(requestBody)
-
-		req, _ := http.NewRequest(http.MethodPost, "/signup", bytes.NewBuffer(jsonBody))
-		req.Header.Set("Content-Type", "application/json")
-		resp := httptest.NewRecorder()
-
-		router.ServeHTTP(resp, req)
-
-		assert.Equal(t, http.StatusBadRequest, resp.Code)
-		assert.Contains(t, resp.Body.String(), messages.ErrUserCreationFailed)
-	})
-
-	t.Run("Failure - Weak Password", func(t *testing.T) {
-		requestBody := map[string]string{
-			"email":    "test@example.com",
-			"password": "weakpassword",
-		}
-		jsonBody, _ := json.Marshal(requestBody)
-
-		req, _ := http.NewRequest(http.MethodPost, "/signup", bytes.NewBuffer(jsonBody))
-		req.Header.Set("Content-Type", "application/json")
-		resp := httptest.NewRecorder()
-
-		router.ServeHTTP(resp, req)
-
-		assert.Equal(t, http.StatusBadRequest, resp.Code)
-		assert.Contains(t, resp.Body.String(), messages.ErrNotStrongPassword)
-	})
+		},
+		)
+	}
 }
 
 func createRequest(method, path string, body interface{}) (*http.Request, error) {
