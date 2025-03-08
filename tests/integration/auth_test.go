@@ -1,7 +1,6 @@
 package integration
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,9 +12,7 @@ import (
 	"blockstracker_backend/internal/repositories"
 	"blockstracker_backend/messages"
 	"blockstracker_backend/pkg/logger"
-
-	// "blockstracker_backend/tests"
-	// "blockstracker_backend/tests/integration"
+	"blockstracker_backend/tests/integration/testutils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -72,7 +69,7 @@ func TestSignupUserIntegration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			req, err := createRequest(http.MethodPost, "/signup", tc.requestBody)
+			req, err := testutils.CreateRequest(http.MethodPost, "/signup", tc.requestBody)
 			if err != nil {
 				t.Fatalf("Error creating request: %v", err)
 			}
@@ -85,25 +82,6 @@ func TestSignupUserIntegration(t *testing.T) {
 		},
 		)
 	}
-}
-
-func createRequest(method, path string, body interface{}) (*http.Request, error) {
-	var jsonBody []byte
-	var err error
-
-	if body != nil {
-		jsonBody, err = json.Marshal(body)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling request body: %w", err)
-		}
-	}
-
-	req, err := http.NewRequest(method, path, bytes.NewBuffer(jsonBody))
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	return req, nil
 }
 
 func TestSigninUserIntegration(t *testing.T) {
@@ -158,7 +136,7 @@ func TestSigninUserIntegration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			req, err := createRequest(http.MethodPost, "/signin", tc.requestBody)
+			req, err := testutils.CreateRequest(http.MethodPost, "/signin", tc.requestBody)
 			if err != nil {
 				t.Fatalf("Error creating request: %v", err)
 			}
