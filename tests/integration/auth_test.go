@@ -6,39 +6,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"blockstracker_backend/config"
-	"blockstracker_backend/handlers"
-	"blockstracker_backend/internal/repositories"
 	"blockstracker_backend/messages"
-	"blockstracker_backend/pkg/logger"
+
 	"blockstracker_backend/tests/integration/testutils"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
-var router *gin.Engine
-
-func setup(t *testing.T) {
-	t.Helper()
-	var err error
-	gin.SetMode(gin.TestMode)
-
-	userRepo := repositories.NewUserRepository(TestDB)
-	authConfig, err := config.LoadAuthConfig()
-	if err != nil {
-		t.Fatalf("Error loading auth config: %v", err)
-	}
-	authHandler := handlers.NewAuthHandler(userRepo, logger.Log, authConfig)
-
-	router = gin.Default()
-	router.POST("/signup", authHandler.SignupUser)
-	router.POST("/signin", authHandler.EmailSignIn)
-
-}
-
 func TestSignupUserIntegration(t *testing.T) {
-	setup(t)
 
 	testCases := []struct {
 		name           string
@@ -84,7 +59,6 @@ func TestSignupUserIntegration(t *testing.T) {
 }
 
 func TestSigninUserIntegration(t *testing.T) {
-	setup(t)
 
 	testCases := []struct {
 		name           string

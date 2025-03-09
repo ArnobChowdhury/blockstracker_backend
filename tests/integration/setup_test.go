@@ -2,7 +2,10 @@ package integration
 
 import (
 	"blockstracker_backend/config"
+	"blockstracker_backend/handlers"
+	"blockstracker_backend/internal/repositories"
 	"blockstracker_backend/internal/validators"
+	"blockstracker_backend/middleware"
 	"blockstracker_backend/pkg/logger"
 
 	"database/sql"
@@ -12,6 +15,8 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -42,6 +47,11 @@ func TestMain(m *testing.M) {
 	// testSqlDB.SetMaxOpenConns(1)
 
 	err = runGooseMigrations()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = setupRouter()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -157,4 +167,28 @@ func teardown(testSqlDB *sql.DB, db *gorm.DB) error {
 
 	return nil
 
+}
+
+var router *gin.Engine
+
+func setupRouter() error {
+	var err error
+	gin.SetMode(gin.TestMode)
+
+	userRepo := repositories.NewUserRepository(TestDB)
+	authConfig, err := config.LoadAuthConfig()
+	if err != nil {
+		return fmt.Errorf("Error loading auth config: %v", err)
+	}
+	logger := zap.NewNop().Sugar()
+
+	authHandler := handlers.NewAuthHandler(userRepo, logger, authConfig)
+	authMiddleware := middleware.NewAuthMiddleware(logger, authConfig)
+
+	router = gin.Default()
+	router.POST("/signup", authHandler.SignupUser)
+	router.POST("/signin", authHandler.EmailSignIn)
+	router.POST("/protected", authMiddleware.Handle, authHandler.EmailSignIn)
+
+	return nil
 }
