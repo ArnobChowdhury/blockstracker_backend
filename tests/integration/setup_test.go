@@ -7,6 +7,7 @@ import (
 	"blockstracker_backend/internal/validators"
 	"blockstracker_backend/middleware"
 	"blockstracker_backend/pkg/logger"
+	"net/http"
 
 	"database/sql"
 	"fmt"
@@ -170,25 +171,28 @@ func teardown(testSqlDB *sql.DB, db *gorm.DB) error {
 }
 
 var router *gin.Engine
+var testAuthConfig *config.AuthConfig
 
 func setupRouter() error {
 	var err error
 	gin.SetMode(gin.TestMode)
 
 	userRepo := repositories.NewUserRepository(TestDB)
-	authConfig, err := config.LoadAuthConfig()
+	testAuthConfig, err = config.LoadAuthConfig()
 	if err != nil {
 		return fmt.Errorf("Error loading auth config: %v", err)
 	}
 	logger := zap.NewNop().Sugar()
 
-	authHandler := handlers.NewAuthHandler(userRepo, logger, authConfig)
-	authMiddleware := middleware.NewAuthMiddleware(logger, authConfig)
+	authHandler := handlers.NewAuthHandler(userRepo, logger, testAuthConfig)
+	authMiddleware := middleware.NewAuthMiddleware(logger, testAuthConfig)
 
 	router = gin.Default()
 	router.POST("/signup", authHandler.SignupUser)
 	router.POST("/signin", authHandler.EmailSignIn)
-	router.POST("/protected", authMiddleware.Handle, authHandler.EmailSignIn)
+	router.POST("/protected", authMiddleware.Handle, func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
 
 	return nil
 }
