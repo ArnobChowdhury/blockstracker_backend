@@ -38,4 +38,6 @@ var (
 	ErrTokenExpired            = NewAuthError("TOKEN_EXPIRED", "Token expired", http.StatusUnauthorized)
 	ErrInvalidToken            = NewAuthError("INVALID_TOKEN", "Invalid token", http.StatusUnauthorized)
 	ErrUnexpectedSigningMethod = NewAuthError("UNEXPECTED_SIGNING_METHOD", "Unexpected signing method", http.StatusUnauthorized)
+	ErrRedisSet                = NewAuthError("REDIS_SET", "Redis set error", http.StatusInternalServerError)
+	ErrRedisGet                = NewAuthError("REDIS_GET", "Redis get error", http.StatusInternalServerError)
 )
