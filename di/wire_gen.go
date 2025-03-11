@@ -34,7 +34,8 @@ func InitializeAuthHandler() (*handlers.AuthHandler, error) {
 	if err != nil {
 		return nil, err
 	}
-	authHandler := handlers.NewAuthHandler(userRepository, sugaredLogger, authConfig, client)
+	tokenRepository := repositories.NewTokenRepository(client)
+	authHandler := handlers.NewAuthHandler(userRepository, sugaredLogger, authConfig, tokenRepository)
 	return authHandler, nil
 }
 

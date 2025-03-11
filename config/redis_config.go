@@ -16,6 +16,11 @@ type RedisConfig struct {
 }
 
 func LoadRedisConfig() (*RedisConfig, error) {
+	redisPassword := os.Getenv("REDIS_PASSWORD")
+	if redisPassword == "" {
+		return nil, fmt.Errorf("REDIS_PASSWORD environment variable is not set")
+	}
+
 	redisHost := os.Getenv("REDIS_HOST")
 	if redisHost == "" {
 		return nil, fmt.Errorf("REDIS_HOST environment variable is not set")
@@ -25,7 +30,7 @@ func LoadRedisConfig() (*RedisConfig, error) {
 
 	config := &RedisConfig{
 		Addr:         redisAddr,
-		Password:     "",
+		Password:     redisPassword,
 		DB:           0,
 		DialTimeout:  5 * time.Second,
 		ReadTimeout:  30 * time.Second,

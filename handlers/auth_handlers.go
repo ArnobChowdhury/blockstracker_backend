@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"context"
 	"errors"
 	"net/http"
-	"time"
 
 	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/internal/repositories"
@@ -17,30 +15,30 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
-	userRepo    *repositories.UserRepository
-	logger      *zap.SugaredLogger
-	authConfig  *config.AuthConfig
-	redisClient *redis.Client
+	userRepo   *repositories.UserRepository
+	logger     *zap.SugaredLogger
+	authConfig *config.AuthConfig
+	tokenRepo  repositories.TokenRepository
 }
 
 func NewAuthHandler(
 	userRepo *repositories.UserRepository,
 	logger *zap.SugaredLogger,
 	authConfig *config.AuthConfig,
-	redisClient *redis.Client) *AuthHandler {
+	tokenRepo repositories.TokenRepository,
+) *AuthHandler {
 
 	return &AuthHandler{
-		userRepo:    userRepo,
-		logger:      logger,
-		authConfig:  authConfig,
-		redisClient: redisClient,
+		userRepo:   userRepo,
+		logger:     logger,
+		authConfig: authConfig,
+		tokenRepo:  tokenRepo,
 	}
 }
 
@@ -157,31 +155,14 @@ func (h *AuthHandler) Signout(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	token, _ := utils.ExtractBearerToken(authHeader)
 
-	invalidateAccessTokenCtx, invalidateAccessTokenCtxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer invalidateAccessTokenCtxCancel()
-	// for simplicity, we are not calculating the expiry time, and using the default expirty time we used to generate the token
-	err := h.redisClient.Set(invalidateAccessTokenCtx, "accessToken:"+token, "invalid", utils.AccessTokenExpiry).Err()
-	if err != nil {
-		h.respondWithError(c, http.StatusInternalServerError,
-			apperrors.ErrRedisSet.Error(),
-			err, messages.ErrInternalServerError)
-		return
-	}
+	if err := h.tokenRepo.InvalidateAccessAndRefreshTokens(token); err != nil {
+		if _, ok := err.(*apperrors.RedisError); ok {
+			c.Status(http.StatusNoContent)
+			return
+		}
 
-	refreshToken, err := h.redisClient.Get(context.Background(), "accessToRefresh:"+token).Result()
-	if err != nil {
 		h.respondWithError(c, http.StatusInternalServerError,
-			apperrors.ErrRedisGet.Error(),
-			err, messages.ErrInternalServerError)
-		return
-	}
-
-	invalidateRefreshTokenCtx, invalidateRefreshTokenCtxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer invalidateRefreshTokenCtxCancel()
-	err = h.redisClient.Set(invalidateRefreshTokenCtx, "refreshToken:"+refreshToken, "invalid", utils.RefreshTokenExpiry).Err()
-	if err != nil {
-		h.respondWithError(c, http.StatusInternalServerError,
-			apperrors.ErrRedisSet.Error(),
+			apperrors.ErrRedisKeyNotFound.Error(),
 			err, messages.ErrInternalServerError)
 		return
 	}

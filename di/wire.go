@@ -24,6 +24,7 @@ func InitializeAuthHandler() (*handlers.AuthHandler, error) {
 		config.LoadAuthConfig,
 		config.LoadRedisConfig,
 		redis.NewRedisClient,
+		repositories.NewTokenRepository,
 		handlers.NewAuthHandler)
 	return &handlers.AuthHandler{}, nil
 
