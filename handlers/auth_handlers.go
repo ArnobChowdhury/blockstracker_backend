@@ -156,8 +156,9 @@ func (h *AuthHandler) Signout(c *gin.Context) {
 	token, _ := utils.ExtractBearerToken(authHeader)
 
 	if err := h.tokenRepo.InvalidateAccessAndRefreshTokens(token); err != nil {
-		if _, ok := err.(*apperrors.RedisError); ok {
-			c.Status(http.StatusNoContent)
+		if redisErr, ok := err.(*apperrors.RedisError); ok {
+			h.logger.Infow("Redis key not found", "token", token, messages.Error, redisErr.LogError())
+			c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSignOutSuccessful, nil))
 			return
 		}
 
