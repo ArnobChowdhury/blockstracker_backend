@@ -168,7 +168,7 @@ func (h *AuthHandler) Signout(c *gin.Context) {
 		return
 	}
 
-	refreshToken, err := h.redisClient.Get(context.Background(), "accessToken:"+token).Result()
+	refreshToken, err := h.redisClient.Get(context.Background(), "accessToRefresh:"+token).Result()
 	if err != nil {
 		h.respondWithError(c, http.StatusInternalServerError,
 			apperrors.ErrRedisGet.Error(),
