@@ -9,6 +9,7 @@ import (
 
 	"blockstracker_backend/config"
 	"blockstracker_backend/internal/database"
+	"blockstracker_backend/internal/redis"
 	"blockstracker_backend/internal/repositories"
 	"blockstracker_backend/pkg/logger"
 
@@ -21,6 +22,9 @@ func InitializeAuthHandler() (*handlers.AuthHandler, error) {
 		repositories.NewUserRepository,
 		logger.LoggerProvider,
 		config.LoadAuthConfig,
+		config.LoadRedisConfig,
+		redis.NewRedisClient,
+		repositories.NewTokenRepository,
 		handlers.NewAuthHandler)
 	return &handlers.AuthHandler{}, nil
 

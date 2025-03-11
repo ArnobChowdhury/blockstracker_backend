@@ -21,6 +21,7 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: go_cache
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       PORT: 8080
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
@@ -49,6 +50,9 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: [ "redis-server", "--requirepass", "${REDIS_PASSWORD}" ]
 
 volumes:
   go_db_data:

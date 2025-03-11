@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/internal/repositories"
 	messages "blockstracker_backend/messages"
 
@@ -23,13 +24,21 @@ type AuthHandler struct {
 	userRepo   *repositories.UserRepository
 	logger     *zap.SugaredLogger
 	authConfig *config.AuthConfig
+	tokenRepo  repositories.TokenRepository
 }
 
-func NewAuthHandler(userRepo *repositories.UserRepository, logger *zap.SugaredLogger, authConfig *config.AuthConfig) *AuthHandler {
+func NewAuthHandler(
+	userRepo *repositories.UserRepository,
+	logger *zap.SugaredLogger,
+	authConfig *config.AuthConfig,
+	tokenRepo repositories.TokenRepository,
+) *AuthHandler {
+
 	return &AuthHandler{
 		userRepo:   userRepo,
 		logger:     logger,
 		authConfig: authConfig,
+		tokenRepo:  tokenRepo,
 	}
 }
 
@@ -143,7 +152,22 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 }
 
 func (h *AuthHandler) Signout(c *gin.Context) {
-	// to be implemented separately
-	c.JSON(http.StatusOK,
-		utils.CreateJSONResponse(messages.Success, "ok, you are signed out", nil))
+	authHeader := c.GetHeader("Authorization")
+	token, _ := utils.ExtractBearerToken(authHeader)
+
+	if err := h.tokenRepo.InvalidateAccessAndRefreshTokens(token); err != nil {
+		if redisErr, ok := err.(*apperrors.RedisError); ok {
+			h.logger.Infow("Redis key not found", "token", token, messages.Error, redisErr.LogError())
+			c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSignOutSuccessful, nil))
+			return
+		}
+
+		h.respondWithError(c, http.StatusInternalServerError,
+			apperrors.ErrRedisKeyNotFound.Error(),
+			err, messages.ErrInternalServerError)
+		return
+	}
+
+	h.logger.Infow(messages.MsgSignOutSuccessful, "token", token)
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSignOutSuccessful, nil))
 }

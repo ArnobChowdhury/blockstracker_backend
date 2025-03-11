@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"blockstracker_backend/config"
+	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/models"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -56,4 +59,28 @@ func GetClaims(user *models.User, tokenType string) models.Claims {
 	}
 
 	return claims
+}
+
+func ExtractBearerToken(header string) (string, *apperrors.AuthError) {
+	splitToken := strings.Split(header, " ")
+	if len(splitToken) != 2 || strings.ToLower(splitToken[0]) != "bearer" {
+		return "", apperrors.ErrNoAuthorizationHeader
+	}
+	return splitToken[1], nil
+}
+
+func ParseToken(tokenString string, authConfig *config.AuthConfig) (*models.Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, apperrors.ErrUnexpectedSigningMethod
+		}
+		return []byte(authConfig.AccessSecret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(*models.Claims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, apperrors.ErrInvalidToken
 }

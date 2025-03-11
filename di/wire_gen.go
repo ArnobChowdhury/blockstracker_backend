@@ -10,6 +10,7 @@ import (
 	"blockstracker_backend/config"
 	"blockstracker_backend/handlers"
 	"blockstracker_backend/internal/database"
+	"blockstracker_backend/internal/redis"
 	"blockstracker_backend/internal/repositories"
 	"blockstracker_backend/middleware"
 	"blockstracker_backend/pkg/logger"
@@ -25,7 +26,16 @@ func InitializeAuthHandler() (*handlers.AuthHandler, error) {
 	if err != nil {
 		return nil, err
 	}
-	authHandler := handlers.NewAuthHandler(userRepository, sugaredLogger, authConfig)
+	redisConfig, err := config.LoadRedisConfig()
+	if err != nil {
+		return nil, err
+	}
+	client, err := redis.NewRedisClient(redisConfig)
+	if err != nil {
+		return nil, err
+	}
+	tokenRepository := repositories.NewTokenRepository(client)
+	authHandler := handlers.NewAuthHandler(userRepository, sugaredLogger, authConfig, tokenRepository)
 	return authHandler, nil
 }
 

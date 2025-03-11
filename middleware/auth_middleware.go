@@ -5,9 +5,7 @@ import (
 	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/internal/utils"
 	"blockstracker_backend/messages"
-	"blockstracker_backend/models"
 	"errors"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -53,14 +51,14 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 		return
 	}
 
-	tokenString, err := extractBearerToken(authHeader)
+	tokenString, err := utils.ExtractBearerToken(authHeader)
 	if err != nil {
 		m.abortUnauthorized(c, "Invalid Auth Header",
 			err.LogError(), apperrors.ErrUnauthorized)
 		return
 	}
 
-	claims, parseErr := parseToken(tokenString, m.authConfig)
+	claims, parseErr := utils.ParseToken(tokenString, m.authConfig)
 	if parseErr != nil {
 		logTitle, logErrMsg, resErr := m.mapAuthError(parseErr)
 		m.abortUnauthorized(c, logTitle, logErrMsg, resErr)
@@ -70,28 +68,4 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 	c.Set("userID", claims.UserID)
 	c.Set("email", claims.Email)
 	c.Next()
-}
-
-func extractBearerToken(header string) (string, *apperrors.AuthError) {
-	splitToken := strings.Split(header, " ")
-	if len(splitToken) != 2 || strings.ToLower(splitToken[0]) != "bearer" {
-		return "", apperrors.ErrNoAuthorizationHeader
-	}
-	return splitToken[1], nil
-}
-
-func parseToken(tokenString string, authConfig *config.AuthConfig) (*models.Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, apperrors.ErrUnexpectedSigningMethod
-		}
-		return []byte(authConfig.AccessSecret), nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	if claims, ok := token.Claims.(*models.Claims); ok && token.Valid {
-		return claims, nil
-	}
-	return nil, apperrors.ErrInvalidToken
 }
