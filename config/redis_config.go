@@ -17,10 +17,11 @@ type RedisConfig struct {
 
 func LoadRedisConfig() (*RedisConfig, error) {
 	redisHost := os.Getenv("REDIS_HOST")
-	redisAddr := fmt.Sprintf(redisHost + ":6379")
-	if redisAddr == "" {
+	if redisHost == "" {
 		return nil, fmt.Errorf("REDIS_HOST environment variable is not set")
 	}
+
+	redisAddr := fmt.Sprintf(redisHost + ":6379")
 
 	config := &RedisConfig{
 		Addr:         redisAddr,
