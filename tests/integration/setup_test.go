@@ -3,6 +3,7 @@ package integration
 import (
 	"blockstracker_backend/config"
 	"blockstracker_backend/handlers"
+	"blockstracker_backend/internal/redis"
 	"blockstracker_backend/internal/repositories"
 	"blockstracker_backend/internal/validators"
 	"blockstracker_backend/middleware"
@@ -184,7 +185,17 @@ func setupRouter() error {
 	}
 	logger := zap.NewNop().Sugar()
 
-	authHandler := handlers.NewAuthHandler(userRepo, logger, testAuthConfig)
+	redisConfig, err := config.LoadRedisConfig()
+	if err != nil {
+		return fmt.Errorf("Error loading redis config: %v", err)
+	}
+	client, err := redis.NewRedisClient(redisConfig)
+	if err != nil {
+		return fmt.Errorf("Error creating redis client: %v", err)
+	}
+	tokenRepository := repositories.NewTokenRepository(client)
+
+	authHandler := handlers.NewAuthHandler(userRepo, logger, testAuthConfig, tokenRepository)
 	authMiddleware := middleware.NewAuthMiddleware(logger, testAuthConfig)
 
 	router = gin.Default()
