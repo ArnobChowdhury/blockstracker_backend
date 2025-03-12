@@ -144,6 +144,11 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 		return
 	}
 
+	if err := h.tokenRepo.StoreAccessTokenAndRefreshToken(accessToken, refreshToken); err != nil {
+		h.respondWithError(c, http.StatusInternalServerError, apperrors.ErrRedisSet.LogError(), err, messages.ErrInternalServerError)
+		return
+	}
+
 	c.JSON(http.StatusOK,
 		utils.CreateJSONResponse(messages.Success, messages.MsgSignInSuccessful, gin.H{
 			"accessToken":  accessToken,
