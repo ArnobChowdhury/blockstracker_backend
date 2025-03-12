@@ -4,7 +4,6 @@ import (
 	"blockstracker_backend/config"
 	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/internal/utils"
-	"blockstracker_backend/messages"
 	"errors"
 
 	"github.com/gin-gonic/gin"
@@ -24,12 +23,6 @@ func NewAuthMiddleware(logger *zap.SugaredLogger, authConfig *config.AuthConfig)
 	}
 }
 
-func (m *AuthMiddleware) abortUnauthorized(c *gin.Context, logTitle string, logErrMsg string, resErr *apperrors.AuthError) {
-	m.logger.Errorw(logTitle, messages.Error, logErrMsg)
-	c.AbortWithStatusJSON(resErr.StatusCode(),
-		utils.CreateJSONResponse(messages.Error, resErr.Error(), nil))
-}
-
 func (m *AuthMiddleware) mapAuthError(err error) (logTitle, logErrMsg string, resErr *apperrors.AuthError) {
 	switch {
 	case errors.Is(err, jwt.ErrTokenExpired):
@@ -45,23 +38,26 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 
 	if authHeader == "" {
-		m.abortUnauthorized(c, "No Auth Header",
+		utils.SendErrorResponse(c, m.logger, "No Auth Header",
 			apperrors.ErrNoAuthorizationHeader.LogError(),
 			apperrors.ErrUnauthorized)
+		c.Abort()
 		return
 	}
 
 	tokenString, err := utils.ExtractBearerToken(authHeader)
 	if err != nil {
-		m.abortUnauthorized(c, "Invalid Auth Header",
+		utils.SendErrorResponse(c, m.logger, "Invalid Auth Header",
 			err.LogError(), apperrors.ErrUnauthorized)
+		c.Abort()
 		return
 	}
 
 	claims, parseErr := utils.ParseToken(tokenString, m.authConfig)
 	if parseErr != nil {
 		logTitle, logErrMsg, resErr := m.mapAuthError(parseErr)
-		m.abortUnauthorized(c, logTitle, logErrMsg, resErr)
+		utils.SendErrorResponse(c, m.logger, logTitle, logErrMsg, resErr)
+		c.Abort()
 		return
 	}
 
