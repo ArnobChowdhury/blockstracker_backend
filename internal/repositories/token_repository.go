@@ -21,19 +21,20 @@ type tokenRepository struct {
 func NewTokenRepository(client *redis.Client) TokenRepository {
 	return &tokenRepository{client: client}
 }
+func getKeyNames(accessToken string) (accessTokenKey, accessToRefreshKey string) {
+	return "accessToken:" + accessToken, AccessToRefreshPrefix + accessToken
+}
+
+const AccessToRefreshPrefix = "accessToRefresh:"
 
 const invalidateTokensLua = `
-    local accessTokenPrefix = "accessToken:"
     local refreshTokenPrefix = "refreshToken:"
-    local accessToRefreshPrefix = "accessToRefresh:"
-
-    local refreshTokenKey = accessToRefreshPrefix .. KEYS[1]
-    local refreshToken = redis.call("GET", refreshTokenKey)
+    local refreshToken = redis.call("GET", KEYS[2])
 
     if refreshToken and refreshToken ~= false then
-        redis.call("SET", accessTokenPrefix .. KEYS[1], "invalid", "EX", ARGV[1])
+        redis.call("SET", KEYS[1], "invalid", "EX", ARGV[1])
         redis.call("SET", refreshTokenPrefix .. refreshToken, "invalid", "EX", ARGV[2])
-        redis.call("DEL", refreshTokenKey)
+        redis.call("DEL", KEYS[2])
         return 1
     end
 
@@ -46,9 +47,11 @@ func (r *tokenRepository) InvalidateAccessAndRefreshTokens(accessToken string) e
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	accessTokenKey, accessToRefreshKey := getKeyNames(accessToken)
 	result, err := invalidateTokensScript.Run(ctx, r.client,
 		[]string{
-			accessToken,
+			accessTokenKey,
+			accessToRefreshKey,
 		},
 		utils.AccessTokenExpiry.Seconds(),
 		utils.RefreshTokenExpiry.Seconds(),
@@ -66,5 +69,5 @@ func (r *tokenRepository) StoreAccessTokenAndRefreshToken(accessToken, refreshTo
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	return r.client.Set(ctx, "accessToRefresh:"+accessToken, refreshToken, utils.AccessTokenExpiry).Err()
+	return r.client.Set(ctx, AccessToRefreshPrefix+accessToken, refreshToken, utils.AccessTokenExpiry).Err()
 }
