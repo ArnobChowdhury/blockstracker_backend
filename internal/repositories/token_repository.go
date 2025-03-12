@@ -23,15 +23,21 @@ func NewTokenRepository(client *redis.Client) TokenRepository {
 }
 
 const invalidateTokensLua = `
-    local refreshToken = redis.call("GET", KEYS[2])
+    local accessTokenPrefix = "accessToken:"
+    local refreshTokenPrefix = "refreshToken:"
+    local accessToRefreshPrefix = "accessToRefresh:"
+
+    local refreshTokenKey = accessToRefreshPrefix .. KEYS[1]
+    local refreshToken = redis.call("GET", refreshTokenKey)
+
     if refreshToken and refreshToken ~= false then
-        redis.call("SET", KEYS[1], "invalid", "EX", ARGV[1])  -- Invalidate access token
-        redis.call("SET", "refreshToken:" .. refreshToken, "invalid", "EX", ARGV[2]) -- Invalidate refresh token
-        redis.call("DEL", KEYS[2])  -- Remove access-to-refresh mapping
+        redis.call("SET", accessTokenPrefix .. KEYS[1], "invalid", "EX", ARGV[1])
+        redis.call("SET", refreshTokenPrefix .. refreshToken, "invalid", "EX", ARGV[2])
+        redis.call("DEL", refreshTokenKey)
         return 1
-    else
-        return 0
     end
+
+    return 0
 `
 
 var invalidateTokensScript = redis.NewScript(invalidateTokensLua)
@@ -42,8 +48,7 @@ func (r *tokenRepository) InvalidateAccessAndRefreshTokens(accessToken string) e
 
 	result, err := invalidateTokensScript.Run(ctx, r.client,
 		[]string{
-			"accessToken:" + accessToken,
-			"accessToRefresh:" + accessToken,
+			accessToken,
 		},
 		utils.AccessTokenExpiry.Seconds(),
 		utils.RefreshTokenExpiry.Seconds(),
