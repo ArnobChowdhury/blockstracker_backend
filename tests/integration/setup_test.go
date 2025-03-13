@@ -54,7 +54,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	err = connectToRedis()
+	err = initializeRedisClient()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -168,6 +168,13 @@ func teardown(testSqlDB *sql.DB, db *gorm.DB) error {
 	}
 
 	testSqlDB.Close()
+
+	if redisClient != nil {
+		if err := redisClient.Close(); err != nil {
+			log.Printf("Failed to close Redis connection: %v", err)
+		}
+	}
+
 	dropDbSqlString := fmt.Sprintf("DROP DATABASE %s;", os.Getenv("TEST_DB_NAME"))
 	if err := db.Exec(dropDbSqlString).Error; err != nil {
 		return fmt.Errorf("Failed to drop test DB: %v", err)
@@ -179,7 +186,7 @@ func teardown(testSqlDB *sql.DB, db *gorm.DB) error {
 
 var redisClient *packageredis.Client
 
-func connectToRedis() error {
+func initializeRedisClient() error {
 	redisConfig, err := config.LoadRedisConfig()
 	if err != nil {
 		return fmt.Errorf("Error loading redis config: %v", err)
