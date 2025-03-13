@@ -3,12 +3,14 @@ package utils
 import (
 	"blockstracker_backend/config"
 	apperrors "blockstracker_backend/internal/errors"
+	"blockstracker_backend/messages"
 	"blockstracker_backend/models"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"go.uber.org/zap"
 )
 
 const (
@@ -83,4 +85,11 @@ func ParseToken(tokenString string, authConfig *config.AuthConfig) (*models.Clai
 		return claims, nil
 	}
 	return nil, apperrors.ErrInvalidToken
+}
+
+func SendErrorResponse(c *gin.Context, logger *zap.SugaredLogger, logTitle string,
+	logErrMsg string, resErr *apperrors.AuthError) {
+
+	logger.Errorw(logTitle, messages.Error, logErrMsg)
+	c.JSON(resErr.StatusCode(), CreateJSONResponse(messages.Error, resErr.Error(), nil))
 }
