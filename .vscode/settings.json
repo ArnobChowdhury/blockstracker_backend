@@ -8,6 +8,7 @@
     "Infow",
     "isready",
     "mapstructure",
-    "packageredis"
+    "packageredis",
+    "testutils"
   ]
 }
