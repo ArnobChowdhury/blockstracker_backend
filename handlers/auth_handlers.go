@@ -55,20 +55,23 @@ func (h *AuthHandler) SignupUser(c *gin.Context) {
 
 		if validationErrors, ok := err.(validator.ValidationErrors); ok && len(validationErrors) > 0 {
 			msg := validators.GetCustomMessage(validationErrors[0], req)
-			c.JSON(http.StatusBadRequest,
-				utils.CreateJSONResponse(messages.Error, msg, nil))
+
+			authError := apperrors.ErrInvalidRequestBody
+			authError.SetErrMessage(msg)
+			utils.SendErrorResponse(c, h.logger, messages.ErrInvalidRequestBody,
+				authError.LogError(), authError)
 			return
 		}
 
-		c.JSON(http.StatusBadRequest,
-			utils.CreateJSONResponse(messages.Error, messages.ErrMalformedRequest, nil))
+		utils.SendErrorResponse(c, h.logger, messages.ErrMalformedRequest,
+			apperrors.ErrMalformedRequest.LogError(), apperrors.ErrMalformedRequest)
 		return
 	}
 
 	hashedPassword, pwHashingError := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if pwHashingError != nil {
-		h.respondWithError(c, http.StatusInternalServerError,
-			messages.ErrHashingPassword, pwHashingError, messages.ErrInternalServerError)
+		utils.SendErrorResponse(c, h.logger, messages.ErrHashingPassword,
+			pwHashingError.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
@@ -81,15 +84,13 @@ func (h *AuthHandler) SignupUser(c *gin.Context) {
 
 	if err := h.userRepo.CreateUser(&user); err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			h.logger.Errorw(messages.ErrUniqueConstraintFailed, "email", user.Email)
-			c.JSON(http.StatusBadRequest,
-				utils.CreateJSONResponse(messages.Error, messages.ErrUserCreationFailed, nil))
+			utils.SendErrorResponse(c, h.logger, messages.ErrUniqueConstraintFailed,
+				user.Email, apperrors.ErrUserCreationFailed)
 			return
 
 		} else {
-			h.logger.Errorw(messages.ErrUnexpectedErrorDuringUserCreation, "email", user.Email, messages.Error, err)
-			c.JSON(http.StatusInternalServerError,
-				utils.CreateJSONResponse(messages.Error, messages.ErrInternalServerError, nil))
+			utils.SendErrorResponse(c, h.logger, messages.ErrUnexpectedErrorDuringUserCreation,
+				err.Error(), apperrors.ErrInternalServerError)
 			return
 		}
 	}
