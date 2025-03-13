@@ -42,11 +42,6 @@ func NewAuthHandler(
 	}
 }
 
-func (h *AuthHandler) respondWithError(c *gin.Context, status int, logMsg string, err error, clientMsg string) {
-	h.logger.Errorw(logMsg, messages.Error, err)
-	c.JSON(status, utils.CreateJSONResponse(messages.Error, clientMsg, nil))
-}
-
 func (h *AuthHandler) SignupUser(c *gin.Context) {
 	var req models.SignUpRequest
 
@@ -170,9 +165,8 @@ func (h *AuthHandler) Signout(c *gin.Context) {
 			return
 		}
 
-		h.respondWithError(c, http.StatusInternalServerError,
-			apperrors.ErrRedisKeyNotFound.Error(),
-			err, messages.ErrInternalServerError)
+		utils.SendErrorResponse(c, h.logger, apperrors.ErrRedisKeyNotFound.Error(),
+			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
