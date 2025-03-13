@@ -6,7 +6,7 @@ const (
 	ErrInvalidEmail                          = "Invalid email address"
 	ErrUnexpectedErrorDuringUserCreation     = "Unexpected error during user creation"
 	ErrNotStrongPassword                     = "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter and one number"
-	ErrMalformedRequest                      = "Malformed Request"
+	ErrMalformedRequest                      = "Malformed request"
 	ErrInternalServerError                   = "Internal Server Error"
 	ErrInvalidTaskError                      = "Invalid task data provided"
 	ErrTaskNotFoundError                     = "Task not found"
