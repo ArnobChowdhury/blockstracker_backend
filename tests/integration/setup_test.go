@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	packageredis "github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -49,6 +50,11 @@ func TestMain(m *testing.M) {
 	// testSqlDB.SetMaxOpenConns(1)
 
 	err = runGooseMigrations()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = initializeRedisClient()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -162,6 +168,13 @@ func teardown(testSqlDB *sql.DB, db *gorm.DB) error {
 	}
 
 	testSqlDB.Close()
+
+	if redisClient != nil {
+		if err := redisClient.Close(); err != nil {
+			log.Printf("Failed to close Redis connection: %v", err)
+		}
+	}
+
 	dropDbSqlString := fmt.Sprintf("DROP DATABASE %s;", os.Getenv("TEST_DB_NAME"))
 	if err := db.Exec(dropDbSqlString).Error; err != nil {
 		return fmt.Errorf("Failed to drop test DB: %v", err)
@@ -169,6 +182,21 @@ func teardown(testSqlDB *sql.DB, db *gorm.DB) error {
 
 	return nil
 
+}
+
+var redisClient *packageredis.Client
+
+func initializeRedisClient() error {
+	redisConfig, err := config.LoadRedisConfig()
+	if err != nil {
+		return fmt.Errorf("Error loading redis config: %v", err)
+	}
+
+	redisClient, err = redis.NewRedisClient(redisConfig)
+	if err != nil {
+		return fmt.Errorf("Error creating redis client: %v", err)
+	}
+	return nil
 }
 
 var router *gin.Engine
@@ -185,15 +213,7 @@ func setupRouter() error {
 	}
 	logger := zap.NewNop().Sugar()
 
-	redisConfig, err := config.LoadRedisConfig()
-	if err != nil {
-		return fmt.Errorf("Error loading redis config: %v", err)
-	}
-	client, err := redis.NewRedisClient(redisConfig)
-	if err != nil {
-		return fmt.Errorf("Error creating redis client: %v", err)
-	}
-	tokenRepository := repositories.NewTokenRepository(client)
+	tokenRepository := repositories.NewTokenRepository(redisClient)
 
 	authHandler := handlers.NewAuthHandler(userRepo, logger, testAuthConfig, tokenRepository)
 	authMiddleware := middleware.NewAuthMiddleware(logger, testAuthConfig)

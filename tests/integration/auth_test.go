@@ -9,6 +9,7 @@ import (
 	"blockstracker_backend/messages"
 
 	"blockstracker_backend/tests/integration/testutils"
+	"context"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -127,8 +128,18 @@ func TestSigninUserIntegration(t *testing.T) {
 				assert.True(t, ok)
 				_, accessTokenExists := data["accessToken"].(string)
 				_, refreshTokenExists := data["refreshToken"].(string)
-				assert.True(t, accessTokenExists && refreshTokenExists)
+				accessToken, ok := data["accessToken"].(string)
+				assert.True(t, ok)
+				refreshToken, ok := data["refreshToken"].(string)
+				assert.True(t, ok)
+				assert.True(t, accessTokenExists && refreshTokenExists, "Access or refresh token does not exist")
 				assert.Contains(t, resp.Body.String(), messages.MsgSignInSuccessful)
+
+				// Check if the refresh token is stored in Redis
+				ctx := context.Background()
+				storedRefreshToken, err := redisClient.Get(ctx, "accessToRefresh:"+accessToken).Result()
+				assert.NoError(t, err, "Error getting refresh token from Redis")
+				assert.Equal(t, refreshToken, storedRefreshToken, "Stored refresh token does not match the received refresh token")
 
 			}
 		})

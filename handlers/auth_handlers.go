@@ -104,29 +104,28 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 	var req models.EmailSignInRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.respondWithError(c, http.StatusBadRequest,
-			messages.ErrInvalidRequestBody, err, messages.ErrMalformedRequest)
+		utils.SendErrorResponse(c, h.logger, messages.ErrInvalidRequestBody,
+			err.Error(), apperrors.ErrMalformedRequest)
 		return
 	}
 
 	user, err := h.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			h.logger.Errorw(messages.ErrEmailNotFoundDuringSignIn, "email", req.Email)
-			c.JSON(http.StatusUnauthorized,
-				utils.CreateJSONResponse(messages.Error, messages.ErrInvalidCredentials, nil))
+			utils.SendErrorResponse(c, h.logger, messages.ErrEmailNotFoundDuringSignIn,
+				req.Email, apperrors.ErrInvalidCredentials)
 			return
 		} else {
-			h.respondWithError(c, http.StatusInternalServerError,
-				messages.ErrUnexpectedErrorDuringUserRetrieval, err, messages.ErrInternalServerError)
+			utils.SendErrorResponse(c, h.logger, messages.ErrUnexpectedErrorDuringUserRetrieval,
+				err.Error(), apperrors.ErrInternalServerError)
 			return
 		}
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(req.Password))
 	if err != nil {
-		h.respondWithError(c, http.StatusUnauthorized,
-			messages.ErrMismatchingPasswordDuringSignIn, err, messages.ErrInvalidCredentials)
+		utils.SendErrorResponse(c, h.logger, messages.ErrMismatchingPasswordDuringSignIn,
+			err.Error(), apperrors.ErrInvalidCredentials)
 		return
 	}
 
@@ -135,18 +134,21 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 
 	accessToken, err := utils.GenerateJWT(accessTokenClaims, h.authConfig.AccessSecret)
 	if err != nil {
-		h.respondWithError(c, http.StatusInternalServerError, messages.ErrGeneratingJWT, err, messages.ErrInternalServerError)
+		utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT,
+			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
 	refreshToken, err := utils.GenerateJWT(refreshTokenClaims, h.authConfig.RefreshSecret)
 	if err != nil {
-		h.respondWithError(c, http.StatusInternalServerError, messages.ErrGeneratingJWT, err, messages.ErrInternalServerError)
+		utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT,
+			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
 	if err := h.tokenRepo.StoreAccessTokenAndRefreshToken(accessToken, refreshToken); err != nil {
-		h.respondWithError(c, http.StatusInternalServerError, apperrors.ErrRedisSet.LogError(), err, messages.ErrInternalServerError)
+		utils.SendErrorResponse(c, h.logger, apperrors.ErrRedisSet.LogError(),
+			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 

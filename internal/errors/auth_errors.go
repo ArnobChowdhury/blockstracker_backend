@@ -48,4 +48,5 @@ var (
 	ErrUniqueConstraintFailed   = NewAuthError("UNIQUE_CONSTRAINT_FAILED", "Unique constraint failed", http.StatusBadRequest)
 	ErrInvalidRequestBody       = NewAuthError("INVALID_REQUEST_BODY", "Invalid request body", http.StatusBadRequest)
 	ErrUserCreationFailed       = NewAuthError("USER_CREATION_FAILED", "User creation failed", http.StatusBadRequest)
+	ErrInvalidCredentials       = NewAuthError("INVALID_CREDENTIALS", "Invalid credentials", http.StatusUnauthorized)
 )
