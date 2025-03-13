@@ -145,3 +145,75 @@ func TestSigninUserIntegration(t *testing.T) {
 		})
 	}
 }
+
+func TestSignoutUserIntegration(t *testing.T) {
+	signInReqBody := map[string]string{"email": "test@example.com", "password": "StrongPassword123!"}
+	signInReq, err := testutils.CreateRequest(http.MethodPost, "/signin", signInReqBody)
+	if err != nil {
+		t.Fatalf("Error creating sign-in request: %v", err)
+	}
+	signInResp := httptest.NewRecorder()
+	router.ServeHTTP(signInResp, signInReq)
+	assert.Equal(t, http.StatusOK, signInResp.Code, "Sign-in failed")
+
+	var signInResponseBody map[string]interface{}
+	err = json.Unmarshal(signInResp.Body.Bytes(), &signInResponseBody)
+	assert.NoError(t, err)
+	result, ok := signInResponseBody["result"].(map[string]interface{})
+	assert.True(t, ok)
+	data, ok := result["data"].(map[string]interface{})
+	assert.True(t, ok)
+	accessToken, ok := data["accessToken"].(string)
+	assert.True(t, ok)
+
+	testCases := []struct {
+		name           string
+		accessToken    string
+		expectedStatus int
+		expectedErrMsg string
+	}{
+		{
+			name:           "Success - Valid Access Token",
+			accessToken:    accessToken,
+			expectedStatus: http.StatusOK,
+			expectedErrMsg: messages.MsgSignOutSuccessful,
+		},
+		{
+			name:           "Failure - Invalid Access Token",
+			accessToken:    "invalid_token",
+			expectedStatus: http.StatusUnauthorized,
+			expectedErrMsg: messages.ErrUnauthorized,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			req, err := testutils.CreateRequest(http.MethodPost,
+				"/signout",
+				nil,
+				testutils.WithAccessToken(tc.accessToken),
+			)
+
+			if err != nil {
+				t.Fatalf("Error creating request: %v", err)
+			}
+			resp := httptest.NewRecorder()
+			router.ServeHTTP(resp, req)
+
+			assert.Equal(t, tc.expectedStatus, resp.Code, "Unexpected status code")
+			if tc.expectedErrMsg != "" {
+				assert.Contains(t, resp.Body.String(), tc.expectedErrMsg, "Expected error message not found")
+			} else {
+				// Check if the access and refresh tokens are invalidated in Redis
+				ctx := context.Background()
+				storedAccessTokenStatus, err := redisClient.Get(ctx, "accessToken:"+accessToken).Result()
+				assert.NoError(t, err, "Error getting access token status from Redis")
+				assert.Equal(t, "invalid", storedAccessTokenStatus, "Access token status should be invalid")
+				storedRefreshTokenStatus, err := redisClient.Get(ctx, "refreshToken:"+accessToken).Result()
+				assert.NoError(t, err, "Error getting refresh token status from Redis")
+				assert.Equal(t, "invalid", storedRefreshTokenStatus, "Refresh token status should be invalid")
+				assert.Contains(t, resp.Body.String(), tc.expectedErrMsg, "Expected error message not found")
+			}
+		})
+	}
+}

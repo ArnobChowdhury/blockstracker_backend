@@ -7,7 +7,12 @@ import (
 	"net/http"
 )
 
-func CreateRequest(method, path string, body interface{}) (*http.Request, error) {
+type RequestOption func(*http.Request)
+
+func WithAccessToken(token string) RequestOption {
+	return func(req *http.Request) { req.Header.Set("Authorization", "Bearer "+token) }
+}
+func CreateRequest(method, path string, body interface{}, options ...RequestOption) (*http.Request, error) {
 	var jsonBody []byte
 	var err error
 
@@ -23,5 +28,9 @@ func CreateRequest(method, path string, body interface{}) (*http.Request, error)
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+
+	for _, option := range options {
+		option(req)
+	}
 	return req, nil
 }

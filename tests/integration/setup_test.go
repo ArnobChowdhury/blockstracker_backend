@@ -224,6 +224,7 @@ func setupRouter() error {
 	router.POST("/protected", authMiddleware.Handle, func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
+	router.POST("/signout", authMiddleware.Handle, authHandler.Signout)
 
 	return nil
 }
