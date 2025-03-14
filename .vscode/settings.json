@@ -9,6 +9,9 @@
     "isready",
     "mapstructure",
     "packageredis",
-    "testutils"
+    "signup",
+    "strongpassword",
+    "testutils",
+    "varchar"
   ]
 }
