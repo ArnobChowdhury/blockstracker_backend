@@ -107,19 +107,6 @@ func (h *AuthHandler) SignupUser(c *gin.Context) {
 		utils.CreateJSONResponse(messages.Success, messages.MsgUserCreationSuccess, nil))
 }
 
-type SignInSuccessResponse struct {
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
-}
-
-type ResponseWithData[T any] struct {
-	Result struct {
-		Status  string `json:"status" example:"success"`
-		Message string `json:"message" example:"User created successfully"`
-		Data    T      `json:"data,omitempty"`
-	} `json:"result"`
-}
-
 // EmailSignIn godoc
 // @Summary      Sign in with email and password
 // @Description  Sign in with email and password
