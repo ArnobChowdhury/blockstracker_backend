@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	_ "blockstracker_backend/docs"
 	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/internal/repositories"
 	messages "blockstracker_backend/messages"
@@ -42,6 +43,17 @@ func NewAuthHandler(
 	}
 }
 
+// SignupUser godoc
+// @Summary      Sign up a new user
+// @Description  Signs up a new user with email and password
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body models.SignUpRequest true "User sign up request"
+// @Success      200  {object}  models.GenericSuccessResponse "User creation successful"
+// @Failure      400  {object}  models.GenericErrorResponse "Malformed Request"
+// @Failure      500  {object}  models.GenericErrorResponse "Internal Server Error"
+// @Router       /auth/signup [post]
 func (h *AuthHandler) SignupUser(c *gin.Context) {
 	var req models.SignUpRequest
 
@@ -95,6 +107,18 @@ func (h *AuthHandler) SignupUser(c *gin.Context) {
 		utils.CreateJSONResponse(messages.Success, messages.MsgUserCreationSuccess, nil))
 }
 
+// EmailSignIn godoc
+// @Summary      Sign in with email and password
+// @Description  Sign in with email and password
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body models.EmailSignInRequest true "User sign in request"
+// @Success      200  {object}  models.SignInSuccessResponse "User sign in successful"
+// @Failure      400  {object}  models.GenericErrorResponse  "Malformed Request"
+// @Failure      401  {object}  models.GenericErrorResponse  "Invalid Credentials"
+// @Failure      500  {object}  models.GenericErrorResponse "Internal Server Error"
+// @Router       /auth/signin [post]
 func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 	var req models.EmailSignInRequest
 
@@ -154,6 +178,15 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 		}))
 }
 
+// @Summary      Sign out user
+// @Description  Invalidates the user's access and refresh tokens
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  models.GenericSuccessResponse "User sign out successful"
+// @Failure      500  {object}  models.GenericErrorResponse "Internal Server Error"
+// @Router       /auth/signout [post]
 func (h *AuthHandler) Signout(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	token, _ := utils.ExtractBearerToken(authHeader)

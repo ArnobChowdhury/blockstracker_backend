@@ -18,9 +18,13 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @title Your API Title
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
+// @title Blockstracker
 // @version 1.0
-// @description This is your API description.
+// @description Blockstracker API
 // @host localhost:5000
 // @BasePath /api/v1
 func main() {

@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 tasks:
   migrate-up:
@@ -10,7 +10,7 @@ tasks:
     cmds:
       - goose down
     description: "Rollback goose migrations (down)"
-  
+
   unit-test:
     cmds:
       - go test ./tests/unit... -v
@@ -25,3 +25,8 @@ tasks:
     cmds:
       - go test ./tests/... -v
     description: "Run all tests"
+
+  generate-swagger:
+    cmds:
+      - swag init -g cmd/main.go
+    description: "Generate swagger spec"
