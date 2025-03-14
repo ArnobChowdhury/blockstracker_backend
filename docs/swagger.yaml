@@ -1,11 +1,172 @@
 basePath: /api/v1
+definitions:
+  models.EmailSignInRequest:
+    properties:
+      email:
+        example: test@example.com
+        type: string
+      password:
+        example: Strongpassword123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.ErrorResult:
+    properties:
+      message:
+        example: Error message
+        type: string
+      status:
+        example: Error
+        type: string
+    type: object
+  models.GenericErrorResponse:
+    properties:
+      result:
+        $ref: '#/definitions/models.ErrorResult'
+    type: object
+  models.GenericSuccessResponse:
+    properties:
+      result:
+        $ref: '#/definitions/models.SuccessResult'
+    type: object
+  models.SignInSuccessResponse:
+    properties:
+      result:
+        $ref: '#/definitions/models.SignInSuccessResult'
+    type: object
+  models.SignInSuccessResult:
+    properties:
+      data:
+        $ref: '#/definitions/models.TokenResponse'
+      message:
+        example: Success message
+        type: string
+      status:
+        example: Success
+        type: string
+    type: object
+  models.SignUpRequest:
+    properties:
+      email:
+        example: test@example.com
+        type: string
+      password:
+        example: Strongpassword123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.SuccessResult:
+    properties:
+      message:
+        example: Success message
+        type: string
+      status:
+        example: Success
+        type: string
+    type: object
+  models.TokenResponse:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
 host: localhost:5000
 info:
   contact: {}
-  description: This is your API description.
-  title: Your API Title
+  description: Blockstracker API
+  title: Blockstracker
   version: "1.0"
 paths:
+  /auth/signin:
+    post:
+      consumes:
+      - application/json
+      description: Sign in with email and password
+      parameters:
+      - description: User sign in request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.EmailSignInRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User sign in successful
+          schema:
+            $ref: '#/definitions/models.SignInSuccessResponse'
+        "400":
+          description: Malformed Request
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "401":
+          description: Invalid Credentials
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+      summary: Sign in with email and password
+      tags:
+      - auth
+  /auth/signout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidates the user's access and refresh tokens
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User sign out successful
+          schema:
+            $ref: '#/definitions/models.GenericSuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Sign out user
+      tags:
+      - auth
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: Signs up a new user with email and password
+      parameters:
+      - description: User sign up request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User creation successful
+          schema:
+            $ref: '#/definitions/models.GenericSuccessResponse'
+        "400":
+          description: Malformed Request
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+      summary: Sign up a new user
+      tags:
+      - auth
   /ping:
     get:
       description: Returns pong
@@ -17,4 +178,9 @@ paths:
       summary: Ping example
       tags:
       - example
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
