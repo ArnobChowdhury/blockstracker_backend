@@ -5,6 +5,7 @@ import (
 	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/messages"
 	"blockstracker_backend/models"
+	"fmt"
 	"strings"
 	"time"
 
@@ -14,7 +15,8 @@ import (
 )
 
 const (
-	Issuer             = "api.blocks-tracker.com"
+	Issuer = "api.blocks-tracker.com"
+	// this probably should be in the config
 	AccessTokenExpiry  = 30 * time.Minute
 	RefreshTokenExpiry = 7 * 24 * time.Hour
 )
@@ -33,11 +35,14 @@ func CreateJSONResponse(status string, message string, data interface{}) gin.H {
 }
 
 func GenerateJWT(claims models.Claims, secretKey string) (string, error) {
+	if secretKey == "" {
+		return "", fmt.Errorf("secret key is empty")
+	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString([]byte(secretKey))
 	if err != nil {
-		return "", err
+		return "", err // Consider wrapping the error for more context
 	}
 
 	return signedToken, nil
