@@ -12,6 +12,7 @@ import (
 type TokenRepository interface {
 	InvalidateAccessAndRefreshTokens(accessToken string) error
 	StoreAccessTokenAndRefreshToken(accessToken, refreshToken string) error
+	GetRefreshToken(accessToken string) (string, error)
 }
 
 type tokenRepository struct {
@@ -33,7 +34,6 @@ const invalidateTokensLua = `
 
     if refreshToken and refreshToken ~= false then
         redis.call("SET", KEYS[1], "invalid", "EX", ARGV[1])
-        redis.call("SET", refreshTokenPrefix .. refreshToken, "invalid", "EX", ARGV[2])
         redis.call("DEL", KEYS[2])
         return 1
     end
@@ -69,5 +69,11 @@ func (r *tokenRepository) StoreAccessTokenAndRefreshToken(accessToken, refreshTo
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	return r.client.Set(ctx, AccessToRefreshPrefix+accessToken, refreshToken, utils.AccessTokenExpiry).Err()
+	return r.client.Set(ctx, AccessToRefreshPrefix+accessToken, refreshToken, utils.RefreshTokenExpiry).Err()
+}
+
+func (r *tokenRepository) GetRefreshToken(accessToken string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return r.client.Get(ctx, AccessToRefreshPrefix+accessToken).Result()
 }

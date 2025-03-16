@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	_ "blockstracker_backend/docs"
@@ -205,4 +206,72 @@ func (h *AuthHandler) Signout(c *gin.Context) {
 
 	h.logger.Infow(messages.MsgSignOutSuccessful, "token", token)
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSignOutSuccessful, nil))
+}
+
+func (h *AuthHandler) RefreshToken(c *gin.Context) {
+	var req models.RefreshTokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrInvalidRequestBody, err.Error(), apperrors.ErrMalformedRequest)
+		return
+	}
+
+	refreshTokenClaims, err := utils.ParseToken(req.RefreshToken, h.authConfig.RefreshSecret)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrJWTParsingError,
+			err.Error(), apperrors.ErrUnauthorized)
+		return
+	}
+
+	refreshTokenInRedis, err := h.tokenRepo.GetRefreshToken(req.AccessToken)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrGettingRefreshTokenFromRedis,
+			err.Error(), apperrors.ErrUnauthorized)
+		return
+	}
+
+	if refreshTokenInRedis != req.RefreshToken {
+		utils.SendErrorResponse(c, h.logger, messages.ErrRefreshTokenDidNotMatchWithCachedToken,
+			fmt.Sprintf("request token: %s, cached token: %s", req.RefreshToken, refreshTokenInRedis),
+			apperrors.ErrUnauthorized)
+		return
+	}
+
+	user := &models.User{
+		ID:    refreshTokenClaims.UserID,
+		Email: refreshTokenClaims.Email,
+	}
+
+	accessTokenClaims := utils.GetClaims(user, "access")
+	refreshTokenClaims = utils.GetClaims(user, "refresh")
+
+	accessToken, err := utils.GenerateJWT(accessTokenClaims, h.authConfig.AccessSecret)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT,
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	refreshToken, err := utils.GenerateJWT(refreshTokenClaims, h.authConfig.RefreshSecret)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT,
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := h.tokenRepo.StoreAccessTokenAndRefreshToken(accessToken, refreshToken); err != nil {
+		utils.SendErrorResponse(c, h.logger, apperrors.ErrRedisSet.LogError(),
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	// Invalidate old tokens *after* storing new ones
+	if err := h.tokenRepo.InvalidateAccessAndRefreshTokens(req.AccessToken); err != nil {
+		// Log the error but don't return an error to the client.  New tokens are still valid.
+		h.logger.Errorw(messages.ErrInvalidatingOldTokens, messages.Error, err)
+	}
+
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgRefreshTokenSuccessful, gin.H{
+		"accessToken":  accessToken,
+		"refreshToken": refreshToken,
+	}))
 }

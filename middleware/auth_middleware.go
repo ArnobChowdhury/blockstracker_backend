@@ -4,6 +4,7 @@ import (
 	"blockstracker_backend/config"
 	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/internal/utils"
+	"blockstracker_backend/messages"
 	"errors"
 
 	"github.com/gin-gonic/gin"
@@ -26,11 +27,11 @@ func NewAuthMiddleware(logger *zap.SugaredLogger, authConfig *config.AuthConfig)
 func (m *AuthMiddleware) mapAuthError(err error) (logTitle, logErrMsg string, resErr *apperrors.AuthError) {
 	switch {
 	case errors.Is(err, jwt.ErrTokenExpired):
-		return "JWT expired", err.Error(), apperrors.ErrTokenExpired
+		return messages.ErrJWTExpired, err.Error(), apperrors.ErrTokenExpired
 	case func() bool { _, ok := err.(*apperrors.AuthError); return ok }():
-		return "JWT parsing error", err.Error(), apperrors.ErrUnauthorized
+		return messages.ErrJWTParsingError, err.Error(), apperrors.ErrUnauthorized
 	default:
-		return "JWT parsing error", err.Error(), apperrors.ErrUnauthorized
+		return messages.ErrJWTParsingError, err.Error(), apperrors.ErrUnauthorized
 	}
 }
 
@@ -53,7 +54,7 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 		return
 	}
 
-	claims, parseErr := utils.ParseToken(tokenString, m.authConfig)
+	claims, parseErr := utils.ParseToken(tokenString, m.authConfig.AccessSecret)
 	if parseErr != nil {
 		logTitle, logErrMsg, resErr := m.mapAuthError(parseErr)
 		utils.SendErrorResponse(c, m.logger, logTitle, logErrMsg, resErr)

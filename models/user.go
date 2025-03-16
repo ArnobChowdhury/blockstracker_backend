@@ -28,6 +28,11 @@ type EmailSignInRequest struct {
 	Password string `json:"password" binding:"required" example:"Strongpassword123"`
 }
 
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refreshToken" binding:"required" example:"refreshToken"`
+	AccessToken  string `json:"accessToken" binding:"required" example:"accessToken"`
+}
+
 type Claims struct {
 	UserID uuid.UUID `json:"user_id"`
 	Email  string    `json:"email"`
