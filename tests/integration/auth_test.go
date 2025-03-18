@@ -9,10 +9,12 @@ import (
 	"testing"
 
 	"blockstracker_backend/messages"
+	"blockstracker_backend/models"
 
 	"blockstracker_backend/tests/integration/testutils"
 	"context"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -217,6 +219,115 @@ func TestSignoutUserIntegration(t *testing.T) {
 				storedRefreshTokenStatus, err := redisClient.Get(ctx, "refreshToken:"+accessToken).Result()
 				assert.NoError(t, err, "Error getting refresh token status from Redis")
 				assert.Equal(t, "invalid", storedRefreshTokenStatus, "Refresh token status should be invalid")
+				assert.Contains(t, resp.Body.String(), tc.expectedErrMsg, "Expected error message not found")
+			}
+		})
+	}
+}
+
+func TestRefreshTokenIntegration(t *testing.T) {
+	signInReqBody := map[string]string{"email": "test@example.com", "password": "StrongPassword123!"}
+	signInReq, err := testutils.CreateRequest(http.MethodPost, "/signin", signInReqBody)
+	if err != nil {
+		t.Fatalf("Error creating sign-in request: %v", err)
+	}
+	signInResp := httptest.NewRecorder()
+	router.ServeHTTP(signInResp, signInReq)
+	assert.Equal(t, http.StatusOK, signInResp.Code, "Sign-in failed")
+
+	var signInResponseBody map[string]interface{}
+	err = json.Unmarshal(signInResp.Body.Bytes(), &signInResponseBody)
+	assert.NoError(t, err)
+	result, ok := signInResponseBody["result"].(map[string]interface{})
+	assert.True(t, ok)
+	data, ok := result["data"].(map[string]interface{})
+	assert.True(t, ok)
+	initialAccessToken, ok := data["accessToken"].(string)
+	assert.True(t, ok)
+	initialRefreshToken, ok := data["refreshToken"].(string)
+	assert.True(t, ok)
+
+	testCases := []struct {
+		name           string
+		accessToken    string
+		refreshToken   string
+		expectedStatus int
+		expectedErrMsg string
+	}{
+		{
+			name:           "Success - Valid Refresh Token",
+			accessToken:    initialAccessToken,
+			refreshToken:   initialRefreshToken,
+			expectedStatus: http.StatusOK,
+			expectedErrMsg: messages.MsgSuccessfulTokenRefresh,
+		},
+		{
+			name:           "Failure - Refresh Token Revoked",
+			accessToken:    initialAccessToken,
+			refreshToken:   initialRefreshToken,
+			expectedStatus: http.StatusUnauthorized,
+			expectedErrMsg: messages.ErrUnauthorized,
+		},
+		{
+			name:           "Failure - Invalid Access Token",
+			accessToken:    "invalid_token",
+			refreshToken:   initialRefreshToken,
+			expectedStatus: http.StatusUnauthorized,
+			expectedErrMsg: messages.ErrUnauthorized,
+		},
+		{
+			name:           "Failure - Invalid Refresh Token",
+			accessToken:    initialAccessToken,
+			refreshToken:   "invalid_token",
+			expectedStatus: http.StatusUnauthorized,
+			expectedErrMsg: messages.ErrUnauthorized,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			reqBody := models.RefreshTokenRequest{
+				AccessToken:  tc.accessToken,
+				RefreshToken: tc.refreshToken,
+			}
+			req, err := testutils.CreateRequest(http.MethodPost, "/refresh", reqBody)
+			if err != nil {
+				t.Fatalf("Error creating request: %v", err)
+			}
+
+			resp := httptest.NewRecorder()
+			router.ServeHTTP(resp, req)
+
+			assert.Equal(t, tc.expectedStatus, resp.Code, "Unexpected status code")
+
+			if tc.expectedStatus == http.StatusOK {
+				var responseBody map[string]interface{}
+				err = json.Unmarshal(resp.Body.Bytes(), &responseBody)
+				assert.NoError(t, err)
+				result, ok := responseBody["result"].(map[string]interface{})
+				assert.True(t, ok)
+				data, ok := result["data"].(map[string]interface{})
+				assert.True(t, ok)
+				newAccessToken, ok := data["accessToken"].(string)
+				assert.True(t, ok)
+				newRefreshToken, ok := data["refreshToken"].(string)
+				assert.True(t, ok)
+
+				assert.NotEqual(t, initialAccessToken, newAccessToken, "Access token should be refreshed")
+				assert.NotEqual(t, initialRefreshToken, newRefreshToken, "Refresh token should be refreshed")
+
+				// Check if the new refresh token is stored in Redis
+				ctx := context.Background()
+				storedRefreshToken, err := redisClient.Get(ctx, "accessToRefresh:"+newAccessToken).Result()
+				assert.NoError(t, err, "Error getting refresh token from Redis")
+
+				hashedRefreshToken := sha256.Sum256([]byte(newRefreshToken))
+				hashedRefreshTokenString := hex.EncodeToString(hashedRefreshToken[:])
+				assert.Equal(t, hashedRefreshTokenString, storedRefreshToken, "Stored refresh token does not match the received refresh token")
+				_, err = redisClient.Get(ctx, "accessToRefresh:"+initialAccessToken).Result()
+				assert.ErrorIs(t, err, redis.Nil, "Old access token should be invalidated")
+
+			} else {
 				assert.Contains(t, resp.Body.String(), tc.expectedErrMsg, "Expected error message not found")
 			}
 		})
