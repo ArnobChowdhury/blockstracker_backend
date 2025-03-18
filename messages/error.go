@@ -31,4 +31,5 @@ const (
 	ErrGettingRefreshTokenFromRedis           = "Failed to get refresh token from Redis"
 	ErrRefreshTokenDidNotMatchWithCachedToken = "Refresh token didn't match with cached token"
 	ErrInvalidatingOldTokens                  = "Failed to invalidate old tokens"
+	ErrTokenNotFoundDuringLogout              = "Token not found during logout"
 )

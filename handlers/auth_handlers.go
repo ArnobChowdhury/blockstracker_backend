@@ -193,9 +193,14 @@ func (h *AuthHandler) Signout(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	token, _ := utils.ExtractBearerToken(authHeader)
 
-	if _, err := h.tokenRepo.InvalidateAccessAndRefreshTokens(token); err != nil {
+	deletedCount, err := h.tokenRepo.InvalidateAccessAndRefreshTokens(token)
+	if err != nil {
 		utils.SendErrorResponse(c, h.logger, apperrors.ErrRedisKeyNotFound.Error(),
 			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+	if deletedCount == 0 {
+		utils.SendErrorResponse(c, h.logger, messages.ErrTokenNotFoundDuringLogout, "", apperrors.ErrUnauthorized)
 		return
 	}
 
@@ -260,8 +265,12 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.tokenRepo.InvalidateAccessAndRefreshTokens(req.AccessToken); err != nil {
+	deletedCount, err := h.tokenRepo.InvalidateAccessAndRefreshTokens(req.AccessToken)
+	if err != nil {
 		h.logger.Errorw(messages.ErrInvalidatingOldTokens, messages.Error, err)
+	}
+	if deletedCount == 0 {
+		h.logger.Errorw(messages.ErrTokenNotFoundDuringLogout, "token", req.AccessToken)
 	}
 
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSuccessfulTokenRefresh, gin.H{
