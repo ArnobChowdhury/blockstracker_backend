@@ -1,7 +1,6 @@
 package utils_test
 
 import (
-	"blockstracker_backend/config"
 	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/internal/utils"
 	"blockstracker_backend/messages"
@@ -240,7 +239,7 @@ func TestParseToken(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			claims, err := utils.ParseToken(tt.tokenString, &config.AuthConfig{AccessSecret: tt.secret})
+			claims, err := utils.ParseToken(tt.tokenString, tt.secret)
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"net/http"
 
@@ -191,18 +193,88 @@ func (h *AuthHandler) Signout(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	token, _ := utils.ExtractBearerToken(authHeader)
 
-	if err := h.tokenRepo.InvalidateAccessAndRefreshTokens(token); err != nil {
-		if redisErr, ok := err.(*apperrors.RedisError); ok {
-			h.logger.Infow("Redis key not found", "token", token, messages.Error, redisErr.LogError())
-			c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSignOutSuccessful, nil))
-			return
-		}
-
+	deletedCount, err := h.tokenRepo.InvalidateAccessAndRefreshTokens(token)
+	if err != nil {
 		utils.SendErrorResponse(c, h.logger, apperrors.ErrRedisKeyNotFound.Error(),
 			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+	if deletedCount == 0 {
+		utils.SendErrorResponse(c, h.logger, messages.ErrTokenNotFoundDuringLogout, "", apperrors.ErrUnauthorized)
 		return
 	}
 
 	h.logger.Infow(messages.MsgSignOutSuccessful, "token", token)
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSignOutSuccessful, nil))
+}
+
+func (h *AuthHandler) RefreshToken(c *gin.Context) {
+	var req models.RefreshTokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrInvalidRequestBody, err.Error(), apperrors.ErrMalformedRequest)
+		return
+	}
+
+	refreshTokenInRedis, err := h.tokenRepo.GetRefreshToken(req.AccessToken)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrGettingRefreshTokenFromRedis,
+			err.Error(), apperrors.ErrUnauthorized)
+		return
+	}
+
+	hashedRefreshToken := sha256.Sum256([]byte(req.RefreshToken))
+	hashedRefreshTokenString := hex.EncodeToString(hashedRefreshToken[:])
+	if hashedRefreshTokenString != refreshTokenInRedis {
+		utils.SendErrorResponse(c, h.logger, messages.ErrRefreshTokenDidNotMatchWithCachedToken,
+			"refresh token mismatch", apperrors.ErrUnauthorized)
+		return
+	}
+
+	parsedClaims, err := utils.ParseToken(req.RefreshToken, h.authConfig.RefreshSecret)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrJWTParsingError,
+			err.Error(), apperrors.ErrUnauthorized)
+		return
+	}
+
+	user := &models.User{
+		ID:    parsedClaims.UserID,
+		Email: parsedClaims.Email,
+	}
+
+	accessTokenClaims := utils.GetClaims(user, "access")
+	refreshTokenClaims := utils.GetClaims(user, "refresh")
+
+	accessToken, err := utils.GenerateJWT(accessTokenClaims, h.authConfig.AccessSecret)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT,
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	refreshToken, err := utils.GenerateJWT(refreshTokenClaims, h.authConfig.RefreshSecret)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT,
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := h.tokenRepo.StoreAccessTokenAndRefreshToken(accessToken, refreshToken); err != nil {
+		utils.SendErrorResponse(c, h.logger, apperrors.ErrRedisSet.LogError(),
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	deletedCount, err := h.tokenRepo.InvalidateAccessAndRefreshTokens(req.AccessToken)
+	if err != nil {
+		h.logger.Errorw(messages.ErrInvalidatingOldTokens, messages.Error, err)
+	}
+	if deletedCount == 0 {
+		h.logger.Errorw(messages.ErrTokenNotFoundDuringLogout, "token", req.AccessToken)
+	}
+
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSuccessfulTokenRefresh, gin.H{
+		"accessToken":  accessToken,
+		"refreshToken": refreshToken,
+	}))
 }

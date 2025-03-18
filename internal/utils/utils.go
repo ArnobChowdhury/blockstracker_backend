@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"blockstracker_backend/config"
 	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/messages"
 	"blockstracker_backend/models"
@@ -34,7 +33,7 @@ func CreateJSONResponse(status string, message string, data interface{}) gin.H {
 	return gin.H{"result": result}
 }
 
-func GenerateJWT(claims models.Claims, secretKey string) (string, error) {
+func GenerateJWT(claims *models.Claims, secretKey string) (string, error) {
 	if secretKey == "" {
 		return "", fmt.Errorf("secret key is empty")
 	}
@@ -48,14 +47,14 @@ func GenerateJWT(claims models.Claims, secretKey string) (string, error) {
 	return signedToken, nil
 }
 
-func GetClaims(user *models.User, tokenType string) models.Claims {
+func GetClaims(user *models.User, tokenType string) *models.Claims {
 	expiresAt := time.Now().Add(AccessTokenExpiry)
 
 	if tokenType == "refresh" {
 		expiresAt = time.Now().Add(RefreshTokenExpiry)
 	}
 
-	claims := models.Claims{
+	claims := &models.Claims{
 		UserID: user.ID,
 		Email:  user.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -76,12 +75,12 @@ func ExtractBearerToken(header string) (string, *apperrors.AuthError) {
 	return splitToken[1], nil
 }
 
-func ParseToken(tokenString string, authConfig *config.AuthConfig) (*models.Claims, error) {
+func ParseToken(tokenString string, secretKey string) (*models.Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, apperrors.ErrUnexpectedSigningMethod
 		}
-		return []byte(authConfig.AccessSecret), nil
+		return []byte(secretKey), nil // Use the provided secretKey
 	})
 	if err != nil {
 		return nil, err

@@ -1,6 +1,8 @@
 package integration
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -139,7 +141,10 @@ func TestSigninUserIntegration(t *testing.T) {
 				ctx := context.Background()
 				storedRefreshToken, err := redisClient.Get(ctx, "accessToRefresh:"+accessToken).Result()
 				assert.NoError(t, err, "Error getting refresh token from Redis")
-				assert.Equal(t, refreshToken, storedRefreshToken, "Stored refresh token does not match the received refresh token")
+
+				hashedRefreshToken := sha256.Sum256([]byte(refreshToken))
+				hashedRefreshTokenString := hex.EncodeToString(hashedRefreshToken[:])
+				assert.Equal(t, hashedRefreshTokenString, storedRefreshToken, "Stored refresh token does not match the received refresh token")
 
 			}
 		})

@@ -1,17 +1,19 @@
 package repositories
 
 import (
-	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/internal/utils"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
 type TokenRepository interface {
-	InvalidateAccessAndRefreshTokens(accessToken string) error
+	InvalidateAccessAndRefreshTokens(accessToken string) (int64, error)
 	StoreAccessTokenAndRefreshToken(accessToken, refreshToken string) error
+	GetRefreshToken(accessToken string) (string, error)
 }
 
 type tokenRepository struct {
@@ -27,47 +29,24 @@ func getKeyNames(accessToken string) (accessTokenKey, accessToRefreshKey string)
 
 const AccessToRefreshPrefix = "accessToRefresh:"
 
-const invalidateTokensLua = `
-    local refreshTokenPrefix = "refreshToken:"
-    local refreshToken = redis.call("GET", KEYS[2])
-
-    if refreshToken and refreshToken ~= false then
-        redis.call("SET", KEYS[1], "invalid", "EX", ARGV[1])
-        redis.call("SET", refreshTokenPrefix .. refreshToken, "invalid", "EX", ARGV[2])
-        redis.call("DEL", KEYS[2])
-        return 1
-    end
-
-    return 0
-`
-
-var invalidateTokensScript = redis.NewScript(invalidateTokensLua)
-
-func (r *tokenRepository) InvalidateAccessAndRefreshTokens(accessToken string) error {
+func (r *tokenRepository) InvalidateAccessAndRefreshTokens(accessToken string) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	accessTokenKey, accessToRefreshKey := getKeyNames(accessToken)
-	result, err := invalidateTokensScript.Run(ctx, r.client,
-		[]string{
-			accessTokenKey,
-			accessToRefreshKey,
-		},
-		utils.AccessTokenExpiry.Seconds(),
-		utils.RefreshTokenExpiry.Seconds(),
-	).Int()
-	if err != nil {
-		return err
-	}
-	if result == 0 {
-		return apperrors.ErrRedisKeyNotFound
-	}
-	return nil
+	return r.client.Del(ctx, AccessToRefreshPrefix+accessToken).Result()
 }
 
 func (r *tokenRepository) StoreAccessTokenAndRefreshToken(accessToken, refreshToken string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+	hashedRefreshToken := sha256.Sum256([]byte(refreshToken))
+	hashedRefreshTokenString := hex.EncodeToString(hashedRefreshToken[:])
 
-	return r.client.Set(ctx, AccessToRefreshPrefix+accessToken, refreshToken, utils.AccessTokenExpiry).Err()
+	return r.client.Set(ctx, AccessToRefreshPrefix+accessToken, hashedRefreshTokenString, utils.RefreshTokenExpiry).Err()
+}
+
+func (r *tokenRepository) GetRefreshToken(accessToken string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return r.client.Get(ctx, AccessToRefreshPrefix+accessToken).Result()
 }
