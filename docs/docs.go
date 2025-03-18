@@ -15,6 +15,58 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/refresh": {
+            "post": {
+                "description": "Refreshes the access token using a valid refresh token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Refresh access token",
+                "parameters": [
+                    {
+                        "description": "Refresh token request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RefreshTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token refresh successful",
+                        "schema": {
+                            "$ref": "#/definitions/models.SignInSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Malformed Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/signin": {
             "post": {
                 "description": "Sign in with email and password",
@@ -209,6 +261,23 @@ const docTemplate = `{
             "properties": {
                 "result": {
                     "$ref": "#/definitions/models.SuccessResult"
+                }
+            }
+        },
+        "models.RefreshTokenRequest": {
+            "type": "object",
+            "required": [
+                "accessToken",
+                "refreshToken"
+            ],
+            "properties": {
+                "accessToken": {
+                    "type": "string",
+                    "example": "accessToken"
+                },
+                "refreshToken": {
+                    "type": "string",
+                    "example": "refreshToken"
                 }
             }
         },

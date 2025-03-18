@@ -208,6 +208,18 @@ func (h *AuthHandler) Signout(c *gin.Context) {
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSignOutSuccessful, nil))
 }
 
+// RefreshToken godoc
+// @Summary      Refresh access token
+// @Description  Refreshes the access token using a valid refresh token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body models.RefreshTokenRequest true "Refresh token request"
+// @Success      200  {object}  models.SignInSuccessResponse "Token refresh successful"
+// @Failure      400  {object}  models.GenericErrorResponse "Malformed Request"
+// @Failure      401  {object}  models.GenericErrorResponse "Unauthorized"
+// @Failure      500  {object}  models.GenericErrorResponse "Internal Server Error"
+// @Router       /auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req models.RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
