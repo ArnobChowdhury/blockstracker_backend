@@ -221,6 +221,7 @@ func setupRouter() error {
 	router = gin.Default()
 	router.POST("/signup", authHandler.SignupUser)
 	router.POST("/signin", authHandler.EmailSignIn)
+	router.POST("/refresh", authHandler.RefreshToken)
 	router.POST("/protected", authMiddleware.Handle, func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
