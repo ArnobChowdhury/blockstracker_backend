@@ -7,5 +7,5 @@ const (
 	MsgTaskCreatedSuccess     = "Task created successfully"
 	MsgTaskUpdatedSuccess     = "Task updated successfully"
 	MsgSignOutSuccessful      = "Sign out successful"
-	MsgRefreshTokenSuccessful = "Refresh token successful"
+	MsgSuccessfulTokenRefresh = "Successful token refresh"
 )

@@ -1,8 +1,9 @@
 package handlers
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
-	"fmt"
 	"net/http"
 
 	_ "blockstracker_backend/docs"
@@ -192,13 +193,7 @@ func (h *AuthHandler) Signout(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	token, _ := utils.ExtractBearerToken(authHeader)
 
-	if err := h.tokenRepo.InvalidateAccessAndRefreshTokens(token); err != nil {
-		if redisErr, ok := err.(*apperrors.RedisError); ok {
-			h.logger.Infow("Redis key not found", "token", token, messages.Error, redisErr.LogError())
-			c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSignOutSuccessful, nil))
-			return
-		}
-
+	if _, err := h.tokenRepo.InvalidateAccessAndRefreshTokens(token); err != nil {
 		utils.SendErrorResponse(c, h.logger, apperrors.ErrRedisKeyNotFound.Error(),
 			err.Error(), apperrors.ErrInternalServerError)
 		return
@@ -215,13 +210,6 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	refreshTokenClaims, err := utils.ParseToken(req.RefreshToken, h.authConfig.RefreshSecret)
-	if err != nil {
-		utils.SendErrorResponse(c, h.logger, messages.ErrJWTParsingError,
-			err.Error(), apperrors.ErrUnauthorized)
-		return
-	}
-
 	refreshTokenInRedis, err := h.tokenRepo.GetRefreshToken(req.AccessToken)
 	if err != nil {
 		utils.SendErrorResponse(c, h.logger, messages.ErrGettingRefreshTokenFromRedis,
@@ -229,20 +217,28 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	if refreshTokenInRedis != req.RefreshToken {
+	hashedRefreshToken := sha256.Sum256([]byte(req.RefreshToken))
+	hashedRefreshTokenString := hex.EncodeToString(hashedRefreshToken[:])
+	if hashedRefreshTokenString != refreshTokenInRedis {
 		utils.SendErrorResponse(c, h.logger, messages.ErrRefreshTokenDidNotMatchWithCachedToken,
-			fmt.Sprintf("request token: %s, cached token: %s", req.RefreshToken, refreshTokenInRedis),
-			apperrors.ErrUnauthorized)
+			"refresh token mismatch", apperrors.ErrUnauthorized)
+		return
+	}
+
+	parsedClaims, err := utils.ParseToken(req.RefreshToken, h.authConfig.RefreshSecret)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrJWTParsingError,
+			err.Error(), apperrors.ErrUnauthorized)
 		return
 	}
 
 	user := &models.User{
-		ID:    refreshTokenClaims.UserID,
-		Email: refreshTokenClaims.Email,
+		ID:    parsedClaims.UserID,
+		Email: parsedClaims.Email,
 	}
 
 	accessTokenClaims := utils.GetClaims(user, "access")
-	refreshTokenClaims = utils.GetClaims(user, "refresh")
+	refreshTokenClaims := utils.GetClaims(user, "refresh")
 
 	accessToken, err := utils.GenerateJWT(accessTokenClaims, h.authConfig.AccessSecret)
 	if err != nil {
@@ -264,13 +260,11 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	// Invalidate old tokens *after* storing new ones
-	if err := h.tokenRepo.InvalidateAccessAndRefreshTokens(req.AccessToken); err != nil {
-		// Log the error but don't return an error to the client.  New tokens are still valid.
+	if _, err := h.tokenRepo.InvalidateAccessAndRefreshTokens(req.AccessToken); err != nil {
 		h.logger.Errorw(messages.ErrInvalidatingOldTokens, messages.Error, err)
 	}
 
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgRefreshTokenSuccessful, gin.H{
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSuccessfulTokenRefresh, gin.H{
 		"accessToken":  accessToken,
 		"refreshToken": refreshToken,
 	}))
