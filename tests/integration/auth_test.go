@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"blockstracker_backend/messages"
 	"blockstracker_backend/models"
@@ -263,6 +262,13 @@ func TestRefreshTokenIntegration(t *testing.T) {
 			expectedErrMsg: messages.MsgSuccessfulTokenRefresh,
 		},
 		{
+			name:           "Failure - Refresh Token Revoked",
+			accessToken:    initialAccessToken,
+			refreshToken:   initialRefreshToken,
+			expectedStatus: http.StatusUnauthorized,
+			expectedErrMsg: messages.ErrUnauthorized,
+		},
+		{
 			name:           "Failure - Invalid Access Token",
 			accessToken:    "invalid_token",
 			refreshToken:   initialRefreshToken,
@@ -318,9 +324,6 @@ func TestRefreshTokenIntegration(t *testing.T) {
 				hashedRefreshToken := sha256.Sum256([]byte(newRefreshToken))
 				hashedRefreshTokenString := hex.EncodeToString(hashedRefreshToken[:])
 				assert.Equal(t, hashedRefreshTokenString, storedRefreshToken, "Stored refresh token does not match the received refresh token")
-
-				// Check if the old tokens are invalidated
-				time.Sleep(1 * time.Second) // Allow time for asynchronous invalidation
 				_, err = redisClient.Get(ctx, "accessToRefresh:"+initialAccessToken).Result()
 				assert.ErrorIs(t, err, redis.Nil, "Old access token should be invalidated")
 
