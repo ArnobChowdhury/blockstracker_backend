@@ -4,16 +4,40 @@ import (
 	"net/http"
 	"time"
 
+	apperrors "blockstracker_backend/internal/errors"
+	"blockstracker_backend/internal/repositories"
+	"blockstracker_backend/internal/utils"
 	"blockstracker_backend/messages"
 	"blockstracker_backend/models"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
-func CreateTask(c *gin.Context) {
-	var req models.CreateTaskRequest
+type TaskHandler struct {
+	taskRepo *repositories.TaskRepository
+	logger   *zap.SugaredLogger
+}
+
+func NewTaskHandler(
+	taskRepo *repositories.TaskRepository,
+	logger *zap.SugaredLogger,
+) *TaskHandler {
+
+	return &TaskHandler{
+		taskRepo: taskRepo,
+		logger:   logger,
+	}
+}
+
+func (h *TaskHandler) CreateTask(c *gin.Context) {
+	var req models.Task
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// needs to be changed
+		// create a new malformed request error in task_error
+		// use setError message method to set the actual error
+
+		utils.SendErrorResponse(c, h.logger, "task creation failed", err.Error(), apperrors.ErrMalformedRequest)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": messages.MsgTaskCreatedSuccess})

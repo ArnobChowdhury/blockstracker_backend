@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     is_active BOOLEAN DEFAULT TRUE,
     title VARCHAR NOT NULL,
     description TEXT,
-    schedule VARCHAR,
+    schedule VARCHAR NOT NULL,
     priority INT DEFAULT 3,
     completion_status task_status DEFAULT 'INCOMPLETE',
     due_date TIMESTAMPTZ,
