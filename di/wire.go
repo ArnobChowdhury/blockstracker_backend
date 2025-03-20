@@ -37,3 +37,13 @@ func InitializeAuthMiddleware() (*middleware.AuthMiddleware, error) {
 	)
 	return &middleware.AuthMiddleware{}, nil
 }
+
+func InitializeTaskHandler() (*handlers.TaskHandler, error) {
+	wire.Build(
+		database.DBProvider,
+		repositories.NewTaskRepository,
+		logger.LoggerProvider,
+		handlers.NewTaskHandler,
+	)
+	return &handlers.TaskHandler{}, nil
+}

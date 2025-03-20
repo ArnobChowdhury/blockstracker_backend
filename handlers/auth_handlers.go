@@ -65,8 +65,7 @@ func (h *AuthHandler) SignupUser(c *gin.Context) {
 		if validationErrors, ok := err.(validator.ValidationErrors); ok && len(validationErrors) > 0 {
 			msg := validators.GetCustomMessage(validationErrors[0], req)
 
-			authError := apperrors.ErrInvalidRequestBody
-			authError.SetErrMessage(msg)
+			authError := apperrors.NewInvalidReqErr(msg)
 			utils.SendErrorResponse(c, h.logger, messages.ErrInvalidRequestBody,
 				authError.LogError(), authError)
 			return
@@ -126,7 +125,7 @@ func (h *AuthHandler) EmailSignIn(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.SendErrorResponse(c, h.logger, messages.ErrInvalidRequestBody,
-			err.Error(), apperrors.ErrMalformedRequest)
+			err.Error(), apperrors.ErrMalformedTaskRequest)
 		return
 	}
 

@@ -32,4 +32,6 @@ const (
 	ErrRefreshTokenDidNotMatchWithCachedToken = "Refresh token didn't match with cached token"
 	ErrInvalidatingOldTokens                  = "Failed to invalidate old tokens"
 	ErrTokenNotFoundDuringLogout              = "Token not found during logout"
+
+	ErrTaskCreationFailed = "Task creation failed"
 )

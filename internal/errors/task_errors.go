@@ -2,6 +2,7 @@ package apperrors
 
 import (
 	"fmt"
+	"net/http"
 )
 
 type TaskError struct {
@@ -26,14 +27,10 @@ func (e *TaskError) Error() string {
 	return e.message
 }
 
-func (e *TaskError) SetErrMessage(message string) {
-	e.message = message
-}
-
 func (e *TaskError) LogError() string {
 	return fmt.Sprintf("TaskError - Code: %s, Message: %s, Status Code: %d", e.code, e.message, e.statusCode)
 }
 
-// var (
-// 	ErrMalformedRequest = NewTaskError("BAD_REQUEST", "Malformed request", http.StatusBadRequest)
-// )
+var (
+	ErrMalformedTaskRequest = NewTaskError("BAD_REQUEST", "Malformed request", http.StatusBadRequest)
+)

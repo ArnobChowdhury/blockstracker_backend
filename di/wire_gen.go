@@ -48,3 +48,11 @@ func InitializeAuthMiddleware() (*middleware.AuthMiddleware, error) {
 	authMiddleware := middleware.NewAuthMiddleware(sugaredLogger, authConfig)
 	return authMiddleware, nil
 }
+
+func InitializeTaskHandler() (*handlers.TaskHandler, error) {
+	db := database.DBProvider()
+	taskRepository := repositories.NewTaskRepository(db)
+	sugaredLogger := logger.LoggerProvider()
+	taskHandler := handlers.NewTaskHandler(taskRepository, sugaredLogger)
+	return taskHandler, nil
+}

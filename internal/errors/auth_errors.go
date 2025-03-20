@@ -27,10 +27,6 @@ func (e *AuthError) Error() string {
 	return e.message
 }
 
-func (e *AuthError) SetErrMessage(message string) {
-	e.message = message
-}
-
 func (e *AuthError) LogError() string {
 	return fmt.Sprintf("AuthError - Code: %s, Message: %s, Status Code: %d", e.code, e.message, e.statusCode)
 }
@@ -43,7 +39,6 @@ var (
 	ErrInvalidToken             = NewAuthError("INVALID_TOKEN", "Invalid token", http.StatusUnauthorized)
 	ErrUnexpectedSigningMethod  = NewAuthError("UNEXPECTED_SIGNING_METHOD", "Unexpected signing method", http.StatusUnauthorized)
 	ErrMalformedRequest         = NewAuthError("BAD_REQUEST", "Malformed request", http.StatusBadRequest)
-	ErrInternalServerError      = NewAuthError("INTERNAL_SERVER_ERROR", "Internal server error", http.StatusInternalServerError)
 	ErrDBUniqueConstraintFailed = NewAuthError("DB_UNIQUE_CONSTRAINT_FAILED", "Internal server error", http.StatusInternalServerError)
 	ErrUniqueConstraintFailed   = NewAuthError("UNIQUE_CONSTRAINT_FAILED", "Unique constraint failed", http.StatusBadRequest)
 	ErrInvalidRequestBody       = NewAuthError("INVALID_REQUEST_BODY", "Invalid request body", http.StatusBadRequest)

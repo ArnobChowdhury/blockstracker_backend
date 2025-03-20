@@ -7,6 +7,27 @@ import (
 	"gorm.io/gorm"
 )
 
+type CreateTaskRequest struct {
+	IsActive                 bool                    `gorm:"default:true" json:"isActive" binding:"required"`
+	Title                    string                  `gorm:"not null" json:"title" binding:"required"`
+	Description              string                  `json:"description"`
+	Schedule                 string                  `json:"schedule" binding:"required"`
+	Priority                 int                     `gorm:"default:3" json:"priority" binding:"required"`
+	CompletionStatus         string                  `gorm:"default:'INCOMPLETE'" json:"completionStatus" binding:"required"`
+	DueDate                  *time.Time              `json:"dueDate"`
+	ShouldBeScored           *bool                   `json:"shouldBeScored" binding:"required"`
+	Score                    *int                    `json:"score"`
+	TimeOfDay                *string                 `json:"timeOfDay"`
+	RepetitiveTaskTemplate   *RepetitiveTaskTemplate `json:"repetitiveTaskTemplate"`
+	RepetitiveTaskTemplateID uuid.UUID               `gorm:"type:uuid" json:"repetitiveTaskTemplateId"`
+	CreatedAt                time.Time               `json:"createdAt"`
+	ModifiedAt               time.Time               `json:"modifiedAt"`
+	Tags                     []Tag                   `gorm:"many2many:task_tags;" json:"tags"`
+	Space                    *Space                  `json:"space"`
+	SpaceID                  uuid.UUID               `gorm:"type:uuid" json:"spaceId"`
+	DeletedAt                gorm.DeletedAt          `gorm:"index" json:"-"`
+}
+
 type Task struct {
 	ID                       uuid.UUID               `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	IsActive                 bool                    `gorm:"default:true" json:"isActive" binding:"required"`
@@ -26,6 +47,7 @@ type Task struct {
 	Tags                     []Tag                   `gorm:"many2many:task_tags;" json:"tags"`
 	Space                    *Space                  `json:"space"`
 	SpaceID                  uuid.UUID               `gorm:"type:uuid" json:"spaceId"`
+	UserID                   uuid.UUID               `gorm:"type:uuid" json:"-"` // Add UserID here
 	DeletedAt                gorm.DeletedAt          `gorm:"index" json:"-"`
 }
 
