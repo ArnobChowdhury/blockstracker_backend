@@ -23,7 +23,6 @@ type CreateTaskRequest struct {
 	CreatedAt                time.Time               `json:"createdAt"`
 	ModifiedAt               time.Time               `json:"modifiedAt"`
 	Tags                     []Tag                   `gorm:"many2many:task_tags;" json:"tags"`
-	Space                    *Space                  `json:"space"`
 	SpaceID                  *uuid.UUID              `gorm:"type:uuid" json:"spaceId"`
 	DeletedAt                gorm.DeletedAt          `gorm:"index" json:"-"`
 }
@@ -49,6 +48,12 @@ type Task struct {
 	SpaceID                  *uuid.UUID              `gorm:"type:uuid" json:"spaceId"`
 	UserID                   uuid.UUID               `gorm:"type:uuid" json:"userId"` // Add UserID here
 	DeletedAt                gorm.DeletedAt          `gorm:"index" json:"-"`
+}
+
+// Create Task success response for swagger doc
+type CreateTaskResponseForSwagger struct {
+	Result Task `json:"result"`
+	SuccessResult
 }
 
 type RepetitiveTaskTemplate struct {

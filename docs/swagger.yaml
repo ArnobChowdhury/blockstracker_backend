@@ -1,5 +1,60 @@
 basePath: /api/v1
 definitions:
+  models.CreateTaskRequest:
+    properties:
+      completionStatus:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      dueDate:
+        type: string
+      isActive:
+        type: boolean
+      modifiedAt:
+        type: string
+      priority:
+        type: integer
+      repetitiveTaskTemplate:
+        $ref: '#/definitions/models.RepetitiveTaskTemplate'
+      repetitiveTaskTemplateId:
+        type: string
+      schedule:
+        type: string
+      score:
+        type: integer
+      shouldBeScored:
+        type: boolean
+      spaceId:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/models.Tag'
+        type: array
+      timeOfDay:
+        type: string
+      title:
+        type: string
+    required:
+    - completionStatus
+    - isActive
+    - priority
+    - schedule
+    - shouldBeScored
+    - title
+    type: object
+  models.CreateTaskResponseForSwagger:
+    properties:
+      message:
+        example: Success message
+        type: string
+      result:
+        $ref: '#/definitions/models.Task'
+      status:
+        example: Success
+        type: string
+    type: object
   models.EmailSignInRequest:
     properties:
       email:
@@ -43,6 +98,57 @@ definitions:
     - accessToken
     - refreshToken
     type: object
+  models.RepetitiveTaskTemplate:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      friday:
+        type: boolean
+      id:
+        type: string
+      isActive:
+        type: boolean
+      lastDateOfTaskGeneration:
+        type: string
+      modifiedAt:
+        type: string
+      monday:
+        type: boolean
+      priority:
+        type: integer
+      saturday:
+        type: boolean
+      schedule:
+        type: string
+      shouldBeScored:
+        type: boolean
+      space:
+        $ref: '#/definitions/models.Space'
+      spaceId:
+        type: integer
+      sunday:
+        type: boolean
+      tags:
+        items:
+          $ref: '#/definitions/models.Tag'
+        type: array
+      tasks:
+        items:
+          $ref: '#/definitions/models.Task'
+        type: array
+      thursday:
+        type: boolean
+      timeOfDay:
+        type: string
+      title:
+        type: string
+      tuesday:
+        type: boolean
+      wednesday:
+        type: boolean
+    type: object
   models.SignInSuccessResponse:
     properties:
       result:
@@ -71,6 +177,25 @@ definitions:
     - email
     - password
     type: object
+  models.Space:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      modifiedAt:
+        type: string
+      name:
+        type: string
+      repetitiveTasks:
+        items:
+          $ref: '#/definitions/models.RepetitiveTaskTemplate'
+        type: array
+      tasks:
+        items:
+          $ref: '#/definitions/models.Task'
+        type: array
+    type: object
   models.SuccessResult:
     properties:
       message:
@@ -79,6 +204,76 @@ definitions:
       status:
         example: Success
         type: string
+    type: object
+  models.Tag:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      modifiedAt:
+        type: string
+      name:
+        type: string
+      repetitiveTasks:
+        items:
+          $ref: '#/definitions/models.RepetitiveTaskTemplate'
+        type: array
+      tasks:
+        items:
+          $ref: '#/definitions/models.Task'
+        type: array
+    type: object
+  models.Task:
+    properties:
+      completionStatus:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      dueDate:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      modifiedAt:
+        type: string
+      priority:
+        type: integer
+      repetitiveTaskTemplate:
+        $ref: '#/definitions/models.RepetitiveTaskTemplate'
+      repetitiveTaskTemplateId:
+        type: string
+      schedule:
+        type: string
+      score:
+        type: integer
+      shouldBeScored:
+        type: boolean
+      space:
+        $ref: '#/definitions/models.Space'
+      spaceId:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/models.Tag'
+        type: array
+      timeOfDay:
+        type: string
+      title:
+        type: string
+      userId:
+        description: Add UserID here
+        type: string
+    required:
+    - completionStatus
+    - isActive
+    - priority
+    - schedule
+    - shouldBeScored
+    - title
     type: object
   models.TokenResponse:
     properties:
@@ -224,6 +419,36 @@ paths:
       summary: Ping example
       tags:
       - example
+  /task/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new task with the given details
+      parameters:
+      - description: Task details
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CreateTaskResponseForSwagger'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+      summary: Create a new task
+      tags:
+      - tasks
 securityDefinitions:
   BearerAuth:
     in: header
