@@ -211,12 +211,16 @@ func setupRouter() error {
 	if err != nil {
 		return fmt.Errorf("Error loading auth config: %v", err)
 	}
+
+	taskRepo := repositories.NewTaskRepository(TestDB)
+
 	logger := zap.NewNop().Sugar()
 
 	tokenRepository := repositories.NewTokenRepository(redisClient)
 
 	authHandler := handlers.NewAuthHandler(userRepo, logger, testAuthConfig, tokenRepository)
 	authMiddleware := middleware.NewAuthMiddleware(logger, testAuthConfig)
+	taskHandler := handlers.NewTaskHandler(taskRepo, logger)
 
 	router = gin.Default()
 	router.POST("/signup", authHandler.SignupUser)
@@ -226,6 +230,9 @@ func setupRouter() error {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 	router.POST("/signout", authMiddleware.Handle, authHandler.Signout)
+
+	taskGroup := router.Group("/task")
+	taskGroup.POST("/create", authMiddleware.Handle, taskHandler.CreateTask)
 
 	return nil
 }

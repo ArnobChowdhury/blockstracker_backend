@@ -47,7 +47,7 @@ type Task struct {
 	Tags                     []Tag                   `gorm:"many2many:task_tags;" json:"tags"`
 	Space                    *Space                  `json:"space"`
 	SpaceID                  *uuid.UUID              `gorm:"type:uuid" json:"spaceId"`
-	UserID                   uuid.UUID               `gorm:"type:uuid" json:"-"` // Add UserID here
+	UserID                   uuid.UUID               `gorm:"type:uuid" json:"userId"` // Add UserID here
 	DeletedAt                gorm.DeletedAt          `gorm:"index" json:"-"`
 }
 

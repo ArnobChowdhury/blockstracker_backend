@@ -79,7 +79,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(
-		messages.MsgTaskCreationSuccess, messages.Success, task))
+		messages.Success, messages.MsgTaskCreationSuccess, task))
 }
 
 func (h *TaskHandler) CreateRepetitiveTaskTemplate(c *gin.Context) {
