@@ -71,15 +71,13 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.MsgTaskCreationSuccess, messages.Success, nil))
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(
+		messages.MsgTaskCreationSuccess, messages.Success, task))
 }
 
 func (h *TaskHandler) CreateRepetitiveTaskTemplate(c *gin.Context) {
 	var req models.RepetitiveTaskTemplate
 	if err := c.ShouldBindJSON(&req); err != nil {
-		// needs to be changed
-		// create a new malformed request error in task_error
-		// use setError message method to set the actual error
 
 		utils.SendErrorResponse(c, h.logger, "task creation failed", err.Error(), apperrors.ErrMalformedRequest)
 		return
