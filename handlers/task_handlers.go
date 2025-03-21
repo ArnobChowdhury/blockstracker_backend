@@ -4,22 +4,95 @@ import (
 	"net/http"
 	"time"
 
+	apperrors "blockstracker_backend/internal/errors"
+	"blockstracker_backend/internal/repositories"
+	"blockstracker_backend/internal/utils"
 	"blockstracker_backend/messages"
 	"blockstracker_backend/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
-func CreateTask(c *gin.Context) {
-	var req models.CreateTaskRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": messages.MsgTaskCreatedSuccess})
+type TaskHandler struct {
+	taskRepo *repositories.TaskRepository
+	logger   *zap.SugaredLogger
 }
 
-func UpdateTask(c *gin.Context) {
+func NewTaskHandler(
+	taskRepo *repositories.TaskRepository,
+	logger *zap.SugaredLogger,
+) *TaskHandler {
+	return &TaskHandler{
+		taskRepo: taskRepo,
+		logger:   logger,
+	}
+}
+
+func (h *TaskHandler) CreateTask(c *gin.Context) {
+	userID, ok := c.Get("userID")
+	if !ok {
+		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
+			"User ID not found in context", apperrors.ErrInternalServerError)
+		return
+	}
+
+	uid, ok := userID.(uuid.UUID)
+	if !ok {
+		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
+			"User ID is not of valid type", apperrors.ErrInternalServerError)
+		return
+	}
+
+	var req models.CreateTaskRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		invalidReqErr := apperrors.NewInvalidReqErr(err.Error())
+		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
+			err.Error(), invalidReqErr)
+		return
+	}
+
+	task := models.Task{
+		IsActive:                 req.IsActive,
+		Title:                    req.Title,
+		Description:              req.Description,
+		Schedule:                 req.Schedule,
+		Priority:                 req.Priority,
+		CompletionStatus:         req.CompletionStatus,
+		DueDate:                  req.DueDate,
+		ShouldBeScored:           req.ShouldBeScored,
+		Score:                    req.Score,
+		TimeOfDay:                req.TimeOfDay,
+		RepetitiveTaskTemplateID: req.RepetitiveTaskTemplateID,
+		CreatedAt:                req.CreatedAt,
+		ModifiedAt:               req.ModifiedAt,
+		Tags:                     req.Tags,
+		SpaceID:                  req.SpaceID,
+		UserID:                   uid,
+	}
+
+	if err := h.taskRepo.CreateTask(&task); err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(
+		messages.MsgTaskCreationSuccess, messages.Success, task))
+}
+
+func (h *TaskHandler) CreateRepetitiveTaskTemplate(c *gin.Context) {
+	var req models.RepetitiveTaskTemplate
+	if err := c.ShouldBindJSON(&req); err != nil {
+
+		utils.SendErrorResponse(c, h.logger, "task creation failed", err.Error(), apperrors.ErrMalformedRequest)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": messages.MsgTaskCreationSuccess})
+}
+
+func (h *TaskHandler) UpdateTask(c *gin.Context) {
 	var req models.UpdateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -28,7 +101,7 @@ func UpdateTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": messages.MsgTaskUpdatedSuccess})
 }
 
-func UpdateRepetitiveTask(c *gin.Context) {
+func (h *TaskHandler) UpdateRepetitiveTask(c *gin.Context) {
 	var req models.UpdateRepetitiveTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -37,7 +110,7 @@ func UpdateRepetitiveTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": messages.MsgTaskUpdatedSuccess})
 }
 
-func GetTasksToday(c *gin.Context) {
+func (h *TaskHandler) GetTasksToday(c *gin.Context) {
 	// Mock data, assuming you have a Task model and a service that fetches real tasks
 	tasks := []map[string]interface{}{
 		{
@@ -60,7 +133,7 @@ func GetTasksToday(c *gin.Context) {
 	})
 }
 
-func ToggleTaskCompletionStatus(c *gin.Context) {
+func (h *TaskHandler) ToggleTaskCompletionStatus(c *gin.Context) {
 	var req struct {
 		TaskID    int  `json:"task_id" binding:"required"`
 		Completed bool `json:"completed" binding:"required"`
@@ -81,7 +154,7 @@ func ToggleTaskCompletionStatus(c *gin.Context) {
 	})
 }
 
-func GetDailyTasksMonthlyReport(c *gin.Context) {
+func (h *TaskHandler) GetDailyTasksMonthlyReport(c *gin.Context) {
 	// Mock data, assuming you are pulling actual report data from a service
 	report := []map[string]interface{}{
 		{
@@ -102,7 +175,7 @@ func GetDailyTasksMonthlyReport(c *gin.Context) {
 	})
 }
 
-func GetSpecificDaysInAWeekTasksMonthlyReport(c *gin.Context) {
+func (h *TaskHandler) GetSpecificDaysInAWeekTasksMonthlyReport(c *gin.Context) {
 	// Mock data, assuming you are pulling actual report data from a service
 	report := []map[string]interface{}{
 		{
@@ -123,7 +196,7 @@ func GetSpecificDaysInAWeekTasksMonthlyReport(c *gin.Context) {
 	})
 }
 
-func GetOverdueTasks(c *gin.Context) {
+func (h *TaskHandler) GetOverdueTasks(c *gin.Context) {
 	// Get today's date to compare with due dates
 	// today := time.Now().Format("2006-01-02")
 
@@ -158,7 +231,7 @@ func GetOverdueTasks(c *gin.Context) {
 	})
 }
 
-func MarkTaskAsFailure(c *gin.Context) {
+func (h *TaskHandler) MarkTaskAsFailure(c *gin.Context) {
 	// Fetch the task ID from the URL parameter
 	// taskID := c.Param("id")
 
@@ -177,7 +250,7 @@ func MarkTaskAsFailure(c *gin.Context) {
 	// })
 }
 
-func RescheduleTask(c *gin.Context) {
+func (h *TaskHandler) RescheduleTask(c *gin.Context) {
 	// Extract task ID and new due date from the request
 	var req struct {
 		TaskID     int    `json:"task_id" binding:"required"`
@@ -194,23 +267,23 @@ func RescheduleTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Task rescheduled successfully"})
 }
 
-func GetAllUnscheduledActiveTasks(c *gin.Context) {
+func (h *TaskHandler) GetAllUnscheduledActiveTasks(c *gin.Context) {
 	// Helper: Implement logic to fetch unscheduled active tasks from the database or service
 }
 
-func GetAllOneOffActiveTasks(c *gin.Context) {
+func (h *TaskHandler) GetAllOneOffActiveTasks(c *gin.Context) {
 	// Helper: Implement logic to fetch one-off active tasks from the database or service
 }
 
-func GetAllDailyActiveTasks(c *gin.Context) {
+func (h *TaskHandler) GetAllDailyActiveTasks(c *gin.Context) {
 	// Helper: Implement logic to fetch daily active tasks from the database or service
 }
 
-func GetAllSpecificDaysInAWeekActiveTasks(c *gin.Context) {
+func (h *TaskHandler) GetAllSpecificDaysInAWeekActiveTasks(c *gin.Context) {
 	// Helper: Implement logic to fetch active tasks for specific days in a week from the database or service
 }
 
-func BulkTaskFailure(c *gin.Context) {
+func (h *TaskHandler) BulkTaskFailure(c *gin.Context) {
 	var taskIDs []int
 
 	// Bind the request body to the taskIDs slice
@@ -229,98 +302,98 @@ func BulkTaskFailure(c *gin.Context) {
 }
 
 // GetTaskDetails retrieves details of a task by ID
-func GetTaskDetails(c *gin.Context) {
+func (h *TaskHandler) GetTaskDetails(c *gin.Context) {
 	// c.Param("id") - Get task ID from the URL
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "Task details fetched successfully"})
 }
 
 // GetRepetitiveTaskDetails retrieves details of a repetitive task by ID
-func GetRepetitiveTaskDetails(c *gin.Context) {
+func (h *TaskHandler) GetRepetitiveTaskDetails(c *gin.Context) {
 	// c.Param("id") - Get repetitive task ID from the URL
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "Repetitive task details fetched successfully"})
 }
 
 // StopRepetitiveTask marks a repetitive task as inactive
-func StopRepetitiveTask(c *gin.Context) {
+func (h *TaskHandler) StopRepetitiveTask(c *gin.Context) {
 	// c.Param("id") - Get task ID from the URL
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "Repetitive task stopped successfully"})
 }
 
 // GetAllTags retrieves all tags
-func GetAllTags(c *gin.Context) {
+func (h *TaskHandler) GetAllTags(c *gin.Context) {
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "All tags fetched successfully"})
 }
 
 // GetAllSpaces retrieves all spaces
-func GetAllSpaces(c *gin.Context) {
+func (h *TaskHandler) GetAllSpaces(c *gin.Context) {
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "All spaces fetched successfully"})
 }
 
 // CreateTag creates a new tag
-func CreateTag(c *gin.Context) {
+func (h *TaskHandler) CreateTag(c *gin.Context) {
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "Tag created successfully"})
 }
 
 // CreateSpace creates a new space
-func CreateSpace(c *gin.Context) {
+func (h *TaskHandler) CreateSpace(c *gin.Context) {
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "Space created successfully"})
 }
 
 // GetUnscheduledActiveTasksWithSpaceID retrieves unscheduled active tasks by space ID
-func GetUnscheduledActiveTasksWithSpaceID(c *gin.Context) {
+func (h *TaskHandler) GetUnscheduledActiveTasksWithSpaceID(c *gin.Context) {
 	// c.Param("spaceId") - Get space ID from the URL
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "Unscheduled active tasks for space fetched successfully"})
 }
 
 // GetOneOffActiveTasksWithSpaceID retrieves one-off active tasks by space ID
-func GetOneOffActiveTasksWithSpaceID(c *gin.Context) {
+func (h *TaskHandler) GetOneOffActiveTasksWithSpaceID(c *gin.Context) {
 	// c.Param("spaceId") - Get space ID from the URL
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "One-off active tasks for space fetched successfully"})
 }
 
 // GetDailyActiveTasksWithSpaceID retrieves daily active tasks by space ID
-func GetDailyActiveTasksWithSpaceID(c *gin.Context) {
+func (h *TaskHandler) GetDailyActiveTasksWithSpaceID(c *gin.Context) {
 	// c.Param("spaceId") - Get space ID from the URL
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "Daily active tasks for space fetched successfully"})
 }
 
 // GetSpecificDaysInAWeekActiveTasksWithSpaceID retrieves tasks based on specific days in a week and space ID
-func GetSpecificDaysInAWeekActiveTasksWithSpaceID(c *gin.Context) {
+func (h *TaskHandler) GetSpecificDaysInAWeekActiveTasksWithSpaceID(c *gin.Context) {
 	// c.Param("spaceId") - Get space ID from the URL
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "Tasks for specific days in a week for space fetched successfully"})
 }
 
 // GetUnscheduledActiveTasksWithoutSpace retrieves unscheduled active tasks without a space
-func GetUnscheduledActiveTasksWithoutSpace(c *gin.Context) {
+func (h *TaskHandler) GetUnscheduledActiveTasksWithoutSpace(c *gin.Context) {
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "Unscheduled active tasks without space fetched successfully"})
 }
 
 // GetOneOffActiveTasksWithoutSpace retrieves one-off active tasks without a space
-func GetOneOffActiveTasksWithoutSpace(c *gin.Context) {
+func (h *TaskHandler) GetOneOffActiveTasksWithoutSpace(c *gin.Context) {
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "One-off active tasks without space fetched successfully"})
 }
 
 // GetDailyActiveTasksWithoutSpace retrieves daily active tasks without a space
-func GetDailyActiveTasksWithoutSpace(c *gin.Context) {
+func (h *TaskHandler) GetDailyActiveTasksWithoutSpace(c *gin.Context) {
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "Daily active tasks without space fetched successfully"})
 }
 
 // GetSpecificDaysInAWeekActiveTasksWithSpaceID retrieves tasks based on specific days in a week and space ID
-func GetSpecificDaysInAWeekActiveTasksWithoutSpace(c *gin.Context) {
+func (h *TaskHandler) GetSpecificDaysInAWeekActiveTasksWithoutSpace(c *gin.Context) {
 	// c.Param("spaceId") - Get space ID from the URL
 	// Implement logic here
 	c.JSON(http.StatusOK, gin.H{"message": "Tasks for specific days in a week for space fetched successfully"})

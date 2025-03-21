@@ -42,6 +42,11 @@ func main() {
 		log.Fatalf("Error initializing auth middleware: %s", err.Error())
 	}
 
+	taskHandler, err := di.InitializeTaskHandler()
+	if err != nil {
+		log.Fatalf("Error initializing task handler: %s", err.Error())
+	}
+
 	r := gin.Default()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -50,7 +55,7 @@ func main() {
 		v1.GET("/ping", PingHandler)
 
 		routes.RegisterAuthRoutes(v1, authHandler, authMiddleware)
-		routes.RegisterTaskRoutes(v1)
+		routes.RegisterTaskRoutes(v1, taskHandler, authMiddleware)
 	}
 
 	fmt.Println(strings.Repeat("🚀", 25))

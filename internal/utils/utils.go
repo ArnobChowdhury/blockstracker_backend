@@ -94,7 +94,7 @@ func ParseToken(tokenString string, secretKey string) (*models.Claims, error) {
 }
 
 func SendErrorResponse(c *gin.Context, logger *zap.SugaredLogger, logTitle string,
-	logErrMsg string, resErr *apperrors.AuthError) {
+	logErrMsg string, resErr apperrors.AppError) {
 
 	logger.Errorw(logTitle, messages.Error, logErrMsg)
 	c.JSON(resErr.StatusCode(), CreateJSONResponse(messages.Error, resErr.Error(), nil))
