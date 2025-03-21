@@ -30,6 +30,17 @@ func NewTaskHandler(
 	}
 }
 
+// CreateTask godoc
+// @Summary Create a new task
+// @Description Create a new task with the given details
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param task body models.CreateTaskRequest true "Task details"
+// @Success 200 {object} models.CreateTaskResponseForSwagger
+// @Failure 400 {object} models.GenericErrorResponse
+// @Failure 500 {object} models.GenericErrorResponse
+// @Router /task/create [post]
 func (h *TaskHandler) CreateTask(c *gin.Context) {
 	userID, ok := c.Get("userID")
 	if !ok {

@@ -215,9 +215,135 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/task/create": {
+            "post": {
+                "description": "Create a new task with the given details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Create a new task",
+                "parameters": [
+                    {
+                        "description": "Task details",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateTaskRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateTaskResponseForSwagger"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "models.CreateTaskRequest": {
+            "type": "object",
+            "required": [
+                "completionStatus",
+                "isActive",
+                "priority",
+                "schedule",
+                "shouldBeScored",
+                "title"
+            ],
+            "properties": {
+                "completionStatus": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dueDate": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "repetitiveTaskTemplate": {
+                    "$ref": "#/definitions/models.RepetitiveTaskTemplate"
+                },
+                "repetitiveTaskTemplateId": {
+                    "type": "string"
+                },
+                "schedule": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer"
+                },
+                "shouldBeScored": {
+                    "type": "boolean"
+                },
+                "spaceId": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Tag"
+                    }
+                },
+                "timeOfDay": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateTaskResponseForSwagger": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Success message"
+                },
+                "result": {
+                    "$ref": "#/definitions/models.Task"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
         "models.EmailSignInRequest": {
             "type": "object",
             "required": [
@@ -281,6 +407,83 @@ const docTemplate = `{
                 }
             }
         },
+        "models.RepetitiveTaskTemplate": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "friday": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "lastDateOfTaskGeneration": {
+                    "type": "string"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "monday": {
+                    "type": "boolean"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "saturday": {
+                    "type": "boolean"
+                },
+                "schedule": {
+                    "type": "string"
+                },
+                "shouldBeScored": {
+                    "type": "boolean"
+                },
+                "space": {
+                    "$ref": "#/definitions/models.Space"
+                },
+                "spaceId": {
+                    "type": "integer"
+                },
+                "sunday": {
+                    "type": "boolean"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Tag"
+                    }
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Task"
+                    }
+                },
+                "thursday": {
+                    "type": "boolean"
+                },
+                "timeOfDay": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "tuesday": {
+                    "type": "boolean"
+                },
+                "wednesday": {
+                    "type": "boolean"
+                }
+            }
+        },
         "models.SignInSuccessResponse": {
             "type": "object",
             "properties": {
@@ -322,6 +525,35 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Space": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "repetitiveTasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.RepetitiveTaskTemplate"
+                    }
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Task"
+                    }
+                }
+            }
+        },
         "models.SuccessResult": {
             "type": "object",
             "properties": {
@@ -332,6 +564,109 @@ const docTemplate = `{
                 "status": {
                     "type": "string",
                     "example": "Success"
+                }
+            }
+        },
+        "models.Tag": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "repetitiveTasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.RepetitiveTaskTemplate"
+                    }
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Task"
+                    }
+                }
+            }
+        },
+        "models.Task": {
+            "type": "object",
+            "required": [
+                "completionStatus",
+                "isActive",
+                "priority",
+                "schedule",
+                "shouldBeScored",
+                "title"
+            ],
+            "properties": {
+                "completionStatus": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dueDate": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "repetitiveTaskTemplate": {
+                    "$ref": "#/definitions/models.RepetitiveTaskTemplate"
+                },
+                "repetitiveTaskTemplateId": {
+                    "type": "string"
+                },
+                "schedule": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer"
+                },
+                "shouldBeScored": {
+                    "type": "boolean"
+                },
+                "space": {
+                    "$ref": "#/definitions/models.Space"
+                },
+                "spaceId": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Tag"
+                    }
+                },
+                "timeOfDay": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "Add UserID here",
+                    "type": "string"
                 }
             }
         },
