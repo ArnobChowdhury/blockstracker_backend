@@ -38,6 +38,13 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
+	uid, ok := userID.(uuid.UUID)
+	if !ok {
+		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
+			"User ID is not of valid type", apperrors.ErrInternalServerError)
+		return
+	}
+
 	var req models.CreateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidReqErr := apperrors.NewInvalidReqErr(err.Error())
@@ -62,7 +69,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		ModifiedAt:               req.ModifiedAt,
 		Tags:                     req.Tags,
 		SpaceID:                  req.SpaceID,
-		UserID:                   userID.(uuid.UUID),
+		UserID:                   uid,
 	}
 
 	if err := h.taskRepo.CreateTask(&task); err != nil {
