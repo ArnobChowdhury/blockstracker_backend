@@ -8,10 +8,10 @@ import (
 )
 
 func RegisterTaskRoutes(rg *gin.RouterGroup, taskHandler *handlers.TaskHandler, authMiddleware *middleware.AuthMiddleware) {
-	taskGroup := rg.Group("/task")
+	taskGroup := rg.Group("/tasks")
+	taskGroup.Use(authMiddleware.Handle)
 
 	{
-		taskGroup.Use(authMiddleware.Handle)
-		taskGroup.POST("/create", taskHandler.CreateTask)
+		taskGroup.POST("/", taskHandler.CreateTask)
 	}
 }

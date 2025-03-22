@@ -233,11 +233,13 @@ func setupRouter() error {
 	})
 	router.POST("/signout", authMiddleware.Handle, authHandler.Signout)
 
-	taskGroup := router.Group("/task")
-	taskGroup.POST("/create", authMiddleware.Handle, taskHandler.CreateTask)
+	router.Use(authMiddleware.Handle)
+
+	taskGroup := router.Group("/tasks")
+	taskGroup.POST("/", taskHandler.CreateTask)
 
 	tagGroup := router.Group("/tags")
-	tagGroup.POST("/", authMiddleware.Handle, tagHandler.CreateTag)
+	tagGroup.POST("/", tagHandler.CreateTag)
 
 	return nil
 }

@@ -126,7 +126,7 @@ func TestCreateTaskIntegration(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			req, err := testutils.CreateRequest(
 				http.MethodPost,
-				"/task/create",
+				"/tasks/",
 				tc.requestBody,
 				testutils.WithAccessToken(accessToken),
 			)
