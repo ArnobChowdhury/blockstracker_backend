@@ -29,6 +29,17 @@ func NewTagHandler(
 	}
 }
 
+// CreateTag godoc
+// @Summary Create a new tag
+// @Description Create a new tag with the given details
+// @Tags tags
+// @Accept json
+// @Produce json
+// @Param tag body models.CreateTagRequest true "Tag details"
+// @Success 200 {object} models.CreateTagResponseForSwagger
+// @Failure 400 {object} models.GenericErrorResponse
+// @Failure 500 {object} models.GenericErrorResponse
+// @Router /tags [post]
 func (h *TagHandler) CreateTag(c *gin.Context) {
 	userID, ok := c.Get("userID")
 	if !ok {

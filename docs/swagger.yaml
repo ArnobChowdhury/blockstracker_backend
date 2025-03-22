@@ -1,5 +1,29 @@
 basePath: /api/v1
 definitions:
+  models.CreateTagRequest:
+    properties:
+      createdAt:
+        type: string
+      modifiedAt:
+        type: string
+      name:
+        type: string
+    required:
+    - createdAt
+    - modifiedAt
+    - name
+    type: object
+  models.CreateTagResponseForSwagger:
+    properties:
+      message:
+        example: Success message
+        type: string
+      result:
+        $ref: '#/definitions/models.Tag'
+      status:
+        example: Success
+        type: string
+    type: object
   models.CreateTaskRequest:
     properties:
       completionStatus:
@@ -215,14 +239,12 @@ definitions:
         type: string
       name:
         type: string
-      repetitiveTasks:
-        items:
-          $ref: '#/definitions/models.RepetitiveTaskTemplate'
-        type: array
-      tasks:
-        items:
-          $ref: '#/definitions/models.Task'
-        type: array
+      userId:
+        type: string
+    required:
+    - createdAt
+    - modifiedAt
+    - name
     type: object
   models.Task:
     properties:
@@ -419,6 +441,36 @@ paths:
       summary: Ping example
       tags:
       - example
+  /tags:
+    post:
+      consumes:
+      - application/json
+      description: Create a new tag with the given details
+      parameters:
+      - description: Tag details
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateTagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CreateTagResponseForSwagger'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+      summary: Create a new tag
+      tags:
+      - tags
   /task/create:
     post:
       consumes:

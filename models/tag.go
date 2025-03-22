@@ -21,3 +21,9 @@ type CreateTagRequest struct {
 	CreatedAt  time.Time `json:"createdAt" binding:"required"`
 	ModifiedAt time.Time `json:"modifiedAt" binding:"required"`
 }
+
+// Create Task success response for swagger doc
+type CreateTagResponseForSwagger struct {
+	Result Tag `json:"result"`
+	SuccessResult
+}
