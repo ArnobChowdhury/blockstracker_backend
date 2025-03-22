@@ -52,6 +52,11 @@ func main() {
 		log.Fatalf("Error initializing tag handler: %s", err.Error())
 	}
 
+	spaceHandler, err := di.InitializeSpaceHandler()
+	if err != nil {
+		log.Fatalf("Error initializing space handler: %s", err.Error())
+	}
+
 	r := gin.Default()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -62,6 +67,7 @@ func main() {
 		routes.RegisterAuthRoutes(v1, authHandler, authMiddleware)
 		routes.RegisterTaskRoutes(v1, taskHandler, authMiddleware)
 		routes.RegisterTagRoutes(v1, tagHandler, authMiddleware)
+		routes.RegisterSpaceRoutes(v1, spaceHandler, authMiddleware)
 	}
 
 	fmt.Println(strings.Repeat("🚀", 25))

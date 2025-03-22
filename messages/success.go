@@ -11,4 +11,7 @@ const (
 
 	MsgTagCreationSuccess = "Tag creation successful"
 	MsgTagUpdatedSuccess  = "Tag updated successfully"
+
+	MsgSpaceCreationSuccess = "Space creation successful"
+	MsgSpaceUpdatedSuccess  = "Space updated successfully"
 )
