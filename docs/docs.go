@@ -216,6 +216,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/tags": {
+            "post": {
+                "description": "Create a new tag with the given details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "Create a new tag",
+                "parameters": [
+                    {
+                        "description": "Tag details",
+                        "name": "tag",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateTagResponseForSwagger"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/task/create": {
             "post": {
                 "description": "Create a new task with the given details",
@@ -264,6 +310,41 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.CreateTagRequest": {
+            "type": "object",
+            "required": [
+                "createdAt",
+                "modifiedAt",
+                "name"
+            ],
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateTagResponseForSwagger": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Success message"
+                },
+                "result": {
+                    "$ref": "#/definitions/models.Tag"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
         "models.CreateTaskRequest": {
             "type": "object",
             "required": [
@@ -569,6 +650,11 @@ const docTemplate = `{
         },
         "models.Tag": {
             "type": "object",
+            "required": [
+                "createdAt",
+                "modifiedAt",
+                "name"
+            ],
             "properties": {
                 "createdAt": {
                     "type": "string"
@@ -582,17 +668,8 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "repetitiveTasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.RepetitiveTaskTemplate"
-                    }
-                },
-                "tasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Task"
-                    }
+                "userId": {
+                    "type": "string"
                 }
             }
         },
