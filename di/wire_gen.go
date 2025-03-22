@@ -64,3 +64,11 @@ func InitializeTagHandler() (*handlers.TagHandler, error) {
 	tagHandler := handlers.NewTagHandler(tagRepository, sugaredLogger)
 	return tagHandler, nil
 }
+
+func InitializeSpaceHandler() (*handlers.SpaceHandler, error) {
+	db := database.DBProvider()
+	spaceRepository := repositories.NewSpaceRepository(db)
+	sugaredLogger := logger.LoggerProvider()
+	spaceHandler := handlers.NewSpaceHandler(spaceRepository, sugaredLogger)
+	return spaceHandler, nil
+}

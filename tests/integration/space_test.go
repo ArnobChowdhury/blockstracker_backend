@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateTagIntegration(t *testing.T) {
+func TestCreateSpaceIntegration(t *testing.T) {
 	// First, sign in a user to get a valid access token
 	signInReqBody := map[string]string{"email": "test@example.com", "password": "StrongPassword123!"}
 	signInReq, err := testutils.CreateRequest(http.MethodPost, "/signin", signInReqBody)
@@ -39,9 +39,9 @@ func TestCreateTagIntegration(t *testing.T) {
 		expectedStatus int
 	}{
 		{
-			name: "Success - Valid Tag Creation",
+			name: "Success - Valid Space Creation",
 			requestBody: map[string]interface{}{
-				"name":       "Test Tag",
+				"name":       "Test Space",
 				"createdAt":  time.Now().UTC().Format(time.RFC3339Nano),
 				"modifiedAt": time.Now().UTC().Format(time.RFC3339Nano),
 			},
@@ -56,36 +56,45 @@ func TestCreateTagIntegration(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name: "Failure - Missing createdAt",
+			name: "Failure - Missing CreatedAt",
 			requestBody: map[string]interface{}{
-				"name":       "Test Tag",
+				"name":       "Test Space",
 				"modifiedAt": time.Now().UTC().Format(time.RFC3339Nano),
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name: "Failure - Missing modifiedAt",
+			name: "Failure - Missing ModifiedAt",
 			requestBody: map[string]interface{}{
-				"name":      "Test Tag",
+				"name":      "Test Space",
 				"createdAt": time.Now().UTC().Format(time.RFC3339Nano),
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name: "Failure - Invalid createdAt",
+			name: "Failure - Invalid CreatedAt Format",
 			requestBody: map[string]interface{}{
-				"name":       "Test Tag",
+				"name":       "Test Space",
 				"createdAt":  "invalid-date",
 				"modifiedAt": time.Now().UTC().Format(time.RFC3339Nano),
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name: "Failure - Invalid modifiedAt",
+			name: "Failure - Invalid ModifiedAt Format",
 			requestBody: map[string]interface{}{
-				"name":       "Test Tag",
-				"createdAt":  "invalid-date",
+				"name":       "Test Space",
+				"createdAt":  time.Now().UTC().Format(time.RFC3339Nano),
 				"modifiedAt": "invalid-date",
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "Failure - Empty Name",
+			requestBody: map[string]interface{}{
+				"name":       "",
+				"createdAt":  time.Now().UTC().Format(time.RFC3339Nano),
+				"modifiedAt": time.Now().UTC().Format(time.RFC3339Nano),
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -95,7 +104,7 @@ func TestCreateTagIntegration(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			req, err := testutils.CreateRequest(
 				http.MethodPost,
-				"/tags/",
+				"/spaces/",
 				tc.requestBody,
 				testutils.WithAccessToken(accessToken),
 			)
@@ -115,7 +124,7 @@ func TestCreateTagIntegration(t *testing.T) {
 				result, ok := responseBody["result"].(map[string]interface{})
 				assert.True(t, ok)
 				assert.Equal(t, messages.Success, result["status"])
-				assert.Equal(t, messages.MsgTagCreationSuccess, result["message"])
+				assert.Equal(t, messages.MsgSpaceCreationSuccess, result["message"])
 				data, ok := result["data"].(map[string]interface{})
 				assert.True(t, ok)
 				assert.NotEmpty(t, data["id"])

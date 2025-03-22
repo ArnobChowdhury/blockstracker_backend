@@ -57,3 +57,13 @@ func InitializeTagHandler() (*handlers.TagHandler, error) {
 	)
 	return &handlers.TagHandler{}, nil
 }
+
+func InitializeSpaceHandler() (*handlers.SpaceHandler, error) {
+	wire.Build(
+		database.DBProvider,
+		repositories.NewSpaceRepository,
+		logger.LoggerProvider,
+		handlers.NewSpaceHandler,
+	)
+	return &handlers.SpaceHandler{}, nil
+}

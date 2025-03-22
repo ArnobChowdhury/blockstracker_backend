@@ -216,6 +216,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/spaces": {
+            "post": {
+                "description": "Create a new Space with the given details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Spaces"
+                ],
+                "summary": "Create a new Space",
+                "parameters": [
+                    {
+                        "description": "Space details",
+                        "name": "Space",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateSpaceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateSpaceResponseForSwagger"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tags": {
             "post": {
                 "description": "Create a new tag with the given details",
@@ -310,6 +356,41 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.CreateSpaceRequest": {
+            "type": "object",
+            "required": [
+                "createdAt",
+                "modifiedAt",
+                "name"
+            ],
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateSpaceResponseForSwagger": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Success message"
+                },
+                "result": {
+                    "$ref": "#/definitions/models.Space"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
         "models.CreateTagRequest": {
             "type": "object",
             "required": [
@@ -608,6 +689,11 @@ const docTemplate = `{
         },
         "models.Space": {
             "type": "object",
+            "required": [
+                "createdAt",
+                "modifiedAt",
+                "name"
+            ],
             "properties": {
                 "createdAt": {
                     "type": "string"
@@ -621,17 +707,8 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "repetitiveTasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.RepetitiveTaskTemplate"
-                    }
-                },
-                "tasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Task"
-                    }
+                "userId": {
+                    "type": "string"
                 }
             }
         },

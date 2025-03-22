@@ -36,4 +36,6 @@ const (
 	ErrTaskCreationFailed = "Task creation failed"
 
 	ErrTagCreationFailed = "Tag creation failed"
+
+	ErrSpaceCreationFailed = "Space creation failed"
 )

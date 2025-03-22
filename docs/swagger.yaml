@@ -1,5 +1,29 @@
 basePath: /api/v1
 definitions:
+  models.CreateSpaceRequest:
+    properties:
+      createdAt:
+        type: string
+      modifiedAt:
+        type: string
+      name:
+        type: string
+    required:
+    - createdAt
+    - modifiedAt
+    - name
+    type: object
+  models.CreateSpaceResponseForSwagger:
+    properties:
+      message:
+        example: Success message
+        type: string
+      result:
+        $ref: '#/definitions/models.Space'
+      status:
+        example: Success
+        type: string
+    type: object
   models.CreateTagRequest:
     properties:
       createdAt:
@@ -211,14 +235,12 @@ definitions:
         type: string
       name:
         type: string
-      repetitiveTasks:
-        items:
-          $ref: '#/definitions/models.RepetitiveTaskTemplate'
-        type: array
-      tasks:
-        items:
-          $ref: '#/definitions/models.Task'
-        type: array
+      userId:
+        type: string
+    required:
+    - createdAt
+    - modifiedAt
+    - name
     type: object
   models.SuccessResult:
     properties:
@@ -441,6 +463,36 @@ paths:
       summary: Ping example
       tags:
       - example
+  /spaces:
+    post:
+      consumes:
+      - application/json
+      description: Create a new Space with the given details
+      parameters:
+      - description: Space details
+        in: body
+        name: Space
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateSpaceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CreateSpaceResponseForSwagger'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+      summary: Create a new Space
+      tags:
+      - Spaces
   /tags:
     post:
       consumes:
