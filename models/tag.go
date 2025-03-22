@@ -17,7 +17,7 @@ type Tag struct {
 }
 
 type CreateTagRequest struct {
-	Name       string    `json:"name"`
-	CreatedAt  time.Time `json:"createdAt"`
-	ModifiedAt time.Time `json:"modifiedAt"`
+	Name       string    `json:"name" binding:"required"`
+	CreatedAt  time.Time `json:"createdAt" binding:"required"`
+	ModifiedAt time.Time `json:"modifiedAt" binding:"required"`
 }
