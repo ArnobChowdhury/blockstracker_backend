@@ -39,7 +39,7 @@ func NewTaskHandler(
 // @Success 200 {object} models.CreateTaskResponseForSwagger
 // @Failure 400 {object} models.GenericErrorResponse
 // @Failure 500 {object} models.GenericErrorResponse
-// @Router /task/create [post]
+// @Router /tasks [post]
 func (h *TaskHandler) CreateTask(c *gin.Context) {
 	userID, ok := c.Get("userID")
 	if !ok {

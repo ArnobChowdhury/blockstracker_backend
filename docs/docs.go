@@ -262,7 +262,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/task/create": {
+        "/tasks": {
             "post": {
                 "description": "Create a new task with the given details",
                 "consumes": [
