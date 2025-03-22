@@ -22,7 +22,7 @@ type CreateTagRequest struct {
 	ModifiedAt time.Time `json:"modifiedAt" binding:"required"`
 }
 
-// Create Task success response for swagger doc
+// Create Tag success response for swagger doc
 type CreateTagResponseForSwagger struct {
 	Result Tag `json:"result"`
 	SuccessResult
