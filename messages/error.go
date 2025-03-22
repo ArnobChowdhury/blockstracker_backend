@@ -34,4 +34,6 @@ const (
 	ErrTokenNotFoundDuringLogout              = "Token not found during logout"
 
 	ErrTaskCreationFailed = "Task creation failed"
+
+	ErrTagCreationFailed = "Tag creation failed"
 )

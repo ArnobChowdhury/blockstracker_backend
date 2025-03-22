@@ -47,3 +47,13 @@ func InitializeTaskHandler() (*handlers.TaskHandler, error) {
 	)
 	return &handlers.TaskHandler{}, nil
 }
+
+func InitializeTagHandler() (*handlers.TagHandler, error) {
+	wire.Build(
+		database.DBProvider,
+		repositories.NewTagRepository,
+		logger.LoggerProvider,
+		handlers.NewTagHandler,
+	)
+	return &handlers.TagHandler{}, nil
+}

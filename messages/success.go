@@ -8,4 +8,7 @@ const (
 	MsgTaskUpdatedSuccess     = "Task updated successfully"
 	MsgSignOutSuccessful      = "Sign out successful"
 	MsgSuccessfulTokenRefresh = "Successful token refresh"
+
+	MsgTagCreationSuccess = "Tag creation successful"
+	MsgTagUpdatedSuccess  = "Tag updated successfully"
 )

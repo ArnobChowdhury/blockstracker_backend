@@ -56,3 +56,11 @@ func InitializeTaskHandler() (*handlers.TaskHandler, error) {
 	taskHandler := handlers.NewTaskHandler(taskRepository, sugaredLogger)
 	return taskHandler, nil
 }
+
+func InitializeTagHandler() (*handlers.TagHandler, error) {
+	db := database.DBProvider()
+	tagRepository := repositories.NewTagRepository(db)
+	sugaredLogger := logger.LoggerProvider()
+	tagHandler := handlers.NewTagHandler(tagRepository, sugaredLogger)
+	return tagHandler, nil
+}
