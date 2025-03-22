@@ -8,11 +8,16 @@ import (
 )
 
 type Tag struct {
-	ID              uuid.UUID                `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	Name            string                   `gorm:"not null" json:"name"`
-	Tasks           []Task                   `gorm:"many2many:task_tags" json:"tasks"`
-	RepetitiveTasks []RepetitiveTaskTemplate `gorm:"many2many:repetitive_task_template_tags" json:"repetitiveTasks"`
-	CreatedAt       time.Time                `gorm:"autoCreateTime" json:"createdAt"`
-	ModifiedAt      time.Time                `gorm:"autoUpdateTime" json:"modifiedAt"`
-	DeletedAt       gorm.DeletedAt           `gorm:"index" json:"-"`
+	ID         uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	Name       string         `json:"name"`
+	CreatedAt  time.Time      `json:"createdAt"`
+	ModifiedAt time.Time      `json:"modifiedAt"`
+	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
+	UserID     uuid.UUID      `gorm:"type:uuid;index" json:"userId"`
+}
+
+type CreateTagRequest struct {
+	Name       string    `json:"name"`
+	CreatedAt  time.Time `json:"createdAt"`
+	ModifiedAt time.Time `json:"modifiedAt"`
 }

@@ -47,6 +47,11 @@ func main() {
 		log.Fatalf("Error initializing task handler: %s", err.Error())
 	}
 
+	tagHandler, err := di.InitializeTagHandler()
+	if err != nil {
+		log.Fatalf("Error initializing tag handler: %s", err.Error())
+	}
+
 	r := gin.Default()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -56,6 +61,7 @@ func main() {
 
 		routes.RegisterAuthRoutes(v1, authHandler, authMiddleware)
 		routes.RegisterTaskRoutes(v1, taskHandler, authMiddleware)
+		routes.RegisterTagRoutes(v1, tagHandler, authMiddleware)
 	}
 
 	fmt.Println(strings.Repeat("🚀", 25))
