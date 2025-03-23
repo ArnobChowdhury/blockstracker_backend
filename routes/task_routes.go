@@ -13,5 +13,7 @@ func RegisterTaskRoutes(rg *gin.RouterGroup, taskHandler *handlers.TaskHandler, 
 
 	{
 		taskGroup.POST("/", taskHandler.CreateTask)
+
+		taskGroup.POST("/repetitive", taskHandler.CreateRepetitiveTaskTemplate)
 	}
 }
