@@ -10,7 +10,6 @@ import (
 	"blockstracker_backend/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -41,17 +40,10 @@ func NewTaskHandler(
 // @Failure 500 {object} models.GenericErrorResponse
 // @Router /tasks [post]
 func (h *TaskHandler) CreateTask(c *gin.Context) {
-	userID, ok := c.Get("userID")
-	if !ok {
-		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
-			"User ID not found in context", apperrors.ErrInternalServerError)
-		return
-	}
-
-	uid, ok := userID.(uuid.UUID)
-	if !ok {
-		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
-			"User ID is not of valid type", apperrors.ErrInternalServerError)
+	uid, err := utils.ExtractUIDFromGinContext(c)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed, err.LogError(),
+			apperrors.ErrInternalServerError)
 		return
 	}
 

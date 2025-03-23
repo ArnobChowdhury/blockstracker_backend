@@ -99,3 +99,17 @@ func SendErrorResponse(c *gin.Context, logger *zap.SugaredLogger, logTitle strin
 	logger.Errorw(logTitle, messages.Error, logErrMsg)
 	c.JSON(resErr.StatusCode(), CreateJSONResponse(messages.Error, resErr.Error(), nil))
 }
+
+func ExtractUIDFromGinContext(c *gin.Context) (uuid.UUID, *apperrors.CommonError) {
+	userID, ok := c.Get("userID")
+	if !ok {
+		return uuid.Nil, apperrors.ErrUserIDNotFoundInContext
+	}
+
+	uid, ok := userID.(uuid.UUID)
+	if !ok {
+		return uuid.Nil, apperrors.ErrUserIDNotValidType
+	}
+
+	return uid, nil
+}
