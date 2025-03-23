@@ -10,7 +10,6 @@ import (
 	"blockstracker_backend/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -41,17 +40,10 @@ func NewTagHandler(
 // @Failure 500 {object} models.GenericErrorResponse
 // @Router /tags [post]
 func (h *TagHandler) CreateTag(c *gin.Context) {
-	userID, ok := c.Get("userID")
-	if !ok {
-		utils.SendErrorResponse(c, h.logger, messages.ErrTagCreationFailed,
-			"User ID not found in context", apperrors.ErrInternalServerError)
-		return
-	}
-
-	uid, ok := userID.(uuid.UUID)
-	if !ok {
-		utils.SendErrorResponse(c, h.logger, messages.ErrTagCreationFailed,
-			"User ID is not of valid type", apperrors.ErrInternalServerError)
+	uid, err := utils.ExtractUIDFromGinContext(c)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrTagCreationFailed, err.LogError(),
+			apperrors.ErrInternalServerError)
 		return
 	}
 

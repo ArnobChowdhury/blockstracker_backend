@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	apperrors "blockstracker_backend/internal/errors"
@@ -10,8 +11,8 @@ import (
 	"blockstracker_backend/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type SpaceHandler struct {
@@ -41,17 +42,10 @@ func NewSpaceHandler(
 // @Failure 500 {object} models.GenericErrorResponse
 // @Router /spaces [post]
 func (h *SpaceHandler) CreateSpace(c *gin.Context) {
-	userID, ok := c.Get("userID")
-	if !ok {
-		utils.SendErrorResponse(c, h.logger, messages.ErrSpaceCreationFailed,
-			"User ID not found in context", apperrors.ErrInternalServerError)
-		return
-	}
-
-	uid, ok := userID.(uuid.UUID)
-	if !ok {
-		utils.SendErrorResponse(c, h.logger, messages.ErrSpaceCreationFailed,
-			"User ID is not of valid type", apperrors.ErrInternalServerError)
+	uid, err := utils.ExtractUIDFromGinContext(c)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrSpaceCreationFailed, err.LogError(),
+			apperrors.ErrInternalServerError)
 		return
 	}
 
@@ -71,6 +65,11 @@ func (h *SpaceHandler) CreateSpace(c *gin.Context) {
 	}
 
 	if err := h.SpaceRepo.CreateSpace(&Space); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			utils.SendErrorResponse(c, h.logger, messages.ErrUniqueConstraintFailed,
+				err.Error(), apperrors.ErrSpaceDuplicateKey)
+			return
+		}
 		utils.SendErrorResponse(c, h.logger, messages.ErrSpaceCreationFailed,
 			err.Error(), apperrors.ErrInternalServerError)
 		return
