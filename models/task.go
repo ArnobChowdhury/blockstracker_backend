@@ -58,13 +58,13 @@ type CreateTaskResponseForSwagger struct {
 
 type RepetitiveTaskTemplate struct {
 	ID                       uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	IsActive                 bool           `gorm:"default:true" json:"isActive"`
-	Title                    string         `gorm:"not null" json:"title"`
+	IsActive                 bool           `gorm:"default:true" json:"isActive" binding:"required"`
+	Title                    string         `gorm:"not null" json:"title" binding:"required"`
 	Description              *string        `json:"description"`
-	Schedule                 string         `gorm:"not null" json:"schedule"`
-	Priority                 int            `gorm:"default:3" json:"priority"`
-	ShouldBeScored           *bool          `gorm:"default:false" json:"shouldBeScored"`
-	Monday                   *bool          `gorm:"default:false" json:"monday"`
+	Schedule                 string         `gorm:"not null" json:"schedule" binding:"required"`
+	Priority                 int            `gorm:"default:3" json:"priority" binding:"required"`
+	ShouldBeScored           *bool          `gorm:"default:false" json:"shouldBeScored" binding:"required"`
+	Monday                   *bool          `gorm:"default:false" json:"monday" binding:"required"`
 	Tuesday                  *bool          `gorm:"default:false" json:"tuesday"`
 	Wednesday                *bool          `gorm:"default:false" json:"wednesday"`
 	Thursday                 *bool          `gorm:"default:false" json:"thursday"`
@@ -73,13 +73,43 @@ type RepetitiveTaskTemplate struct {
 	Sunday                   *bool          `gorm:"default:false" json:"sunday"`
 	TimeOfDay                *string        `json:"timeOfDay"`
 	LastDateOfTaskGeneration *time.Time     `json:"lastDateOfTaskGeneration"`
-	CreatedAt                time.Time      `gorm:"autoCreateTime" json:"createdAt"`
-	ModifiedAt               time.Time      `gorm:"autoUpdateTime" json:"modifiedAt"`
+	CreatedAt                time.Time      `json:"createdAt"`
+	ModifiedAt               time.Time      `json:"modifiedAt"`
 	Tags                     []Tag          `gorm:"many2many:repetitive_task_template_tags" json:"tags"`
 	Tasks                    []Task         `json:"tasks"`
 	Space                    *Space         `json:"space"`
-	SpaceID                  *uint          `json:"spaceId"`
+	SpaceID                  *uuid.UUID     `gorm:"type:uuid" json:"spaceId"`
+	UserID                   uuid.UUID      `gorm:"type:uuid" json:"userId"` // Add UserID here
 	DeletedAt                gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+type CreateRepetitiveTaskTemplateRequest struct {
+	IsActive                 bool           `json:"isActive" binding:"required"`
+	Title                    string         `json:"title" binding:"required"`
+	Description              *string        `json:"description"`
+	Schedule                 string         `json:"schedule" binding:"required"`
+	Priority                 int            `json:"priority" binding:"required"`
+	ShouldBeScored           *bool          `json:"shouldBeScored" binding:"required"`
+	Monday                   *bool          `json:"monday" binding:"required"`
+	Tuesday                  *bool          `json:"tuesday" binding:"required"`
+	Wednesday                *bool          `json:"wednesday" binding:"required"`
+	Thursday                 *bool          `json:"thursday" binding:"required"`
+	Friday                   *bool          `json:"friday" binding:"required"`
+	Saturday                 *bool          `json:"saturday" binding:"required"`
+	Sunday                   *bool          `json:"sunday" binding:"required"`
+	TimeOfDay                *string        `json:"timeOfDay"`
+	LastDateOfTaskGeneration *time.Time     `json:"lastDateOfTaskGeneration"`
+	CreatedAt                time.Time      `json:"createdAt" binding:"required"`
+	ModifiedAt               time.Time      `json:"modifiedAt" binding:"required"`
+	Tags                     []Tag          `json:"tags"`
+	Tasks                    []Task         `json:"tasks"`
+	SpaceID                  *uuid.UUID     `json:"spaceId"`
+	DeletedAt                gorm.DeletedAt `json:"-"` // Keep json:"-" to omit from JSON
+}
+
+type CreateRepetitiveTaskTemplateResponseForSwagger struct {
+	Result RepetitiveTaskTemplate `json:"result"`
+	SuccessResult
 }
 
 type UpdateTaskRequest struct {

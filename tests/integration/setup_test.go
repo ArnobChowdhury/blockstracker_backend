@@ -239,6 +239,7 @@ func setupRouter() error {
 
 	taskGroup := router.Group("/tasks")
 	taskGroup.POST("/", taskHandler.CreateTask)
+	taskGroup.POST("/repetitive", taskHandler.CreateRepetitiveTaskTemplate)
 
 	tagGroup := router.Group("/tags")
 	tagGroup.POST("/", tagHandler.CreateTag)

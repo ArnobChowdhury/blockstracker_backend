@@ -83,3 +83,63 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(
 		messages.Success, messages.MsgTaskCreationSuccess, task))
 }
+
+// CreateRepetitiveTaskTemplate godoc
+// @Summary Create a new repetitive task template
+// @Description Create a new repetitive task template with the given details
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param task body models.CreateRepetitiveTaskTemplateRequest true "Repetitive task template details"
+// @Success 200 {object} models.CreateRepetitiveTaskTemplateResponseForSwagger
+// @Failure 400 {object} models.GenericErrorResponse
+// @Failure 500 {object} models.GenericErrorResponse
+// @Router /tasks/repetitive [post]
+func (h *TaskHandler) CreateRepetitiveTaskTemplate(c *gin.Context) {
+	uid, err := utils.ExtractUIDFromGinContext(c)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateCreationFailed,
+			err.LogError(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	var req models.CreateRepetitiveTaskTemplateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		invalidReqErr := apperrors.NewInvalidReqErr(err.Error())
+		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateCreationFailed,
+			err.Error(), invalidReqErr)
+		return
+	}
+
+	repetitiveTaskTemplate := models.RepetitiveTaskTemplate{
+		IsActive:                 req.IsActive,
+		Title:                    req.Title,
+		Description:              req.Description,
+		Schedule:                 req.Schedule,
+		Priority:                 req.Priority,
+		ShouldBeScored:           req.ShouldBeScored,
+		Monday:                   req.Monday,
+		Tuesday:                  req.Tuesday,
+		Wednesday:                req.Wednesday,
+		Thursday:                 req.Thursday,
+		Friday:                   req.Friday,
+		Saturday:                 req.Saturday,
+		Sunday:                   req.Sunday,
+		TimeOfDay:                req.TimeOfDay,
+		LastDateOfTaskGeneration: req.LastDateOfTaskGeneration,
+		CreatedAt:                req.CreatedAt,
+		ModifiedAt:               req.ModifiedAt,
+		Tags:                     req.Tags,
+		SpaceID:                  req.SpaceID,
+		UserID:                   uid,
+	}
+
+	if err := h.taskRepo.CreateRepetitiveTaskTemplate(&repetitiveTaskTemplate); err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success,
+		messages.MsgRepetitiveTaskTemplateCreationSuccess, repetitiveTaskTemplate))
+}

@@ -353,9 +353,158 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/tasks/repetitive": {
+            "post": {
+                "description": "Create a new repetitive task template with the given details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Create a new repetitive task template",
+                "parameters": [
+                    {
+                        "description": "Repetitive task template details",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateRepetitiveTaskTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateRepetitiveTaskTemplateResponseForSwagger"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "models.CreateRepetitiveTaskTemplateRequest": {
+            "type": "object",
+            "required": [
+                "createdAt",
+                "friday",
+                "isActive",
+                "modifiedAt",
+                "monday",
+                "priority",
+                "saturday",
+                "schedule",
+                "shouldBeScored",
+                "sunday",
+                "thursday",
+                "title",
+                "tuesday",
+                "wednesday"
+            ],
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "friday": {
+                    "type": "boolean"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "lastDateOfTaskGeneration": {
+                    "type": "string"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "monday": {
+                    "type": "boolean"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "saturday": {
+                    "type": "boolean"
+                },
+                "schedule": {
+                    "type": "string"
+                },
+                "shouldBeScored": {
+                    "type": "boolean"
+                },
+                "spaceId": {
+                    "type": "string"
+                },
+                "sunday": {
+                    "type": "boolean"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Tag"
+                    }
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Task"
+                    }
+                },
+                "thursday": {
+                    "type": "boolean"
+                },
+                "timeOfDay": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "tuesday": {
+                    "type": "boolean"
+                },
+                "wednesday": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.CreateRepetitiveTaskTemplateResponseForSwagger": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Success message"
+                },
+                "result": {
+                    "$ref": "#/definitions/models.RepetitiveTaskTemplate"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
         "models.CreateSpaceRequest": {
             "type": "object",
             "required": [
@@ -571,6 +720,14 @@ const docTemplate = `{
         },
         "models.RepetitiveTaskTemplate": {
             "type": "object",
+            "required": [
+                "isActive",
+                "monday",
+                "priority",
+                "schedule",
+                "shouldBeScored",
+                "title"
+            ],
             "properties": {
                 "createdAt": {
                     "type": "string"
@@ -612,7 +769,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.Space"
                 },
                 "spaceId": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "sunday": {
                     "type": "boolean"
@@ -640,6 +797,10 @@ const docTemplate = `{
                 },
                 "tuesday": {
                     "type": "boolean"
+                },
+                "userId": {
+                    "description": "Add UserID here",
+                    "type": "string"
                 },
                 "wednesday": {
                     "type": "boolean"
