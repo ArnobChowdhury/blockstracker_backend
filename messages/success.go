@@ -6,7 +6,7 @@ const (
 	MsgSignInSuccessful    = "Sign in successful"
 
 	MsgTaskCreationSuccess = "Task creation successful"
-	MsgTaskUpdatedSuccess  = "Task updated successfully"
+	MsgTaskUpdateSuccess   = "Task updated successfully"
 
 	MsgSignOutSuccessful      = "Sign out successful"
 	MsgSuccessfulTokenRefresh = "Successful token refresh"

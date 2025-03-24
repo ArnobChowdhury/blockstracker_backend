@@ -121,61 +121,6 @@ definitions:
         example: Success
         type: string
     type: object
-  models.CreateTaskRequest:
-    properties:
-      completionStatus:
-        type: string
-      createdAt:
-        type: string
-      description:
-        type: string
-      dueDate:
-        type: string
-      isActive:
-        type: boolean
-      modifiedAt:
-        type: string
-      priority:
-        type: integer
-      repetitiveTaskTemplate:
-        $ref: '#/definitions/models.RepetitiveTaskTemplate'
-      repetitiveTaskTemplateId:
-        type: string
-      schedule:
-        type: string
-      score:
-        type: integer
-      shouldBeScored:
-        type: boolean
-      spaceId:
-        type: string
-      tags:
-        items:
-          $ref: '#/definitions/models.Tag'
-        type: array
-      timeOfDay:
-        type: string
-      title:
-        type: string
-    required:
-    - completionStatus
-    - isActive
-    - priority
-    - schedule
-    - shouldBeScored
-    - title
-    type: object
-  models.CreateTaskResponseForSwagger:
-    properties:
-      message:
-        example: Success message
-        type: string
-      result:
-        $ref: '#/definitions/models.Task'
-      status:
-        example: Success
-        type: string
-    type: object
   models.EmailSignInRequest:
     properties:
       email:
@@ -402,6 +347,59 @@ definitions:
     - shouldBeScored
     - title
     type: object
+  models.TaskRequest:
+    properties:
+      completionStatus:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      dueDate:
+        type: string
+      isActive:
+        type: boolean
+      modifiedAt:
+        type: string
+      priority:
+        type: integer
+      repetitiveTaskTemplateId:
+        type: string
+      schedule:
+        type: string
+      score:
+        type: integer
+      shouldBeScored:
+        type: boolean
+      spaceId:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/models.Tag'
+        type: array
+      timeOfDay:
+        type: string
+      title:
+        type: string
+    required:
+    - completionStatus
+    - isActive
+    - priority
+    - schedule
+    - shouldBeScored
+    - title
+    type: object
+  models.TaskResponseForSwagger:
+    properties:
+      message:
+        example: Success message
+        type: string
+      result:
+        $ref: '#/definitions/models.Task'
+      status:
+        example: Success
+        type: string
+    type: object
   models.TokenResponse:
     properties:
       accessToken:
@@ -617,14 +615,14 @@ paths:
         name: task
         required: true
         schema:
-          $ref: '#/definitions/models.CreateTaskRequest'
+          $ref: '#/definitions/models.TaskRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.CreateTaskResponseForSwagger'
+            $ref: '#/definitions/models.TaskResponseForSwagger'
         "400":
           description: Bad Request
           schema:
@@ -634,6 +632,45 @@ paths:
           schema:
             $ref: '#/definitions/models.GenericErrorResponse'
       summary: Create a new task
+      tags:
+      - tasks
+  /tasks/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update an existing task with the given details
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Task details
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/models.TaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TaskResponseForSwagger'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+      summary: Update an existing task
       tags:
       - tasks
   /tasks/repetitive:

@@ -7,24 +7,24 @@ import (
 	"gorm.io/gorm"
 )
 
-type CreateTaskRequest struct {
-	IsActive                 bool                    `gorm:"default:true" json:"isActive" binding:"required"`
-	Title                    string                  `gorm:"not null" json:"title" binding:"required"`
-	Description              string                  `json:"description"`
-	Schedule                 string                  `json:"schedule" binding:"required"`
-	Priority                 int                     `gorm:"default:3" json:"priority" binding:"required"`
-	CompletionStatus         string                  `gorm:"default:'INCOMPLETE'" json:"completionStatus" binding:"required"`
-	DueDate                  *time.Time              `json:"dueDate"`
-	ShouldBeScored           *bool                   `json:"shouldBeScored" binding:"required"`
-	Score                    *int                    `json:"score"`
-	TimeOfDay                *string                 `json:"timeOfDay"`
-	RepetitiveTaskTemplate   *RepetitiveTaskTemplate `json:"repetitiveTaskTemplate"`
-	RepetitiveTaskTemplateID *uuid.UUID              `gorm:"type:uuid" json:"repetitiveTaskTemplateId"`
-	CreatedAt                time.Time               `json:"createdAt"`
-	ModifiedAt               time.Time               `json:"modifiedAt"`
-	Tags                     []Tag                   `gorm:"many2many:task_tags;" json:"tags"`
-	SpaceID                  *uuid.UUID              `gorm:"type:uuid" json:"spaceId"`
-	DeletedAt                gorm.DeletedAt          `gorm:"index" json:"-"`
+// todo:
+// change the name
+type TaskRequest struct {
+	IsActive                 bool       `json:"isActive" binding:"required"`
+	Title                    string     `json:"title" binding:"required"`
+	Description              string     `json:"description"`
+	Schedule                 string     `json:"schedule" binding:"required"`
+	Priority                 int        `json:"priority" binding:"required"`
+	CompletionStatus         string     `json:"completionStatus" binding:"required"`
+	DueDate                  *time.Time `json:"dueDate"`
+	ShouldBeScored           *bool      `json:"shouldBeScored" binding:"required"`
+	Score                    *int       `json:"score"`
+	TimeOfDay                *string    `json:"timeOfDay"`
+	RepetitiveTaskTemplateID *uuid.UUID `json:"repetitiveTaskTemplateId"`
+	CreatedAt                time.Time  `json:"createdAt" binding:"required"`
+	ModifiedAt               time.Time  `json:"modifiedAt" binding:"required"`
+	Tags                     []Tag      `gorm:"many2many:task_tags;" json:"tags"`
+	SpaceID                  *uuid.UUID `gorm:"type:uuid" json:"spaceId"`
 }
 
 type Task struct {
@@ -42,7 +42,7 @@ type Task struct {
 	RepetitiveTaskTemplate   *RepetitiveTaskTemplate `json:"repetitiveTaskTemplate"`
 	RepetitiveTaskTemplateID *uuid.UUID              `gorm:"type:uuid" json:"repetitiveTaskTemplateId"`
 	CreatedAt                time.Time               `json:"createdAt"`
-	ModifiedAt               time.Time               `json:"modifiedAt"`
+	ModifiedAt               time.Time               `json:"modifiedAt" binding:"required"`
 	Tags                     []Tag                   `gorm:"many2many:task_tags;" json:"tags"`
 	Space                    *Space                  `json:"space"`
 	SpaceID                  *uuid.UUID              `gorm:"type:uuid" json:"spaceId"`
@@ -51,7 +51,7 @@ type Task struct {
 }
 
 // Create Task success response for swagger doc
-type CreateTaskResponseForSwagger struct {
+type TaskResponseForSwagger struct {
 	Result Task `json:"result"`
 	SuccessResult
 }
@@ -110,13 +110,6 @@ type CreateRepetitiveTaskTemplateRequest struct {
 type CreateRepetitiveTaskTemplateResponseForSwagger struct {
 	Result RepetitiveTaskTemplate `json:"result"`
 	SuccessResult
-}
-
-type UpdateTaskRequest struct {
-	TaskID      int    `json:"task_id" binding:"required"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	DueDate     string `json:"due_date"`
 }
 
 type UpdateRepetitiveTaskRequest struct {
