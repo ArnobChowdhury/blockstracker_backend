@@ -18,6 +18,10 @@ func (r *TaskRepository) CreateTask(task *models.Task) error {
 	return r.db.Create(task).Error
 }
 
+func (r *TaskRepository) UpdateTask(task *models.Task) error {
+	return r.db.Save(task).Error
+}
+
 func (r *TaskRepository) CreateRepetitiveTaskTemplate(repetitiveTaskTemplate *models.RepetitiveTaskTemplate) error {
 	return r.db.Create(repetitiveTaskTemplate).Error
 }

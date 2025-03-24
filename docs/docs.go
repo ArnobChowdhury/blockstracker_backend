@@ -328,7 +328,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreateTaskRequest"
+                            "$ref": "#/definitions/models.TaskRequest"
                         }
                     }
                 ],
@@ -336,7 +336,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.CreateTaskResponseForSwagger"
+                            "$ref": "#/definitions/models.TaskResponseForSwagger"
                         }
                     },
                     "400": {
@@ -387,6 +387,65 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks/{id}": {
+            "put": {
+                "description": "Update an existing task with the given details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Update an existing task",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Task details",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.TaskRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TaskResponseForSwagger"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/models.GenericErrorResponse"
                         }
@@ -568,86 +627,6 @@ const docTemplate = `{
                 },
                 "result": {
                     "$ref": "#/definitions/models.Tag"
-                },
-                "status": {
-                    "type": "string",
-                    "example": "Success"
-                }
-            }
-        },
-        "models.CreateTaskRequest": {
-            "type": "object",
-            "required": [
-                "completionStatus",
-                "isActive",
-                "priority",
-                "schedule",
-                "shouldBeScored",
-                "title"
-            ],
-            "properties": {
-                "completionStatus": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "dueDate": {
-                    "type": "string"
-                },
-                "isActive": {
-                    "type": "boolean"
-                },
-                "modifiedAt": {
-                    "type": "string"
-                },
-                "priority": {
-                    "type": "integer"
-                },
-                "repetitiveTaskTemplate": {
-                    "$ref": "#/definitions/models.RepetitiveTaskTemplate"
-                },
-                "repetitiveTaskTemplateId": {
-                    "type": "string"
-                },
-                "schedule": {
-                    "type": "string"
-                },
-                "score": {
-                    "type": "integer"
-                },
-                "shouldBeScored": {
-                    "type": "boolean"
-                },
-                "spaceId": {
-                    "type": "string"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Tag"
-                    }
-                },
-                "timeOfDay": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.CreateTaskResponseForSwagger": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "Success message"
-                },
-                "result": {
-                    "$ref": "#/definitions/models.Task"
                 },
                 "status": {
                     "type": "string",
@@ -982,6 +961,83 @@ const docTemplate = `{
                 "userId": {
                     "description": "Add UserID here",
                     "type": "string"
+                }
+            }
+        },
+        "models.TaskRequest": {
+            "type": "object",
+            "required": [
+                "completionStatus",
+                "isActive",
+                "priority",
+                "schedule",
+                "shouldBeScored",
+                "title"
+            ],
+            "properties": {
+                "completionStatus": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dueDate": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "repetitiveTaskTemplateId": {
+                    "type": "string"
+                },
+                "schedule": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer"
+                },
+                "shouldBeScored": {
+                    "type": "boolean"
+                },
+                "spaceId": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Tag"
+                    }
+                },
+                "timeOfDay": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TaskResponseForSwagger": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Success message"
+                },
+                "result": {
+                    "$ref": "#/definitions/models.Task"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Success"
                 }
             }
         },

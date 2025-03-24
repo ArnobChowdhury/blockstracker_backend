@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS repetitive_task_templates (
 CREATE INDEX idx_repetitive_task_templates_space_id ON repetitive_task_templates(space_id);
 CREATE INDEX idx_repetitive_task_templates_title ON repetitive_task_templates(title);
 
-CREATE TYPE task_status AS ENUM ('INCOMPLETE', 'FAILED', 'COMPLETED');
+CREATE TYPE task_status AS ENUM ('INCOMPLETE', 'FAILED', 'COMPLETE');
 
 CREATE TABLE IF NOT EXISTS tasks (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
