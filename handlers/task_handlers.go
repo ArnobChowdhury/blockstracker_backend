@@ -146,7 +146,7 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 
 	if err := h.taskRepo.UpdateTask(&task); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			utils.SendErrorResponse(c, h.logger, messages.ErrTagUpdateFailed,
+			utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
 				"Task not found or does not belong to user", apperrors.ErrUnauthorized)
 			return
 		}

@@ -32,7 +32,6 @@ func (e *AuthError) LogError() string {
 }
 
 var (
-	ErrUnauthorized             = NewAuthError("UNAUTHORIZED", "Unauthorized", http.StatusUnauthorized)
 	ErrNoAuthorizationHeader    = NewAuthError("NO_AUTH_HEADER", "No Authorization header", http.StatusUnauthorized)
 	ErrInvalidAuthHeader        = NewAuthError("INVALID_AUTH_HEADER", "Invalid Authorization header", http.StatusUnauthorized)
 	ErrTokenExpired             = NewAuthError("TOKEN_EXPIRED", "Token expired", http.StatusUnauthorized)
