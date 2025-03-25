@@ -39,6 +39,7 @@ const (
 	ErrRepetitiveTaskTemplateCreationFailed = "Repetitive task template creation failed"
 
 	ErrTagCreationFailed = "Tag creation failed"
+	ErrTagUpdateFailed   = "Tag update failed"
 
 	ErrSpaceCreationFailed = "Space creation failed"
 )

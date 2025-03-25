@@ -282,7 +282,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreateTagRequest"
+                            "$ref": "#/definitions/models.TagRequest"
                         }
                     }
                 ],
@@ -290,7 +290,60 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.CreateTagResponseForSwagger"
+                            "$ref": "#/definitions/models.TagResponseForSwagger"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tags/{id}": {
+            "put": {
+                "description": "Update an existing tag with the given details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "Update an existing tag",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Tag details",
+                        "name": "tag",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.TagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TagResponseForSwagger"
                         }
                     },
                     "400": {
@@ -599,41 +652,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.CreateTagRequest": {
-            "type": "object",
-            "required": [
-                "createdAt",
-                "modifiedAt",
-                "name"
-            ],
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "modifiedAt": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.CreateTagResponseForSwagger": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "Success message"
-                },
-                "result": {
-                    "$ref": "#/definitions/models.Tag"
-                },
-                "status": {
-                    "type": "string",
-                    "example": "Success"
-                }
-            }
-        },
         "models.EmailSignInRequest": {
             "type": "object",
             "required": [
@@ -890,11 +908,47 @@ const docTemplate = `{
                 }
             }
         },
+        "models.TagRequest": {
+            "type": "object",
+            "required": [
+                "createdAt",
+                "modifiedAt",
+                "name"
+            ],
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TagResponseForSwagger": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Success message"
+                },
+                "result": {
+                    "$ref": "#/definitions/models.Tag"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
         "models.Task": {
             "type": "object",
             "required": [
                 "completionStatus",
                 "isActive",
+                "modifiedAt",
                 "priority",
                 "schedule",
                 "shouldBeScored",
@@ -968,7 +1022,9 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "completionStatus",
+                "createdAt",
                 "isActive",
+                "modifiedAt",
                 "priority",
                 "schedule",
                 "shouldBeScored",

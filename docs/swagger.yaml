@@ -97,30 +97,6 @@ definitions:
         example: Success
         type: string
     type: object
-  models.CreateTagRequest:
-    properties:
-      createdAt:
-        type: string
-      modifiedAt:
-        type: string
-      name:
-        type: string
-    required:
-    - createdAt
-    - modifiedAt
-    - name
-    type: object
-  models.CreateTagResponseForSwagger:
-    properties:
-      message:
-        example: Success message
-        type: string
-      result:
-        $ref: '#/definitions/models.Tag'
-      status:
-        example: Success
-        type: string
-    type: object
   models.EmailSignInRequest:
     properties:
       email:
@@ -296,6 +272,30 @@ definitions:
     - modifiedAt
     - name
     type: object
+  models.TagRequest:
+    properties:
+      createdAt:
+        type: string
+      modifiedAt:
+        type: string
+      name:
+        type: string
+    required:
+    - createdAt
+    - modifiedAt
+    - name
+    type: object
+  models.TagResponseForSwagger:
+    properties:
+      message:
+        example: Success message
+        type: string
+      result:
+        $ref: '#/definitions/models.Tag'
+      status:
+        example: Success
+        type: string
+    type: object
   models.Task:
     properties:
       completionStatus:
@@ -342,6 +342,7 @@ definitions:
     required:
     - completionStatus
     - isActive
+    - modifiedAt
     - priority
     - schedule
     - shouldBeScored
@@ -383,7 +384,9 @@ definitions:
         type: string
     required:
     - completionStatus
+    - createdAt
     - isActive
+    - modifiedAt
     - priority
     - schedule
     - shouldBeScored
@@ -585,14 +588,14 @@ paths:
         name: tag
         required: true
         schema:
-          $ref: '#/definitions/models.CreateTagRequest'
+          $ref: '#/definitions/models.TagRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.CreateTagResponseForSwagger'
+            $ref: '#/definitions/models.TagResponseForSwagger'
         "400":
           description: Bad Request
           schema:
@@ -602,6 +605,41 @@ paths:
           schema:
             $ref: '#/definitions/models.GenericErrorResponse'
       summary: Create a new tag
+      tags:
+      - tags
+  /tags/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update an existing tag with the given details
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag details
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/models.TagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TagResponseForSwagger'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+      summary: Update an existing tag
       tags:
       - tags
   /tasks:

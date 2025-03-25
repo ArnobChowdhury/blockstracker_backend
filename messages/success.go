@@ -15,7 +15,7 @@ const (
 	MsgRepetitiveTaskTemplateUpdatedSuccess  = "Repetitive task template updated successfully"
 
 	MsgTagCreationSuccess = "Tag creation successful"
-	MsgTagUpdatedSuccess  = "Tag updated successfully"
+	MsgTagUpdateSuccess   = "Tag updated successfully"
 
 	MsgSpaceCreationSuccess = "Space creation successful"
 	MsgSpaceUpdatedSuccess  = "Space updated successfully"

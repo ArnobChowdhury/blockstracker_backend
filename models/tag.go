@@ -16,14 +16,14 @@ type Tag struct {
 	UserID     uuid.UUID      `gorm:"type:uuid;index" json:"userId"`
 }
 
-type CreateTagRequest struct {
+type TagRequest struct {
 	Name       string    `json:"name" binding:"required"`
 	CreatedAt  time.Time `json:"createdAt" binding:"required"`
 	ModifiedAt time.Time `json:"modifiedAt" binding:"required"`
 }
 
 // Create Tag success response for swagger doc
-type CreateTagResponseForSwagger struct {
+type TagResponseForSwagger struct {
 	Result Tag `json:"result"`
 	SuccessResult
 }
