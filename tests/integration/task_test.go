@@ -205,6 +205,23 @@ func TestUpdateTaskIntegration(t *testing.T) {
 	accessToken, ok := data["accessToken"].(string)
 	assert.True(t, ok)
 
+	signUpReqBody2 := map[string]string{"email": "test3@example.com", "password": "StrongPassword123!"}
+	signUpReq2, err := testutils.CreateRequest(http.MethodPost, "/signup", signUpReqBody2)
+	if err != nil {
+		t.Fatalf("Error creating sign-up request for second user: %v", err)
+	}
+	signUpResp2 := httptest.NewRecorder()
+	router.ServeHTTP(signUpResp2, signUpReq2)
+	assert.Equal(t, http.StatusOK, signUpResp2.Code, "Sign-up failed for second user")
+	signInReqBody2 := map[string]string{"email": "test3@example.com", "password": "StrongPassword123!"}
+	signInReq2, err := testutils.CreateRequest(http.MethodPost, "/signin", signInReqBody2)
+	if err != nil {
+		t.Fatalf("Error creating sign-in request for second user: %v", err)
+	}
+	signInResp2 := httptest.NewRecorder()
+	router.ServeHTTP(signInResp2, signInReq2)
+	assert.Equal(t, http.StatusOK, signInResp2.Code, "Sign-in failed for second user")
+
 	// Create a task to update
 	createTaskReqBody := map[string]interface{}{
 		"isActive":                 true,
@@ -241,11 +258,20 @@ func TestUpdateTaskIntegration(t *testing.T) {
 	taskID, ok := createTaskData["id"].(string)
 	assert.True(t, ok)
 
+	var signInResponseBody2 map[string]interface{}
+	err = json.Unmarshal(signInResp2.Body.Bytes(), &signInResponseBody2)
+	assert.NoError(t, err)
+	result2, ok := signInResponseBody2["result"].(map[string]interface{})
+	assert.True(t, ok)
+	data2, ok := result2["data"].(map[string]interface{})
+	assert.True(t, ok)
+
 	testCases := []struct {
 		name           string
 		requestBody    map[string]interface{}
 		expectedStatus int
 		expectedMsg    string
+		accessToken    string
 	}{
 		{
 			name: "Success - Update Title",
@@ -268,6 +294,7 @@ func TestUpdateTaskIntegration(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedMsg:    messages.MsgTaskUpdateSuccess,
+			accessToken:    accessToken,
 		},
 		{
 			name: "Success - Update Description",
@@ -290,6 +317,7 @@ func TestUpdateTaskIntegration(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedMsg:    messages.MsgTaskUpdateSuccess,
+			accessToken:    accessToken,
 		},
 		{
 			name: "Failure - Missing ModifiedAt",
@@ -311,6 +339,7 @@ func TestUpdateTaskIntegration(t *testing.T) {
 			},
 			expectedStatus: http.StatusBadRequest,
 			expectedMsg:    messages.ErrTaskUpdateFailed,
+			accessToken:    accessToken,
 		},
 		{
 			name: "Failure - Invalid ModifiedAt Format",
@@ -333,6 +362,30 @@ func TestUpdateTaskIntegration(t *testing.T) {
 			},
 			expectedStatus: http.StatusBadRequest,
 			expectedMsg:    messages.ErrTaskUpdateFailed,
+			accessToken:    accessToken,
+		},
+		{
+			name: "Failure - Update Task That Doesn't Belong To User",
+			requestBody: map[string]interface{}{
+				"title":                    "Updated Title",
+				"isActive":                 createTaskReqBody["isActive"],
+				"description":              createTaskReqBody["description"],
+				"schedule":                 createTaskReqBody["schedule"],
+				"priority":                 createTaskReqBody["priority"],
+				"completionStatus":         createTaskReqBody["completionStatus"],
+				"dueDate":                  createTaskReqBody["dueDate"],
+				"shouldBeScored":           createTaskReqBody["shouldBeScored"],
+				"score":                    createTaskReqBody["score"],
+				"timeOfDay":                createTaskReqBody["timeOfDay"],
+				"repetitiveTaskTemplateId": createTaskReqBody["repetitiveTaskTemplateID"],
+				"createdAt":                createTaskReqBody["createdAt"],
+				"modifiedAt":               time.Now().UTC().Format(time.RFC3339Nano),
+				"tags":                     createTaskReqBody["tags"],
+				"spaceId":                  createTaskReqBody["spaceID"],
+			},
+			expectedStatus: http.StatusUnauthorized,
+			expectedMsg:    messages.ErrTaskUpdateFailed,
+			accessToken:    data2["accessToken"].(string),
 		},
 	}
 
@@ -342,7 +395,7 @@ func TestUpdateTaskIntegration(t *testing.T) {
 				http.MethodPut,
 				fmt.Sprintf("/tasks/%s", taskID),
 				tc.requestBody,
-				testutils.WithAccessToken(accessToken),
+				testutils.WithAccessToken(tc.accessToken),
 			)
 			if err != nil {
 				t.Fatalf("Error creating request: %v", err)

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type TaskHandler struct {
@@ -143,6 +145,12 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 	}
 
 	if err := h.taskRepo.UpdateTask(&task); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
+				"Task not found or does not belong to user", apperrors.ErrUnauthorized)
+			return
+		}
+
 		utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
 			err.Error(), apperrors.ErrInternalServerError)
 		return
