@@ -244,6 +244,7 @@ func setupRouter() error {
 
 	tagGroup := router.Group("/tags")
 	tagGroup.POST("/", tagHandler.CreateTag)
+	tagGroup.PUT("/:id", tagHandler.UpdateTag)
 
 	spaceGroup := router.Group("/spaces")
 	spaceGroup.POST("/", spaceHandler.CreateSpace)
