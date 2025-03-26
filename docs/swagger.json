@@ -220,7 +220,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Spaces"
+                    "spaces"
                 ],
                 "summary": "Create a new Space",
                 "parameters": [
@@ -230,7 +230,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreateSpaceRequest"
+                            "$ref": "#/definitions/models.SpaceRequest"
                         }
                     }
                 ],
@@ -238,11 +238,70 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.CreateSpaceResponseForSwagger"
+                            "$ref": "#/definitions/models.SpaceResponseForSwagger"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/spaces/{id}": {
+            "put": {
+                "description": "Update an existing Space with the given details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "spaces"
+                ],
+                "summary": "Update an existing Space",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Space ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Space details",
+                        "name": "space",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SpaceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SpaceResponseForSwagger"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/models.GenericErrorResponse"
                         }
@@ -611,41 +670,6 @@
                 }
             }
         },
-        "models.CreateSpaceRequest": {
-            "type": "object",
-            "required": [
-                "createdAt",
-                "modifiedAt",
-                "name"
-            ],
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "modifiedAt": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.CreateSpaceResponseForSwagger": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "Success message"
-                },
-                "result": {
-                    "$ref": "#/definitions/models.Space"
-                },
-                "status": {
-                    "type": "string",
-                    "example": "Success"
-                }
-            }
-        },
         "models.EmailSignInRequest": {
             "type": "object",
             "required": [
@@ -861,6 +885,41 @@
                 },
                 "userId": {
                     "type": "string"
+                }
+            }
+        },
+        "models.SpaceRequest": {
+            "type": "object",
+            "required": [
+                "createdAt",
+                "modifiedAt",
+                "name"
+            ],
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SpaceResponseForSwagger": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Success message"
+                },
+                "result": {
+                    "$ref": "#/definitions/models.Space"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Success"
                 }
             }
         },

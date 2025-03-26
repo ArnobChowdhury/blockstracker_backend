@@ -73,30 +73,6 @@ definitions:
         example: Success
         type: string
     type: object
-  models.CreateSpaceRequest:
-    properties:
-      createdAt:
-        type: string
-      modifiedAt:
-        type: string
-      name:
-        type: string
-    required:
-    - createdAt
-    - modifiedAt
-    - name
-    type: object
-  models.CreateSpaceResponseForSwagger:
-    properties:
-      message:
-        example: Success message
-        type: string
-      result:
-        $ref: '#/definitions/models.Space'
-      status:
-        example: Success
-        type: string
-    type: object
   models.EmailSignInRequest:
     properties:
       email:
@@ -245,6 +221,30 @@ definitions:
     - createdAt
     - modifiedAt
     - name
+    type: object
+  models.SpaceRequest:
+    properties:
+      createdAt:
+        type: string
+      modifiedAt:
+        type: string
+      name:
+        type: string
+    required:
+    - createdAt
+    - modifiedAt
+    - name
+    type: object
+  models.SpaceResponseForSwagger:
+    properties:
+      message:
+        example: Success message
+        type: string
+      result:
+        $ref: '#/definitions/models.Space'
+      status:
+        example: Success
+        type: string
     type: object
   models.SuccessResult:
     properties:
@@ -558,14 +558,14 @@ paths:
         name: Space
         required: true
         schema:
-          $ref: '#/definitions/models.CreateSpaceRequest'
+          $ref: '#/definitions/models.SpaceRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.CreateSpaceResponseForSwagger'
+            $ref: '#/definitions/models.SpaceResponseForSwagger'
         "400":
           description: Bad Request
           schema:
@@ -576,7 +576,46 @@ paths:
             $ref: '#/definitions/models.GenericErrorResponse'
       summary: Create a new Space
       tags:
-      - Spaces
+      - spaces
+  /spaces/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update an existing Space with the given details
+      parameters:
+      - description: Space ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Space details
+        in: body
+        name: space
+        required: true
+        schema:
+          $ref: '#/definitions/models.SpaceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SpaceResponseForSwagger'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+      summary: Update an existing Space
+      tags:
+      - spaces
   /tags:
     post:
       consumes:

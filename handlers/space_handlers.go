@@ -35,7 +35,7 @@ func NewSpaceHandler(
 // CreateSpace godoc
 // @Summary Create a new Space
 // @Description Create a new Space with the given details
-// @Tags Spaces
+// @Tags spaces
 // @Accept json
 // @Produce json
 // @Param Space body models.SpaceRequest true "Space details"
@@ -84,7 +84,7 @@ func (h *SpaceHandler) CreateSpace(c *gin.Context) {
 // UpdateSpace godoc
 // @Summary Update an existing Space
 // @Description Update an existing Space with the given details
-// @Tags Spaces
+// @Tags spaces
 // @Accept json
 // @Produce json
 // @Param id path string true "Space ID"
