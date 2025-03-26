@@ -166,8 +166,8 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 // @Tags tasks
 // @Accept json
 // @Produce json
-// @Param task body models.CreateRepetitiveTaskTemplateRequest true "Repetitive task template details"
-// @Success 200 {object} models.CreateRepetitiveTaskTemplateResponseForSwagger
+// @Param task body models.RepetitiveTaskTemplateRequest true "Repetitive task template details"
+// @Success 200 {object} models.RepetitiveTaskTemplateResponseForSwagger
 // @Failure 400 {object} models.GenericErrorResponse
 // @Failure 500 {object} models.GenericErrorResponse
 // @Router /tasks/repetitive [post]
@@ -179,7 +179,7 @@ func (h *TaskHandler) CreateRepetitiveTaskTemplate(c *gin.Context) {
 		return
 	}
 
-	var req models.CreateRepetitiveTaskTemplateRequest
+	var req models.RepetitiveTaskTemplateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidReqErr := apperrors.NewInvalidReqErr(err.Error())
 		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateCreationFailed,
@@ -218,4 +218,81 @@ func (h *TaskHandler) CreateRepetitiveTaskTemplate(c *gin.Context) {
 
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success,
 		messages.MsgRepetitiveTaskTemplateCreationSuccess, repetitiveTaskTemplate))
+}
+
+// UpdateRepetitiveTaskTemplate godoc
+// @Summary Update an existing repetitive task template
+// @Description Update an existing repetitive task template with the given details
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param id path string true "Repetitive Task Template ID"
+// @Param task body models.RepetitiveTaskTemplateRequest true "Repetitive task template details"
+// @Success 200 {object} models.RepetitiveTaskTemplateResponseForSwagger
+// @Failure 400 {object} models.GenericErrorResponse
+// @Failure 404 {object} models.GenericErrorResponse
+// @Failure 500 {object} models.GenericErrorResponse
+// @Router /tasks/repetitive/{id} [put]
+func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
+	uid, err := utils.ExtractUIDFromGinContext(c)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
+			err.LogError(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	repetitiveTaskTemplateIDStr := c.Param("id")
+	repetitiveTaskTemplateID, taskIdParseErr := uuid.Parse(repetitiveTaskTemplateIDStr)
+	if taskIdParseErr != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
+			fmt.Sprintf("Invalid repetitive task template ID format: %s", repetitiveTaskTemplateIDStr),
+			apperrors.ErrMalformedRepetitiveTaskTemplateRequest)
+		return
+	}
+
+	var req models.RepetitiveTaskTemplateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		invalidReqErr := apperrors.NewInvalidReqErr(err.Error())
+		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
+			err.Error(), invalidReqErr)
+		return
+	}
+
+	repetitiveTaskTemplate := models.RepetitiveTaskTemplate{
+		ID:                       repetitiveTaskTemplateID,
+		IsActive:                 req.IsActive,
+		Title:                    req.Title,
+		Description:              req.Description,
+		Schedule:                 req.Schedule,
+		Priority:                 req.Priority,
+		ShouldBeScored:           req.ShouldBeScored,
+		Monday:                   req.Monday,
+		Tuesday:                  req.Tuesday,
+		Wednesday:                req.Wednesday,
+		Thursday:                 req.Thursday,
+		Friday:                   req.Friday,
+		Saturday:                 req.Saturday,
+		Sunday:                   req.Sunday,
+		TimeOfDay:                req.TimeOfDay,
+		LastDateOfTaskGeneration: req.LastDateOfTaskGeneration,
+		ModifiedAt:               req.ModifiedAt,
+		Tags:                     req.Tags,
+		SpaceID:                  req.SpaceID,
+		UserID:                   uid,
+	}
+
+	if err := h.taskRepo.UpdateRepetitiveTaskTemplate(&repetitiveTaskTemplate); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
+				"Repetitive task template not found or does not belong to user", apperrors.ErrUnauthorized)
+			return
+		}
+
+		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(
+		messages.Success, messages.MsgRepetitiveTaskTemplateUpdateSuccess, repetitiveTaskTemplate))
 }

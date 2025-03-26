@@ -16,5 +16,6 @@ func RegisterTaskRoutes(rg *gin.RouterGroup, taskHandler *handlers.TaskHandler, 
 		taskGroup.PUT("/:id", taskHandler.UpdateTask)
 
 		taskGroup.POST("/repetitive", taskHandler.CreateRepetitiveTaskTemplate)
+		taskGroup.PUT("/repetitive/:id", taskHandler.UpdateRepetitiveTaskTemplate)
 	}
 }
