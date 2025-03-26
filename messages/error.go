@@ -42,4 +42,5 @@ const (
 	ErrTagUpdateFailed   = "Tag update failed"
 
 	ErrSpaceCreationFailed = "Space creation failed"
+	ErrSpaceUpdateFailed   = "Space update failed"
 )

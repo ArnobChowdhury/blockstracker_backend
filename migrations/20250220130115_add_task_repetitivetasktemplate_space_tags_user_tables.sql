@@ -3,7 +3,7 @@
 SELECT 'up SQL query';
 CREATE TABLE IF NOT EXISTS spaces (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR NOT NULL UNIQUE,
+    name VARCHAR NOT NULL,
     created_at TIMESTAMPTZ,
     modified_at TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ
