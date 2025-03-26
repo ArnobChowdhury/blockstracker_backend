@@ -24,7 +24,7 @@ func NewAuthMiddleware(logger *zap.SugaredLogger, authConfig *config.AuthConfig)
 	}
 }
 
-func (m *AuthMiddleware) mapAuthError(err error) (logTitle, logErrMsg string, resErr *apperrors.AuthError) {
+func (m *AuthMiddleware) mapAuthError(err error) (logTitle, logErrMsg string, resErr apperrors.AppError) {
 	switch {
 	case errors.Is(err, jwt.ErrTokenExpired):
 		return messages.ErrJWTExpired, err.Error(), apperrors.ErrTokenExpired
