@@ -12,7 +12,7 @@ const (
 	MsgSuccessfulTokenRefresh = "Successful token refresh"
 
 	MsgRepetitiveTaskTemplateCreationSuccess = "Repetitive task template creation successful"
-	MsgRepetitiveTaskTemplateUpdatedSuccess  = "Repetitive task template updated successfully"
+	MsgRepetitiveTaskTemplateUpdateSuccess   = "Repetitive task template updated successfully"
 
 	MsgTagCreationSuccess = "Tag creation successful"
 	MsgTagUpdateSuccess   = "Tag updated successfully"

@@ -32,3 +32,14 @@ func (r *TaskRepository) UpdateTask(task *models.Task) error {
 func (r *TaskRepository) CreateRepetitiveTaskTemplate(repetitiveTaskTemplate *models.RepetitiveTaskTemplate) error {
 	return r.db.Create(repetitiveTaskTemplate).Error
 }
+
+func (r *TaskRepository) UpdateRepetitiveTaskTemplate(repetitiveTaskTemplate *models.RepetitiveTaskTemplate) error {
+	result := r.db.Model(&models.RepetitiveTaskTemplate{}).Where("id = ? AND user_id = ?", repetitiveTaskTemplate.ID, repetitiveTaskTemplate.UserID).Updates(repetitiveTaskTemplate)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}

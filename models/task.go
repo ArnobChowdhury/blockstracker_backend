@@ -83,7 +83,7 @@ type RepetitiveTaskTemplate struct {
 	DeletedAt                gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-type CreateRepetitiveTaskTemplateRequest struct {
+type RepetitiveTaskTemplateRequest struct {
 	IsActive                 bool           `json:"isActive" binding:"required"`
 	Title                    string         `json:"title" binding:"required"`
 	Description              *string        `json:"description"`
@@ -107,7 +107,7 @@ type CreateRepetitiveTaskTemplateRequest struct {
 	DeletedAt                gorm.DeletedAt `json:"-"` // Keep json:"-" to omit from JSON
 }
 
-type CreateRepetitiveTaskTemplateResponseForSwagger struct {
+type RepetitiveTaskTemplateResponseForSwagger struct {
 	Result RepetitiveTaskTemplate `json:"result"`
 	SuccessResult
 }

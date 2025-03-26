@@ -32,5 +32,6 @@ func (e *TaskError) LogError() string {
 }
 
 var (
-	ErrMalformedTaskRequest = NewTaskError("BAD_REQUEST", "Malformed request", http.StatusBadRequest)
+	ErrMalformedTaskRequest                   = NewTaskError("BAD_REQUEST", "Malformed request", http.StatusBadRequest)
+	ErrMalformedRepetitiveTaskTemplateRequest = NewTaskError("BAD_REQUEST", "Malformed request", http.StatusBadRequest)
 )

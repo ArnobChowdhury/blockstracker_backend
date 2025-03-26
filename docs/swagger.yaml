@@ -1,78 +1,5 @@
 basePath: /api/v1
 definitions:
-  models.CreateRepetitiveTaskTemplateRequest:
-    properties:
-      createdAt:
-        type: string
-      description:
-        type: string
-      friday:
-        type: boolean
-      isActive:
-        type: boolean
-      lastDateOfTaskGeneration:
-        type: string
-      modifiedAt:
-        type: string
-      monday:
-        type: boolean
-      priority:
-        type: integer
-      saturday:
-        type: boolean
-      schedule:
-        type: string
-      shouldBeScored:
-        type: boolean
-      spaceId:
-        type: string
-      sunday:
-        type: boolean
-      tags:
-        items:
-          $ref: '#/definitions/models.Tag'
-        type: array
-      tasks:
-        items:
-          $ref: '#/definitions/models.Task'
-        type: array
-      thursday:
-        type: boolean
-      timeOfDay:
-        type: string
-      title:
-        type: string
-      tuesday:
-        type: boolean
-      wednesday:
-        type: boolean
-    required:
-    - createdAt
-    - friday
-    - isActive
-    - modifiedAt
-    - monday
-    - priority
-    - saturday
-    - schedule
-    - shouldBeScored
-    - sunday
-    - thursday
-    - title
-    - tuesday
-    - wednesday
-    type: object
-  models.CreateRepetitiveTaskTemplateResponseForSwagger:
-    properties:
-      message:
-        example: Success message
-        type: string
-      result:
-        $ref: '#/definitions/models.RepetitiveTaskTemplate'
-      status:
-        example: Success
-        type: string
-    type: object
   models.EmailSignInRequest:
     properties:
       email:
@@ -176,6 +103,79 @@ definitions:
     - schedule
     - shouldBeScored
     - title
+    type: object
+  models.RepetitiveTaskTemplateRequest:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      friday:
+        type: boolean
+      isActive:
+        type: boolean
+      lastDateOfTaskGeneration:
+        type: string
+      modifiedAt:
+        type: string
+      monday:
+        type: boolean
+      priority:
+        type: integer
+      saturday:
+        type: boolean
+      schedule:
+        type: string
+      shouldBeScored:
+        type: boolean
+      spaceId:
+        type: string
+      sunday:
+        type: boolean
+      tags:
+        items:
+          $ref: '#/definitions/models.Tag'
+        type: array
+      tasks:
+        items:
+          $ref: '#/definitions/models.Task'
+        type: array
+      thursday:
+        type: boolean
+      timeOfDay:
+        type: string
+      title:
+        type: string
+      tuesday:
+        type: boolean
+      wednesday:
+        type: boolean
+    required:
+    - createdAt
+    - friday
+    - isActive
+    - modifiedAt
+    - monday
+    - priority
+    - saturday
+    - schedule
+    - shouldBeScored
+    - sunday
+    - thursday
+    - title
+    - tuesday
+    - wednesday
+    type: object
+  models.RepetitiveTaskTemplateResponseForSwagger:
+    properties:
+      message:
+        example: Success message
+        type: string
+      result:
+        $ref: '#/definitions/models.RepetitiveTaskTemplate'
+      status:
+        example: Success
+        type: string
     type: object
   models.SignInSuccessResponse:
     properties:
@@ -761,14 +761,14 @@ paths:
         name: task
         required: true
         schema:
-          $ref: '#/definitions/models.CreateRepetitiveTaskTemplateRequest'
+          $ref: '#/definitions/models.RepetitiveTaskTemplateRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.CreateRepetitiveTaskTemplateResponseForSwagger'
+            $ref: '#/definitions/models.RepetitiveTaskTemplateResponseForSwagger'
         "400":
           description: Bad Request
           schema:
@@ -778,6 +778,45 @@ paths:
           schema:
             $ref: '#/definitions/models.GenericErrorResponse'
       summary: Create a new repetitive task template
+      tags:
+      - tasks
+  /tasks/repetitive/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update an existing repetitive task template with the given details
+      parameters:
+      - description: Repetitive Task Template ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Repetitive task template details
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/models.RepetitiveTaskTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.RepetitiveTaskTemplateResponseForSwagger'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GenericErrorResponse'
+      summary: Update an existing repetitive task template
       tags:
       - tasks
 securityDefinitions:

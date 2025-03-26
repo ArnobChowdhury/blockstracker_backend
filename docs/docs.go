@@ -226,7 +226,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Spaces"
+                    "spaces"
                 ],
                 "summary": "Create a new Space",
                 "parameters": [
@@ -236,7 +236,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreateSpaceRequest"
+                            "$ref": "#/definitions/models.SpaceRequest"
                         }
                     }
                 ],
@@ -244,11 +244,70 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.CreateSpaceResponseForSwagger"
+                            "$ref": "#/definitions/models.SpaceResponseForSwagger"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/spaces/{id}": {
+            "put": {
+                "description": "Update an existing Space with the given details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "spaces"
+                ],
+                "summary": "Update an existing Space",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Space ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Space details",
+                        "name": "space",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SpaceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SpaceResponseForSwagger"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/models.GenericErrorResponse"
                         }
@@ -427,7 +486,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreateRepetitiveTaskTemplateRequest"
+                            "$ref": "#/definitions/models.RepetitiveTaskTemplateRequest"
                         }
                     }
                 ],
@@ -435,11 +494,70 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.CreateRepetitiveTaskTemplateResponseForSwagger"
+                            "$ref": "#/definitions/models.RepetitiveTaskTemplateResponseForSwagger"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks/repetitive/{id}": {
+            "put": {
+                "description": "Update an existing repetitive task template with the given details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Update an existing repetitive task template",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Repetitive Task Template ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Repetitive task template details",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RepetitiveTaskTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.RepetitiveTaskTemplateResponseForSwagger"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GenericErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/models.GenericErrorResponse"
                         }
@@ -514,144 +632,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.CreateRepetitiveTaskTemplateRequest": {
-            "type": "object",
-            "required": [
-                "createdAt",
-                "friday",
-                "isActive",
-                "modifiedAt",
-                "monday",
-                "priority",
-                "saturday",
-                "schedule",
-                "shouldBeScored",
-                "sunday",
-                "thursday",
-                "title",
-                "tuesday",
-                "wednesday"
-            ],
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "friday": {
-                    "type": "boolean"
-                },
-                "isActive": {
-                    "type": "boolean"
-                },
-                "lastDateOfTaskGeneration": {
-                    "type": "string"
-                },
-                "modifiedAt": {
-                    "type": "string"
-                },
-                "monday": {
-                    "type": "boolean"
-                },
-                "priority": {
-                    "type": "integer"
-                },
-                "saturday": {
-                    "type": "boolean"
-                },
-                "schedule": {
-                    "type": "string"
-                },
-                "shouldBeScored": {
-                    "type": "boolean"
-                },
-                "spaceId": {
-                    "type": "string"
-                },
-                "sunday": {
-                    "type": "boolean"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Tag"
-                    }
-                },
-                "tasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Task"
-                    }
-                },
-                "thursday": {
-                    "type": "boolean"
-                },
-                "timeOfDay": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "tuesday": {
-                    "type": "boolean"
-                },
-                "wednesday": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "models.CreateRepetitiveTaskTemplateResponseForSwagger": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "Success message"
-                },
-                "result": {
-                    "$ref": "#/definitions/models.RepetitiveTaskTemplate"
-                },
-                "status": {
-                    "type": "string",
-                    "example": "Success"
-                }
-            }
-        },
-        "models.CreateSpaceRequest": {
-            "type": "object",
-            "required": [
-                "createdAt",
-                "modifiedAt",
-                "name"
-            ],
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "modifiedAt": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.CreateSpaceResponseForSwagger": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "Success message"
-                },
-                "result": {
-                    "$ref": "#/definitions/models.Space"
-                },
-                "status": {
-                    "type": "string",
-                    "example": "Success"
-                }
-            }
-        },
         "models.EmailSignInRequest": {
             "type": "object",
             "required": [
@@ -804,6 +784,109 @@ const docTemplate = `{
                 }
             }
         },
+        "models.RepetitiveTaskTemplateRequest": {
+            "type": "object",
+            "required": [
+                "createdAt",
+                "friday",
+                "isActive",
+                "modifiedAt",
+                "monday",
+                "priority",
+                "saturday",
+                "schedule",
+                "shouldBeScored",
+                "sunday",
+                "thursday",
+                "title",
+                "tuesday",
+                "wednesday"
+            ],
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "friday": {
+                    "type": "boolean"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "lastDateOfTaskGeneration": {
+                    "type": "string"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "monday": {
+                    "type": "boolean"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "saturday": {
+                    "type": "boolean"
+                },
+                "schedule": {
+                    "type": "string"
+                },
+                "shouldBeScored": {
+                    "type": "boolean"
+                },
+                "spaceId": {
+                    "type": "string"
+                },
+                "sunday": {
+                    "type": "boolean"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Tag"
+                    }
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Task"
+                    }
+                },
+                "thursday": {
+                    "type": "boolean"
+                },
+                "timeOfDay": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "tuesday": {
+                    "type": "boolean"
+                },
+                "wednesday": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.RepetitiveTaskTemplateResponseForSwagger": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Success message"
+                },
+                "result": {
+                    "$ref": "#/definitions/models.RepetitiveTaskTemplate"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
         "models.SignInSuccessResponse": {
             "type": "object",
             "properties": {
@@ -867,6 +950,41 @@ const docTemplate = `{
                 },
                 "userId": {
                     "type": "string"
+                }
+            }
+        },
+        "models.SpaceRequest": {
+            "type": "object",
+            "required": [
+                "createdAt",
+                "modifiedAt",
+                "name"
+            ],
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "modifiedAt": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SpaceResponseForSwagger": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Success message"
+                },
+                "result": {
+                    "$ref": "#/definitions/models.Space"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Success"
                 }
             }
         },
