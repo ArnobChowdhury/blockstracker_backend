@@ -16,14 +16,14 @@ type Space struct {
 	UserID     uuid.UUID      `gorm:"type:uuid;index" json:"userId"`
 }
 
-type CreateSpaceRequest struct {
+type SpaceRequest struct {
 	Name       string    `json:"name" binding:"required"`
 	CreatedAt  time.Time `json:"createdAt" binding:"required"`
 	ModifiedAt time.Time `json:"modifiedAt" binding:"required"`
 }
 
 // Create Space success response for swagger doc
-type CreateSpaceResponseForSwagger struct {
+type SpaceResponseForSwagger struct {
 	Result Space `json:"result"`
 	SuccessResult
 }

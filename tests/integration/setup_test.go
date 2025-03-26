@@ -248,6 +248,7 @@ func setupRouter() error {
 
 	spaceGroup := router.Group("/spaces")
 	spaceGroup.POST("/", spaceHandler.CreateSpace)
+	spaceGroup.PUT("/:id", spaceHandler.UpdateSpace)
 
 	return nil
 }

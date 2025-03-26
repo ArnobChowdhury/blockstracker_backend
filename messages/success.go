@@ -18,5 +18,5 @@ const (
 	MsgTagUpdateSuccess   = "Tag updated successfully"
 
 	MsgSpaceCreationSuccess = "Space creation successful"
-	MsgSpaceUpdatedSuccess  = "Space updated successfully"
+	MsgSpaceUpdateSuccess   = "Space updated successfully"
 )
