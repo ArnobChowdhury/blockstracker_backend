@@ -17,6 +17,18 @@ docker-compose up --build -d
 
 The backend will be available at `http://localhost:5000`.
 
+## 🔑 Environment Variables
+
+The application requires the following environment variables to be set. You can create a `.env` file in the root of the project, and `docker-compose` will automatically use it.
+
+- `DB_USER`: The username for the PostgreSQL database.
+- `DB_PASSWORD`: The password for the PostgreSQL database.
+- `DB_NAME`: The name of the PostgreSQL database.
+- `TEST_DB_NAME`: The name of the PostgreSQL database to use for integration tests.
+- `JWT_ACCESS_SECRET`: The secret key for signing JWT access tokens.
+- `JWT_REFRESH_SECRET`: The secret key for signing JWT refresh tokens.
+- `REDIS_PASSWORD`: Password for the Redis server (leave empty if none).
+
 ## 📂 Project Structure
 
 - `cmd/` – Main application entry points
