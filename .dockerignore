@@ -7,7 +7,6 @@
 *.swp
 vendor/
 bin/
-pkg/
 
 # Git-related
 .git
@@ -17,7 +16,3 @@ pkg/
 .vscode/
 .idea/
 *.iml
-
-# Docker-related
-Dockerfile
-docker-compose.yml

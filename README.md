@@ -11,6 +11,14 @@ This is the backend service for [BlocksTracker](https://blocks-tracker.com/), a 
 
 ## 🚀 Getting Started
 
+Before running the services, you must create a configuration file for `air`, our live-reloading tool. An example file is provided for you. Copy it to create your local configuration:
+
+```bash
+cp air.example.toml .air.toml
+```
+
+Once that's done, you can build and run the containers:
+
 ```bash
 docker-compose up --build -d
 ```

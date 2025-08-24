@@ -25,7 +25,6 @@ services:
       PORT: 8080
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
-    command: air
 
   db:
     image: postgres:15
