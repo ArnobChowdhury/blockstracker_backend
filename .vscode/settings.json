@@ -5,6 +5,7 @@
     "Errorw",
     "gonic",
     "gorm",
+    "idtoken",
     "Infow",
     "isready",
     "mapstructure",

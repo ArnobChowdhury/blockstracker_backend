@@ -19,6 +19,7 @@ const (
 	ErrInvalidCredentials                     = "Invalid credentials"
 	ErrJWTAccessSecretNotFoundInEnvironment   = "JWT_ACCESS_SECRET not found in environment variables"
 	ErrJWTRefreshSecretNotFoundInEnvironment  = "JWT_REFRESH_SECRET not found in environment variables"
+	ErrGoogleWebClientIdNotFoundInEnvironment = "GOOGLE_WEB_CLIENT_ID not found in environment variables"
 	ErrGeneratingJWT                          = "Failed to generate JWT"
 	ErrMismatchingPasswordDuringSignIn        = "Mismatching password during sign in"
 	ErrNoAuthorizationHeader                  = "No Authorization header"

@@ -54,3 +54,7 @@ type TokenResponse struct {
 	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"refreshToken"`
 }
+
+type GoogleSignInRequest struct {
+	Token string `json:"token" binding:"required" example:"token"`
+}

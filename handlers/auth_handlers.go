@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -20,6 +21,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/api/idtoken"
 	"gorm.io/gorm"
 )
 
@@ -288,4 +290,71 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		"accessToken":  accessToken,
 		"refreshToken": refreshToken,
 	}))
+}
+
+func (h *AuthHandler) GoogleSignIn(c *gin.Context) {
+	var req models.GoogleSignInRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrInvalidRequestBody, err.Error(), apperrors.ErrMalformedRequest)
+		return
+	}
+
+	payload, err := idtoken.Validate(context.Background(), req.Token, h.authConfig.GoogleWebClientID)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to verify Google ID token",
+			err.Error(), apperrors.ErrUnauthorized)
+		return
+	}
+
+	email := payload.Claims["email"].(string)
+	user, err := h.userRepo.GetUserByEmail(email)
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			provider := "google"
+			newUser := models.User{
+				Email:    email,
+				Provider: &provider,
+			}
+			if creationErr := h.userRepo.CreateUser(&newUser); creationErr != nil {
+				utils.SendErrorResponse(c, h.logger, messages.ErrUnexpectedErrorDuringUserCreation,
+					creationErr.Error(), apperrors.ErrInternalServerError)
+				return
+			}
+			user = &newUser
+		} else {
+			utils.SendErrorResponse(c, h.logger, messages.ErrUnexpectedErrorDuringUserRetrieval,
+				err.Error(), apperrors.ErrInternalServerError)
+			return
+		}
+	}
+
+	accessTokenClaims := utils.GetClaims(user, "access")
+	refreshTokenClaims := utils.GetClaims(user, "refresh")
+
+	accessToken, err := utils.GenerateJWT(accessTokenClaims, h.authConfig.AccessSecret)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT,
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	refreshToken, err := utils.GenerateJWT(refreshTokenClaims, h.authConfig.RefreshSecret)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT,
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := h.tokenRepo.StoreAccessTokenAndRefreshToken(accessToken, refreshToken); err != nil {
+		utils.SendErrorResponse(c, h.logger, apperrors.ErrRedisSet.LogError(),
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK,
+		utils.CreateJSONResponse(messages.Success, messages.MsgSignInSuccessful, gin.H{
+			"accessToken":  accessToken,
+			"refreshToken": refreshToken,
+		}))
 }

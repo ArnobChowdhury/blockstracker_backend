@@ -47,13 +47,16 @@ The application requires the following environment variables to be set. You can 
 
 ## 🧰 Common Tasks
 
-This project uses [`task`](https://taskfile.dev) for development scripts. Examples:
+This project uses `task` for running common development scripts. You can see all available tasks by running `task --list`. Here are the primary commands:
 
-```bash
-task migrate-up
-task test
-task generate-swagger
-```
+| Task                    | Description                                    |
+| ----------------------- | ---------------------------------------------- |
+| `task migrate-up`       | Run database migrations (up).                  |
+| `task migrate-down`     | Rollback the last database migration.          |
+| `task test`             | Run all unit and integration tests.            |
+| `task unit-test`        | Run only the unit tests.                       |
+| `task integration-test` | Run only the integration tests.                |
+| `task generate-swagger` | Generate/update the Swagger API documentation. |
 
 ## ⚖️ License
 
