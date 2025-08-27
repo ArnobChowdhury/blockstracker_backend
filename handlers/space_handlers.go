@@ -18,17 +18,23 @@ import (
 )
 
 type SpaceHandler struct {
-	SpaceRepo *repositories.SpaceRepository
-	logger    *zap.SugaredLogger
+	SpaceRepo  *repositories.SpaceRepository
+	changeRepo *repositories.ChangeRepository
+	db         *gorm.DB
+	logger     *zap.SugaredLogger
 }
 
 func NewSpaceHandler(
 	SpaceRepo *repositories.SpaceRepository,
+	changeRepo *repositories.ChangeRepository,
+	db *gorm.DB,
 	logger *zap.SugaredLogger,
 ) *SpaceHandler {
 	return &SpaceHandler{
-		SpaceRepo: SpaceRepo,
-		logger:    logger,
+		SpaceRepo:  SpaceRepo,
+		changeRepo: changeRepo,
+		db:         db,
+		logger:     logger,
 	}
 }
 
@@ -66,17 +72,46 @@ func (h *SpaceHandler) CreateSpace(c *gin.Context) {
 		UserID:     uid,
 	}
 
-	if err := h.SpaceRepo.CreateSpace(&Space); err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			utils.SendErrorResponse(c, h.logger, messages.ErrUniqueConstraintFailed,
-				err.Error(), apperrors.ErrSpaceDuplicateKey)
-			return
+	tx := h.db.Begin()
+	if tx.Error != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to begin transaction",
+			tx.Error.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
 		}
+	}()
+
+	if err := h.SpaceRepo.CreateSpace(tx, &Space); err != nil {
+		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, messages.ErrSpaceCreationFailed,
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
+	change := models.Change{
+		UserID:     uid,
+		EntityType: "space",
+		EntityID:   Space.ID,
+		Operation:  "create",
+	}
+	if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to create change record",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	Space.LastChangeID = change.ChangeID
+	if err := tx.Save(&Space).Commit().Error; err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(
 		messages.Success, messages.MsgSpaceCreationSuccess, Space))
 }
@@ -127,18 +162,51 @@ func (h *SpaceHandler) UpdateSpace(c *gin.Context) {
 		UserID:     uid,
 	}
 
-	if err := h.SpaceRepo.UpdateSpace(&space); err != nil {
+	tx := h.db.Begin()
+	if tx.Error != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to begin transaction",
+			tx.Error.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := h.SpaceRepo.UpdateSpace(tx, &space); err != nil {
+		tx.Rollback()
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed,
 				"Space not found or does not belong to user", apperrors.ErrUnauthorized)
-			return
+		} else {
+			utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed,
+				err.Error(), apperrors.ErrInternalServerError)
 		}
+		return
+	}
 
-		utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed,
+	change := models.Change{
+		UserID:     uid,
+		EntityType: "space",
+		EntityID:   space.ID,
+		Operation:  "update",
+	}
+	if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to create change record",
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
+	space.LastChangeID = change.ChangeID
+	if err := tx.Model(&space).Update("last_change_id", change.ChangeID).Commit().Error; err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(
 		messages.Success, messages.MsgSpaceUpdateSuccess, space))
 }

@@ -14,12 +14,12 @@ func NewTagRepository(db *gorm.DB) *TagRepository {
 	return &TagRepository{db: db}
 }
 
-func (r *TagRepository) CreateTag(tag *models.Tag) error {
-	return r.db.Create(tag).Error
+func (r *TagRepository) CreateTag(tx *gorm.DB, tag *models.Tag) error {
+	return tx.Create(tag).Error
 }
 
-func (r *TagRepository) UpdateTag(tag *models.Tag) error {
-	result := r.db.Model(&models.Tag{}).Where(
+func (r *TagRepository) UpdateTag(tx *gorm.DB, tag *models.Tag) error {
+	result := tx.Model(&models.Tag{}).Where(
 		"id = ? AND user_id = ?", tag.ID, tag.UserID).Updates(tag)
 	if result.Error != nil {
 		return result.Error

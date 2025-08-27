@@ -215,6 +215,7 @@ func setupRouter() error {
 	taskRepo := repositories.NewTaskRepository(TestDB)
 	tagRepo := repositories.NewTagRepository(TestDB)
 	spaceRepo := repositories.NewSpaceRepository(TestDB)
+	changeRepo := repositories.NewChangeRepository(TestDB)
 
 	logger := zap.NewNop().Sugar()
 
@@ -222,9 +223,9 @@ func setupRouter() error {
 
 	authHandler := handlers.NewAuthHandler(userRepo, logger, testAuthConfig, tokenRepository)
 	authMiddleware := middleware.NewAuthMiddleware(logger, testAuthConfig)
-	taskHandler := handlers.NewTaskHandler(taskRepo, logger)
-	tagHandler := handlers.NewTagHandler(tagRepo, logger)
-	spaceHandler := handlers.NewSpaceHandler(spaceRepo, logger)
+	taskHandler := handlers.NewTaskHandler(taskRepo, changeRepo, TestDB, logger)
+	tagHandler := handlers.NewTagHandler(tagRepo, changeRepo, TestDB, logger)
+	spaceHandler := handlers.NewSpaceHandler(spaceRepo, changeRepo, TestDB, logger)
 
 	router = gin.Default()
 	router.POST("/signup", authHandler.SignupUser)

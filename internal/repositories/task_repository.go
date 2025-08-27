@@ -14,12 +14,12 @@ func NewTaskRepository(db *gorm.DB) *TaskRepository {
 	return &TaskRepository{db: db}
 }
 
-func (r *TaskRepository) CreateTask(task *models.Task) error {
-	return r.db.Create(task).Error
+func (r *TaskRepository) CreateTask(tx *gorm.DB, task *models.Task) error {
+	return tx.Create(task).Error
 }
 
-func (r *TaskRepository) UpdateTask(task *models.Task) error {
-	result := r.db.Model(&models.Task{}).Where("id = ? AND user_id = ?", task.ID, task.UserID).Updates(task)
+func (r *TaskRepository) UpdateTask(tx *gorm.DB, task *models.Task) error {
+	result := tx.Model(&models.Task{}).Where("id = ? AND user_id = ?", task.ID, task.UserID).Updates(task)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -29,12 +29,12 @@ func (r *TaskRepository) UpdateTask(task *models.Task) error {
 	return nil
 }
 
-func (r *TaskRepository) CreateRepetitiveTaskTemplate(repetitiveTaskTemplate *models.RepetitiveTaskTemplate) error {
-	return r.db.Create(repetitiveTaskTemplate).Error
+func (r *TaskRepository) CreateRepetitiveTaskTemplate(tx *gorm.DB, repetitiveTaskTemplate *models.RepetitiveTaskTemplate) error {
+	return tx.Create(repetitiveTaskTemplate).Error
 }
 
-func (r *TaskRepository) UpdateRepetitiveTaskTemplate(repetitiveTaskTemplate *models.RepetitiveTaskTemplate) error {
-	result := r.db.Model(&models.RepetitiveTaskTemplate{}).Where("id = ? AND user_id = ?", repetitiveTaskTemplate.ID, repetitiveTaskTemplate.UserID).Updates(repetitiveTaskTemplate)
+func (r *TaskRepository) UpdateRepetitiveTaskTemplate(tx *gorm.DB, repetitiveTaskTemplate *models.RepetitiveTaskTemplate) error {
+	result := tx.Model(&models.RepetitiveTaskTemplate{}).Where("id = ? AND user_id = ?", repetitiveTaskTemplate.ID, repetitiveTaskTemplate.UserID).Updates(repetitiveTaskTemplate)
 	if result.Error != nil {
 		return result.Error
 	}

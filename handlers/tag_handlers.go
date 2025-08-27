@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	apperrors "blockstracker_backend/internal/errors"
@@ -17,17 +18,23 @@ import (
 )
 
 type TagHandler struct {
-	tagRepo *repositories.TagRepository
-	logger  *zap.SugaredLogger
+	tagRepo    *repositories.TagRepository
+	changeRepo *repositories.ChangeRepository
+	db         *gorm.DB
+	logger     *zap.SugaredLogger
 }
 
 func NewTagHandler(
 	tagRepo *repositories.TagRepository,
+	changeRepo *repositories.ChangeRepository,
+	db *gorm.DB,
 	logger *zap.SugaredLogger,
 ) *TagHandler {
 	return &TagHandler{
-		tagRepo: tagRepo,
-		logger:  logger,
+		tagRepo:    tagRepo,
+		changeRepo: changeRepo,
+		db:         db,
+		logger:     logger,
 	}
 }
 
@@ -65,12 +72,46 @@ func (h *TagHandler) CreateTag(c *gin.Context) {
 		UserID:     uid,
 	}
 
-	if err := h.tagRepo.CreateTag(&tag); err != nil {
+	tx := h.db.Begin()
+	if tx.Error != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to begin transaction",
+			tx.Error.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := h.tagRepo.CreateTag(tx, &tag); err != nil {
+		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, messages.ErrTagCreationFailed,
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
+	change := models.Change{
+		UserID:     uid,
+		EntityType: "tag",
+		EntityID:   tag.ID,
+		Operation:  "create",
+	}
+	if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to create change record",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	tag.LastChangeID = change.ChangeID
+	if err := tx.Save(&tag).Commit().Error; err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(
 		messages.Success, messages.MsgTagCreationSuccess, tag))
 }
@@ -99,7 +140,7 @@ func (h *TagHandler) UpdateTag(c *gin.Context) {
 	tagID, parseErr := uuid.Parse(tagIDStr)
 	if parseErr != nil {
 		utils.SendErrorResponse(c, h.logger, messages.ErrTagUpdateFailed,
-			"Invalid tag ID", apperrors.NewInvalidReqErr("Invalid tag ID"))
+			fmt.Sprintf("Invalid tag ID format: %s", tagIDStr), apperrors.NewInvalidReqErr("Invalid tag ID"))
 		return
 	}
 
@@ -118,18 +159,51 @@ func (h *TagHandler) UpdateTag(c *gin.Context) {
 		UserID:     uid,
 	}
 
-	if err := h.tagRepo.UpdateTag(&tag); err != nil {
+	tx := h.db.Begin()
+	if tx.Error != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to begin transaction",
+			tx.Error.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := h.tagRepo.UpdateTag(tx, &tag); err != nil {
+		tx.Rollback()
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			utils.SendErrorResponse(c, h.logger, messages.ErrTagUpdateFailed,
 				"Tag not found or does not belong to user", apperrors.ErrUnauthorized)
-			return
+		} else {
+			utils.SendErrorResponse(c, h.logger, messages.ErrTagUpdateFailed,
+				err.Error(), apperrors.ErrInternalServerError)
 		}
+		return
+	}
 
-		utils.SendErrorResponse(c, h.logger, messages.ErrTagUpdateFailed,
+	change := models.Change{
+		UserID:     uid,
+		EntityType: "tag",
+		EntityID:   tag.ID,
+		Operation:  "update",
+	}
+	if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to create change record",
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
+	tag.LastChangeID = change.ChangeID
+	if err := tx.Model(&tag).Update("last_change_id", change.ChangeID).Commit().Error; err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(
 		messages.Success, messages.MsgTagUpdateSuccess, tag))
 }

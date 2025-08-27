@@ -47,6 +47,7 @@ type Task struct {
 	Space                    *Space                  `json:"space"`
 	SpaceID                  *uuid.UUID              `gorm:"type:uuid" json:"spaceId"`
 	UserID                   uuid.UUID               `gorm:"type:uuid" json:"userId"` // Add UserID here
+	LastChangeID             int64                   `gorm:"not null;default:0" json:"lastChangeId"`
 	DeletedAt                gorm.DeletedAt          `gorm:"index" json:"-"`
 }
 
@@ -80,6 +81,7 @@ type RepetitiveTaskTemplate struct {
 	Space                    *Space         `json:"space"`
 	SpaceID                  *uuid.UUID     `gorm:"type:uuid" json:"spaceId"`
 	UserID                   uuid.UUID      `gorm:"type:uuid" json:"userId"` // Add UserID here
+	LastChangeID             int64          `gorm:"not null;default:0" json:"lastChangeId"`
 	DeletedAt                gorm.DeletedAt `gorm:"index" json:"-"`
 }
 

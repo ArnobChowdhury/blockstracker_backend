@@ -58,6 +58,20 @@ This project uses `task` for running common development scripts. You can see all
 | `task integration-test` | Run only the integration tests.                |
 | `task generate-swagger` | Generate/update the Swagger API documentation. |
 
+### Creating a New Migration
+
+To create a new database migration file, you first need to get a shell inside the running `go_app` container:
+
+```bash
+docker compose exec -it go_app /bin/bash
+```
+
+Then, from within the container's shell, run the `goose create` command, replacing `<your_migration_name>` with a descriptive name:
+
+```bash
+goose create <your_migration_name> sql
+```
+
 ## ⚖️ License
 
 BlocksTracker is free and open-source software, licensed under the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).

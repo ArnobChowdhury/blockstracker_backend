@@ -8,12 +8,13 @@ import (
 )
 
 type Tag struct {
-	ID         uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	Name       string         `json:"name" binding:"required"`
-	CreatedAt  time.Time      `json:"createdAt" binding:"required"`
-	ModifiedAt time.Time      `json:"modifiedAt" binding:"required"`
-	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
-	UserID     uuid.UUID      `gorm:"type:uuid;index" json:"userId"`
+	ID           uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	Name         string         `json:"name" binding:"required"`
+	CreatedAt    time.Time      `json:"createdAt" binding:"required"`
+	ModifiedAt   time.Time      `json:"modifiedAt" binding:"required"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	UserID       uuid.UUID      `gorm:"type:uuid;index" json:"userId"`
+	LastChangeID int64          `gorm:"not null;default:0" json:"lastChangeId"`
 }
 
 type TagRequest struct {

@@ -18,17 +18,23 @@ import (
 )
 
 type TaskHandler struct {
-	taskRepo *repositories.TaskRepository
-	logger   *zap.SugaredLogger
+	taskRepo   *repositories.TaskRepository
+	changeRepo *repositories.ChangeRepository
+	db         *gorm.DB
+	logger     *zap.SugaredLogger
 }
 
 func NewTaskHandler(
 	taskRepo *repositories.TaskRepository,
+	changeRepo *repositories.ChangeRepository,
+	db *gorm.DB,
 	logger *zap.SugaredLogger,
 ) *TaskHandler {
 	return &TaskHandler{
-		taskRepo: taskRepo,
-		logger:   logger,
+		taskRepo:   taskRepo,
+		changeRepo: changeRepo,
+		db:         db,
+		logger:     logger,
 	}
 }
 
@@ -78,12 +84,46 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		UserID:                   uid,
 	}
 
-	if err := h.taskRepo.CreateTask(&task); err != nil {
+	tx := h.db.Begin()
+	if tx.Error != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to begin transaction",
+			tx.Error.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := h.taskRepo.CreateTask(tx, &task); err != nil {
+		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
+	change := models.Change{
+		UserID:     uid,
+		EntityType: "task",
+		EntityID:   task.ID,
+		Operation:  "create",
+	}
+	if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to create change record",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	task.LastChangeID = change.ChangeID
+	if err := tx.Save(&task).Commit().Error; err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(
 		messages.Success, messages.MsgTaskCreationSuccess, task))
 }
@@ -144,18 +184,51 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 		UserID:                   uid,
 	}
 
-	if err := h.taskRepo.UpdateTask(&task); err != nil {
+	tx := h.db.Begin()
+	if tx.Error != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to begin transaction",
+			tx.Error.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := h.taskRepo.UpdateTask(tx, &task); err != nil {
+		tx.Rollback()
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
 				"Task not found or does not belong to user", apperrors.ErrUnauthorized)
-			return
+		} else {
+			utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
+				err.Error(), apperrors.ErrInternalServerError)
 		}
+		return
+	}
 
-		utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
+	change := models.Change{
+		UserID:     uid,
+		EntityType: "task",
+		EntityID:   task.ID,
+		Operation:  "update",
+	}
+	if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to create change record",
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
+	task.LastChangeID = change.ChangeID
+	if err := tx.Model(&task).Update("last_change_id", change.ChangeID).Commit().Error; err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(
 		messages.Success, messages.MsgTaskUpdateSuccess, task))
 }
@@ -210,12 +283,46 @@ func (h *TaskHandler) CreateRepetitiveTaskTemplate(c *gin.Context) {
 		UserID:                   uid,
 	}
 
-	if err := h.taskRepo.CreateRepetitiveTaskTemplate(&repetitiveTaskTemplate); err != nil {
-		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
+	tx := h.db.Begin()
+	if tx.Error != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to begin transaction",
+			tx.Error.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := h.taskRepo.CreateRepetitiveTaskTemplate(tx, &repetitiveTaskTemplate); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateCreationFailed,
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
+	change := models.Change{
+		UserID:     uid,
+		EntityType: "repetitive_task_template",
+		EntityID:   repetitiveTaskTemplate.ID,
+		Operation:  "create",
+	}
+	if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to create change record",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	repetitiveTaskTemplate.LastChangeID = change.ChangeID
+	if err := tx.Save(&repetitiveTaskTemplate).Commit().Error; err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success,
 		messages.MsgRepetitiveTaskTemplateCreationSuccess, repetitiveTaskTemplate))
 }
@@ -281,18 +388,51 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 		UserID:                   uid,
 	}
 
-	if err := h.taskRepo.UpdateRepetitiveTaskTemplate(&repetitiveTaskTemplate); err != nil {
+	tx := h.db.Begin()
+	if tx.Error != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to begin transaction",
+			tx.Error.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := h.taskRepo.UpdateRepetitiveTaskTemplate(tx, &repetitiveTaskTemplate); err != nil {
+		tx.Rollback()
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
 				"Repetitive task template not found or does not belong to user", apperrors.ErrUnauthorized)
-			return
+		} else {
+			utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
+				err.Error(), apperrors.ErrInternalServerError)
 		}
+		return
+	}
 
-		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
+	change := models.Change{
+		UserID:     uid,
+		EntityType: "repetitive_task_template",
+		EntityID:   repetitiveTaskTemplate.ID,
+		Operation:  "update",
+	}
+	if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to create change record",
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
+	repetitiveTaskTemplate.LastChangeID = change.ChangeID
+	if err := tx.Model(&repetitiveTaskTemplate).Update("last_change_id", change.ChangeID).Commit().Error; err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(
 		messages.Success, messages.MsgRepetitiveTaskTemplateUpdateSuccess, repetitiveTaskTemplate))
 }

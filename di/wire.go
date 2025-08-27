@@ -42,6 +42,7 @@ func InitializeTaskHandler() (*handlers.TaskHandler, error) {
 	wire.Build(
 		database.DBProvider,
 		repositories.NewTaskRepository,
+		repositories.NewChangeRepository,
 		logger.LoggerProvider,
 		handlers.NewTaskHandler,
 	)
@@ -52,6 +53,7 @@ func InitializeTagHandler() (*handlers.TagHandler, error) {
 	wire.Build(
 		database.DBProvider,
 		repositories.NewTagRepository,
+		repositories.NewChangeRepository,
 		logger.LoggerProvider,
 		handlers.NewTagHandler,
 	)
@@ -62,6 +64,7 @@ func InitializeSpaceHandler() (*handlers.SpaceHandler, error) {
 	wire.Build(
 		database.DBProvider,
 		repositories.NewSpaceRepository,
+		repositories.NewChangeRepository,
 		logger.LoggerProvider,
 		handlers.NewSpaceHandler,
 	)
