@@ -26,6 +26,11 @@ tasks:
       - go test ./tests/... -v
     description: "Run all tests"
 
+  generate:
+    cmds:
+      - go generate ./...
+    description: "Run go generate to update generated files (e.g., wire_gen.go)"
+
   generate-swagger:
     cmds:
       - swag init -g cmd/main.go

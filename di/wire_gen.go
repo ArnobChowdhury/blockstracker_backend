@@ -52,23 +52,26 @@ func InitializeAuthMiddleware() (*middleware.AuthMiddleware, error) {
 func InitializeTaskHandler() (*handlers.TaskHandler, error) {
 	db := database.DBProvider()
 	taskRepository := repositories.NewTaskRepository(db)
+	changeRepository := repositories.NewChangeRepository(db)
 	sugaredLogger := logger.LoggerProvider()
-	taskHandler := handlers.NewTaskHandler(taskRepository, sugaredLogger)
+	taskHandler := handlers.NewTaskHandler(taskRepository, changeRepository, db, sugaredLogger)
 	return taskHandler, nil
 }
 
 func InitializeTagHandler() (*handlers.TagHandler, error) {
 	db := database.DBProvider()
 	tagRepository := repositories.NewTagRepository(db)
+	changeRepository := repositories.NewChangeRepository(db)
 	sugaredLogger := logger.LoggerProvider()
-	tagHandler := handlers.NewTagHandler(tagRepository, sugaredLogger)
+	tagHandler := handlers.NewTagHandler(tagRepository, changeRepository, db, sugaredLogger)
 	return tagHandler, nil
 }
 
 func InitializeSpaceHandler() (*handlers.SpaceHandler, error) {
 	db := database.DBProvider()
 	spaceRepository := repositories.NewSpaceRepository(db)
+	changeRepository := repositories.NewChangeRepository(db)
 	sugaredLogger := logger.LoggerProvider()
-	spaceHandler := handlers.NewSpaceHandler(spaceRepository, sugaredLogger)
+	spaceHandler := handlers.NewSpaceHandler(spaceRepository, changeRepository, db, sugaredLogger)
 	return spaceHandler, nil
 }
