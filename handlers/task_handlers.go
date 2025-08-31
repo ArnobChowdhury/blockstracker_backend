@@ -66,6 +66,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 	}
 
 	task := models.Task{
+		ID:                       req.ID,
 		IsActive:                 req.IsActive,
 		Title:                    req.Title,
 		Description:              req.Description,
@@ -261,6 +262,7 @@ func (h *TaskHandler) CreateRepetitiveTaskTemplate(c *gin.Context) {
 	}
 
 	repetitiveTaskTemplate := models.RepetitiveTaskTemplate{
+		ID:                       req.ID,
 		IsActive:                 req.IsActive,
 		Title:                    req.Title,
 		Description:              req.Description,

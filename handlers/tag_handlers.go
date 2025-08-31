@@ -66,6 +66,7 @@ func (h *TagHandler) CreateTag(c *gin.Context) {
 	}
 
 	tag := models.Tag{
+		ID:         req.ID,
 		Name:       req.Name,
 		CreatedAt:  req.CreatedAt,
 		ModifiedAt: req.ModifiedAt,

@@ -18,6 +18,7 @@ type Space struct {
 }
 
 type SpaceRequest struct {
+	ID         uuid.UUID `json:"id" binding:"required,uuid"`
 	Name       string    `json:"name" binding:"required"`
 	CreatedAt  time.Time `json:"createdAt" binding:"required"`
 	ModifiedAt time.Time `json:"modifiedAt" binding:"required"`

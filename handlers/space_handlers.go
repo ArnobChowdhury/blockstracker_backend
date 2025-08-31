@@ -66,6 +66,7 @@ func (h *SpaceHandler) CreateSpace(c *gin.Context) {
 	}
 
 	Space := models.Space{
+		ID:         req.ID,
 		Name:       req.Name,
 		CreatedAt:  req.CreatedAt,
 		ModifiedAt: req.ModifiedAt,

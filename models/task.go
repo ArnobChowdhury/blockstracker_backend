@@ -10,6 +10,7 @@ import (
 // todo:
 // change the name
 type TaskRequest struct {
+	ID                       uuid.UUID  `json:"id" binding:"required,uuid"`
 	IsActive                 bool       `json:"isActive" binding:"required"`
 	Title                    string     `json:"title" binding:"required"`
 	Description              string     `json:"description"`
@@ -86,6 +87,7 @@ type RepetitiveTaskTemplate struct {
 }
 
 type RepetitiveTaskTemplateRequest struct {
+	ID                       uuid.UUID      `json:"id" binding:"required,uuid"`
 	IsActive                 bool           `json:"isActive" binding:"required"`
 	Title                    string         `json:"title" binding:"required"`
 	Description              *string        `json:"description"`
