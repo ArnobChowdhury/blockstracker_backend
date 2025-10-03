@@ -176,6 +176,25 @@ func (h *SpaceHandler) UpdateSpace(c *gin.Context) {
 		}
 	}()
 
+	existingSpace, fetchErr := h.SpaceRepo.GetSpaceByID(tx, spaceID, uid)
+	if fetchErr != nil {
+		tx.Rollback()
+		if errors.Is(fetchErr, gorm.ErrRecordNotFound) {
+			utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed,
+				"Space not found or does not belong to user", apperrors.ErrUnauthorized)
+		} else {
+			utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed,
+				fetchErr.Error(), apperrors.ErrInternalServerError)
+		}
+		return
+	}
+
+	if req.ModifiedAt.Before(existingSpace.ModifiedAt) {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed, "Stale data", apperrors.ErrStaleData)
+		return
+	}
+
 	if err := h.SpaceRepo.UpdateSpace(tx, &space); err != nil {
 		tx.Rollback()
 		if errors.Is(err, gorm.ErrRecordNotFound) {

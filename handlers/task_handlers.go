@@ -198,6 +198,27 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 		}
 	}()
 
+	existingTask, fetchErr := h.taskRepo.GetTaskByID(tx, taskID, uid)
+	if fetchErr != nil {
+		tx.Rollback()
+		if errors.Is(fetchErr, gorm.ErrRecordNotFound) {
+			utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
+				"Task not found or does not belong to user", apperrors.ErrUnauthorized)
+		} else {
+			utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
+				fetchErr.Error(), apperrors.ErrInternalServerError)
+		}
+		return
+	}
+
+	if req.ModifiedAt.Before(existingTask.ModifiedAt) {
+		tx.Rollback()
+		logMsg := fmt.Sprintf("Stale update rejected for task_id: %s. Incoming timestamp: %s, Database timestamp: %s",
+			taskID, req.ModifiedAt, existingTask.ModifiedAt)
+		utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed, logMsg, apperrors.ErrStaleData)
+		return
+	}
+
 	if err := h.taskRepo.UpdateTask(tx, &task); err != nil {
 		tx.Rollback()
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -402,6 +423,27 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 			tx.Rollback()
 		}
 	}()
+
+	existingTemplate, fetchErr := h.taskRepo.GetRepetitiveTaskTemplateByID(tx, repetitiveTaskTemplateID, uid)
+	if fetchErr != nil {
+		tx.Rollback()
+		if errors.Is(fetchErr, gorm.ErrRecordNotFound) {
+			utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
+				"Repetitive task template not found or does not belong to user", apperrors.ErrUnauthorized)
+		} else {
+			utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
+				fetchErr.Error(), apperrors.ErrInternalServerError)
+		}
+		return
+	}
+
+	if req.ModifiedAt.Before(existingTemplate.ModifiedAt) {
+		tx.Rollback()
+		logMsg := fmt.Sprintf("Stale update rejected for repetitive_task_template_id: %s. Incoming timestamp: %s, Database timestamp: %s",
+			repetitiveTaskTemplateID, req.ModifiedAt, existingTemplate.ModifiedAt)
+		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed, logMsg, apperrors.ErrStaleData)
+		return
+	}
 
 	if err := h.taskRepo.UpdateRepetitiveTaskTemplate(tx, &repetitiveTaskTemplate); err != nil {
 		tx.Rollback()
