@@ -3,6 +3,7 @@ package repositories
 import (
 	"blockstracker_backend/models"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -16,6 +17,14 @@ func NewTagRepository(db *gorm.DB) *TagRepository {
 
 func (r *TagRepository) CreateTag(tx *gorm.DB, tag *models.Tag) error {
 	return tx.Create(tag).Error
+}
+
+func (r *TagRepository) GetTagByID(tx *gorm.DB, tagID uuid.UUID, userID uuid.UUID) (*models.Tag, error) {
+	var tag models.Tag
+	if err := tx.Model(&models.Tag{}).Where("id = ? AND user_id = ?", tagID, userID).First(&tag).Error; err != nil {
+		return nil, err
+	}
+	return &tag, nil
 }
 
 func (r *TagRepository) UpdateTag(tx *gorm.DB, tag *models.Tag) error {
