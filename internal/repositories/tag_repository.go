@@ -27,6 +27,14 @@ func (r *TagRepository) GetTagByID(tx *gorm.DB, tagID uuid.UUID, userID uuid.UUI
 	return &tag, nil
 }
 
+func (r *TagRepository) GetTagsByIDs(tx *gorm.DB, tagIDs []uuid.UUID, userID uuid.UUID) ([]models.Tag, error) {
+	var tags []models.Tag
+	if err := tx.Model(&models.Tag{}).Where("id IN ? AND user_id = ?", tagIDs, userID).Find(&tags).Error; err != nil {
+		return nil, err
+	}
+	return tags, nil
+}
+
 func (r *TagRepository) UpdateTag(tx *gorm.DB, tag *models.Tag) error {
 	result := tx.Model(&models.Tag{}).Where(
 		"id = ? AND user_id = ?", tag.ID, tag.UserID).Updates(tag)

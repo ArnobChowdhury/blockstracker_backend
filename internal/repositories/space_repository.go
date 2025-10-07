@@ -27,6 +27,14 @@ func (r *SpaceRepository) GetSpaceByID(tx *gorm.DB, spaceID uuid.UUID, userID uu
 	return &space, nil
 }
 
+func (r *SpaceRepository) GetSpacesByIDs(tx *gorm.DB, spaceIDs []uuid.UUID, userID uuid.UUID) ([]models.Space, error) {
+	var spaces []models.Space
+	if err := tx.Model(&models.Space{}).Where("id IN ? AND user_id = ?", spaceIDs, userID).Find(&spaces).Error; err != nil {
+		return nil, err
+	}
+	return spaces, nil
+}
+
 func (r *SpaceRepository) UpdateSpace(tx *gorm.DB, space *models.Space) error {
 	result := tx.Model(&models.Space{}).Where("id = ? AND user_id = ?", space.ID, space.UserID).Updates(space)
 	if result.Error != nil {

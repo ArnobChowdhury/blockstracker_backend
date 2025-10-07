@@ -45,4 +45,6 @@ const (
 
 	ErrSpaceCreationFailed = "Space creation failed"
 	ErrSpaceUpdateFailed   = "Space update failed"
+
+	ErrSyncFailed = "Sync failed"
 )

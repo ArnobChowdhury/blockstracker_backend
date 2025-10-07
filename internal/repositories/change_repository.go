@@ -4,6 +4,8 @@ import (
 	"blockstracker_backend/models"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"gorm.io/gorm"
 )
 
@@ -35,4 +37,13 @@ func (r *ChangeRepository) CreateChange(tx *gorm.DB, change *models.Change) erro
 	change.ChangeID = latestChangeID + 1
 
 	return tx.Create(change).Error
+}
+
+func (r *ChangeRepository) GetChangesSince(db *gorm.DB, userID uuid.UUID, lastChangeID int64) ([]models.Change, error) {
+	var changes []models.Change
+	if err := db.Where("user_id = ? AND change_id > ?", userID, lastChangeID).Order("change_id asc").Find(&changes).Error; err != nil {
+		return nil, err
+	}
+
+	return changes, nil
 }

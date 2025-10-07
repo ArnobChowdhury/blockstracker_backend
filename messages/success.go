@@ -19,4 +19,6 @@ const (
 
 	MsgSpaceCreationSuccess = "Space creation successful"
 	MsgSpaceUpdateSuccess   = "Space updated successfully"
+
+	MsgSyncSuccessful = "Sync successful"
 )
