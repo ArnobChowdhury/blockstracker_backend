@@ -41,7 +41,7 @@ func (r *ChangeRepository) CreateChange(tx *gorm.DB, change *models.Change) erro
 
 func (r *ChangeRepository) GetChangesSince(db *gorm.DB, userID uuid.UUID, lastChangeID int64) ([]models.Change, error) {
 	var changes []models.Change
-	if err := db.Where("user_id = ? AND change_id > ?", userID, lastChangeID).Order("change_id asc").Find(&changes).Error; err != nil {
+	if err := db.Where("user_id = ? AND change_id > ?", userID, lastChangeID).Order("change_id asc").Limit(100).Find(&changes).Error; err != nil {
 		return nil, err
 	}
 

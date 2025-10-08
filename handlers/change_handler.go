@@ -88,30 +88,25 @@ func (h *ChangeHandler) SyncChanges(c *gin.Context) {
 		return
 	}
 
-	finalChanges := make(map[uuid.UUID]models.Change)
-	latestChangeID := lastChangeID
-	for _, change := range changes {
-		finalChanges[change.EntityID] = change
-		if change.ChangeID > latestChangeID {
-			latestChangeID = change.ChangeID
-		}
-	}
-
 	taskIDs := []uuid.UUID{}
 	tagIDs := []uuid.UUID{}
 	spaceIDs := []uuid.UUID{}
 	templateIDs := []uuid.UUID{}
+	latestChangeID := lastChangeID
 
-	for _, finalChange := range finalChanges {
-		switch finalChange.EntityType {
+	for _, change := range changes {
+		switch change.EntityType {
 		case EntityTypeTask:
-			taskIDs = append(taskIDs, finalChange.EntityID)
+			taskIDs = append(taskIDs, change.EntityID)
 		case EntityTypeTag:
-			tagIDs = append(tagIDs, finalChange.EntityID)
+			tagIDs = append(tagIDs, change.EntityID)
 		case EntityTypeSpace:
-			spaceIDs = append(spaceIDs, finalChange.EntityID)
+			spaceIDs = append(spaceIDs, change.EntityID)
 		case EntityTypeRepetitiveTaskTemplate:
-			templateIDs = append(templateIDs, finalChange.EntityID)
+			templateIDs = append(templateIDs, change.EntityID)
+		}
+		if change.ChangeID > latestChangeID {
+			latestChangeID = change.ChangeID
 		}
 	}
 
