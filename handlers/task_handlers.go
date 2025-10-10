@@ -118,15 +118,21 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	task.LastChangeID = change.ChangeID
-	if err := tx.Save(&task).Commit().Error; err != nil {
+	if err := tx.Model(&task).Update("last_change_id", change.ChangeID).Error; err != nil {
 		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to update task with change ID",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(
-		messages.Success, messages.MsgTaskCreationSuccess, task))
+
+	task.LastChangeID = change.ChangeID
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgTaskCreationSuccess, task))
 }
 
 // UpdateTask godoc
@@ -244,15 +250,21 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	task.LastChangeID = change.ChangeID
-	if err := tx.Model(&task).Update("last_change_id", change.ChangeID).Commit().Error; err != nil {
+	if err := tx.Model(&task).Update("last_change_id", change.ChangeID).Error; err != nil {
 		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to update task with change ID",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(
-		messages.Success, messages.MsgTaskUpdateSuccess, task))
+
+	task.LastChangeID = change.ChangeID
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgTaskUpdateSuccess, task))
 }
 
 // CreateRepetitiveTaskTemplate godoc
@@ -339,15 +351,21 @@ func (h *TaskHandler) CreateRepetitiveTaskTemplate(c *gin.Context) {
 		return
 	}
 
-	repetitiveTaskTemplate.LastChangeID = change.ChangeID
-	if err := tx.Save(&repetitiveTaskTemplate).Commit().Error; err != nil {
+	if err := tx.Model(&repetitiveTaskTemplate).Update("last_change_id", change.ChangeID).Error; err != nil {
 		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to update repetitive task template with change ID",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success,
-		messages.MsgRepetitiveTaskTemplateCreationSuccess, repetitiveTaskTemplate))
+
+	repetitiveTaskTemplate.LastChangeID = change.ChangeID
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgRepetitiveTaskTemplateCreationSuccess, repetitiveTaskTemplate))
 }
 
 // UpdateRepetitiveTaskTemplate godoc
@@ -470,13 +488,19 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 		return
 	}
 
-	repetitiveTaskTemplate.LastChangeID = change.ChangeID
-	if err := tx.Model(&repetitiveTaskTemplate).Update("last_change_id", change.ChangeID).Commit().Error; err != nil {
+	if err := tx.Model(&repetitiveTaskTemplate).Update("last_change_id", change.ChangeID).Error; err != nil {
 		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to update repetitive task template with change ID",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(
-		messages.Success, messages.MsgRepetitiveTaskTemplateUpdateSuccess, repetitiveTaskTemplate))
+
+	repetitiveTaskTemplate.LastChangeID = change.ChangeID
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgRepetitiveTaskTemplateUpdateSuccess, repetitiveTaskTemplate))
 }

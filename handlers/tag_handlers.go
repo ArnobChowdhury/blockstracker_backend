@@ -106,15 +106,20 @@ func (h *TagHandler) CreateTag(c *gin.Context) {
 		return
 	}
 
-	tag.LastChangeID = change.ChangeID
-	if err := tx.Save(&tag).Commit().Error; err != nil {
+	if err := tx.Model(&tag).Update("last_change_id", change.ChangeID).Error; err != nil {
 		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to update tag with change ID",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(
-		messages.Success, messages.MsgTagCreationSuccess, tag))
+	tag.LastChangeID = change.ChangeID
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgTagCreationSuccess, tag))
 }
 
 // UpdateTag godoc
@@ -198,15 +203,20 @@ func (h *TagHandler) UpdateTag(c *gin.Context) {
 		return
 	}
 
-	tag.LastChangeID = change.ChangeID
-	if err := tx.Model(&tag).Update("last_change_id", change.ChangeID).Commit().Error; err != nil {
+	if err := tx.Model(&tag).Update("last_change_id", change.ChangeID).Error; err != nil {
 		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to update tag with change ID",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(
-		messages.Success, messages.MsgTagUpdateSuccess, tag))
+	tag.LastChangeID = change.ChangeID
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgTagUpdateSuccess, tag))
 }
 
 func (h *TagHandler) GetTagsFromVersion(c *gin.Context) {

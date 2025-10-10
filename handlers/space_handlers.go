@@ -106,15 +106,20 @@ func (h *SpaceHandler) CreateSpace(c *gin.Context) {
 		return
 	}
 
-	Space.LastChangeID = change.ChangeID
-	if err := tx.Save(&Space).Commit().Error; err != nil {
+	if err := tx.Model(&Space).Update("last_change_id", change.ChangeID).Error; err != nil {
 		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to update space with change ID",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(
-		messages.Success, messages.MsgSpaceCreationSuccess, Space))
+	Space.LastChangeID = change.ChangeID
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSpaceCreationSuccess, Space))
 }
 
 // UpdateSpace godoc
@@ -220,15 +225,20 @@ func (h *SpaceHandler) UpdateSpace(c *gin.Context) {
 		return
 	}
 
-	space.LastChangeID = change.ChangeID
-	if err := tx.Model(&space).Update("last_change_id", change.ChangeID).Commit().Error; err != nil {
+	if err := tx.Model(&space).Update("last_change_id", change.ChangeID).Error; err != nil {
 		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to update space with change ID",
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction",
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(
-		messages.Success, messages.MsgSpaceUpdateSuccess, space))
+	space.LastChangeID = change.ChangeID
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSpaceUpdateSuccess, space))
 }
 
 func (h *SpaceHandler) GetSpacesFromVersion(c *gin.Context) {

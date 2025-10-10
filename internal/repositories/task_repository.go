@@ -21,7 +21,7 @@ func (r *TaskRepository) CreateTask(tx *gorm.DB, task *models.Task) error {
 
 func (r *TaskRepository) GetTaskByID(tx *gorm.DB, taskID uuid.UUID, userID uuid.UUID) (*models.Task, error) {
 	var task models.Task
-	if err := tx.Model(&models.Task{}).Where("id = ? AND user_id = ?", taskID, userID).First(&task).Error; err != nil {
+	if err := tx.Model(&models.Task{}).Preload("Tags").Where("id = ? AND user_id = ?", taskID, userID).First(&task).Error; err != nil {
 		return nil, err
 	}
 	return &task, nil
@@ -29,7 +29,7 @@ func (r *TaskRepository) GetTaskByID(tx *gorm.DB, taskID uuid.UUID, userID uuid.
 
 func (r *TaskRepository) GetTasksByIDs(tx *gorm.DB, taskIDs []uuid.UUID, userID uuid.UUID) ([]models.Task, error) {
 	var tasks []models.Task
-	if err := tx.Model(&models.Task{}).Where("id IN ? AND user_id = ?", taskIDs, userID).Find(&tasks).Error; err != nil {
+	if err := tx.Model(&models.Task{}).Preload("Tags").Where("id IN ? AND user_id = ?", taskIDs, userID).Find(&tasks).Error; err != nil {
 		return nil, err
 	}
 	return tasks, nil
@@ -52,7 +52,7 @@ func (r *TaskRepository) CreateRepetitiveTaskTemplate(tx *gorm.DB, repetitiveTas
 
 func (r *TaskRepository) GetRepetitiveTaskTemplateByID(tx *gorm.DB, templateID uuid.UUID, userID uuid.UUID) (*models.RepetitiveTaskTemplate, error) {
 	var template models.RepetitiveTaskTemplate
-	if err := tx.Model(&models.RepetitiveTaskTemplate{}).Where("id = ? AND user_id = ?", templateID, userID).First(&template).Error; err != nil {
+	if err := tx.Model(&models.RepetitiveTaskTemplate{}).Preload("Tags").Where("id = ? AND user_id = ?", templateID, userID).First(&template).Error; err != nil {
 		return nil, err
 	}
 	return &template, nil
@@ -60,7 +60,7 @@ func (r *TaskRepository) GetRepetitiveTaskTemplateByID(tx *gorm.DB, templateID u
 
 func (r *TaskRepository) GetRepetitiveTaskTemplatesByIDs(tx *gorm.DB, templateIDs []uuid.UUID, userID uuid.UUID) ([]models.RepetitiveTaskTemplate, error) {
 	var templates []models.RepetitiveTaskTemplate
-	if err := tx.Model(&models.RepetitiveTaskTemplate{}).Where("id IN ? AND user_id = ?", templateIDs, userID).Find(&templates).Error; err != nil {
+	if err := tx.Model(&models.RepetitiveTaskTemplate{}).Preload("Tags").Where("id IN ? AND user_id = ?", templateIDs, userID).Find(&templates).Error; err != nil {
 		return nil, err
 	}
 	return templates, nil

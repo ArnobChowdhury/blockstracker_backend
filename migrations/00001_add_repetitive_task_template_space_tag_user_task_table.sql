@@ -1,12 +1,27 @@
 -- +goose Up
 -- +goose StatementBegin
 SELECT 'up SQL query';
+
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR NOT NULL UNIQUE,
+    password VARCHAR,
+    provider VARCHAR,
+    created_at TIMESTAMPTZ,
+    modified_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ,
+    CONSTRAINT password_or_provider CHECK (
+        password IS NOT NULL OR provider IS NOT NULL
+    )
+);
+
 CREATE TABLE IF NOT EXISTS spaces (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR NOT NULL,
     created_at TIMESTAMPTZ,
     modified_at TIMESTAMPTZ,
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Indexes
@@ -17,7 +32,8 @@ CREATE TABLE IF NOT EXISTS tags (
     name VARCHAR NOT NULL,
     created_at TIMESTAMPTZ,
     modified_at TIMESTAMPTZ,
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE
 );
 -- Indexes
 CREATE INDEX idx_tags_name ON tags(name);
@@ -44,7 +60,8 @@ CREATE TABLE IF NOT EXISTS repetitive_task_templates (
     created_at TIMESTAMPTZ,
     modified_at TIMESTAMPTZ,
     space_id UUID,
-    deleted_at TIMESTAMPTZ,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    deleted_at TIMESTAMPTZ,    
     FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE SET NULL
 );
 
@@ -70,9 +87,10 @@ CREATE TABLE IF NOT EXISTS tasks (
     created_at TIMESTAMPTZ,
     modified_at TIMESTAMPTZ,
     space_id UUID,
-    deleted_at TIMESTAMPTZ,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    deleted_at TIMESTAMPTZ,    
     FOREIGN KEY (repetitive_task_template_id) REFERENCES repetitive_task_templates(id) ON DELETE SET NULL,
-    FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
+    FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE SET NULL
 );
 
 
@@ -106,19 +124,6 @@ CREATE TABLE IF NOT EXISTS repetitive_task_template_tags (
 -- Indexes
 CREATE INDEX idx_repetitive_task_template_tags_template_id ON repetitive_task_template_tags(repetitive_task_template_id);
 CREATE INDEX idx_repetitive_task_template_tags_tag_id ON repetitive_task_template_tags(tag_id);
-
-CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR NOT NULL UNIQUE,
-    password VARCHAR,
-    provider VARCHAR,
-    created_at TIMESTAMPTZ,
-    modified_at TIMESTAMPTZ,
-    deleted_at TIMESTAMPTZ,
-    CONSTRAINT password_or_provider CHECK (
-        password IS NOT NULL OR provider IS NOT NULL
-    )
-);
 
 -- Indexes
 CREATE INDEX idx_users_email ON users(email);
