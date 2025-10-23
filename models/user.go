@@ -55,6 +55,11 @@ type TokenResponse struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
-type GoogleSignInRequest struct {
+type GoogleSignInMobileRequest struct {
 	Token string `json:"token" binding:"required" example:"token"`
+}
+type GoogleSignInDesktopRequest struct {
+	Code         string `json:"code" binding:"required"`
+	RedirectURI  string `json:"redirectUri" binding:"required"`
+	CodeVerifier string `json:"codeVerifier" binding:"required"`
 }

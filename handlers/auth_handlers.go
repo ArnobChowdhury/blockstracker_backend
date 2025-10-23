@@ -21,6 +21,8 @@ import (
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/idtoken"
 	"gorm.io/gorm"
 )
@@ -292,14 +294,110 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	}))
 }
 
-func (h *AuthHandler) GoogleSignIn(c *gin.Context) {
-	var req models.GoogleSignInRequest
+func (h *AuthHandler) GoogleSignInMobile(c *gin.Context) {
+	var req models.GoogleSignInMobileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.SendErrorResponse(c, h.logger, messages.ErrInvalidRequestBody, err.Error(), apperrors.ErrMalformedRequest)
 		return
 	}
 
 	payload, err := idtoken.Validate(context.Background(), req.Token, h.authConfig.GoogleWebClientID)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to verify Google ID token",
+			err.Error(), apperrors.ErrUnauthorized)
+		return
+	}
+
+	email := payload.Claims["email"].(string)
+	user, err := h.userRepo.GetUserByEmail(email)
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			provider := "google"
+			newUser := models.User{
+				Email:    email,
+				Provider: &provider,
+			}
+			if creationErr := h.userRepo.CreateUser(&newUser); creationErr != nil {
+				utils.SendErrorResponse(c, h.logger, messages.ErrUnexpectedErrorDuringUserCreation,
+					creationErr.Error(), apperrors.ErrInternalServerError)
+				return
+			}
+			user = &newUser
+		} else {
+			utils.SendErrorResponse(c, h.logger, messages.ErrUnexpectedErrorDuringUserRetrieval,
+				err.Error(), apperrors.ErrInternalServerError)
+			return
+		}
+	}
+
+	accessTokenClaims := utils.GetClaims(user, "access")
+	refreshTokenClaims := utils.GetClaims(user, "refresh")
+
+	accessToken, err := utils.GenerateJWT(accessTokenClaims, h.authConfig.AccessSecret)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT,
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	refreshToken, err := utils.GenerateJWT(refreshTokenClaims, h.authConfig.RefreshSecret)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT,
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := h.tokenRepo.StoreAccessTokenAndRefreshToken(accessToken, refreshToken); err != nil {
+		utils.SendErrorResponse(c, h.logger, apperrors.ErrRedisSet.LogError(),
+			err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK,
+		utils.CreateJSONResponse(messages.Success, messages.MsgSignInSuccessful, gin.H{
+			"accessToken":  accessToken,
+			"refreshToken": refreshToken,
+		}))
+}
+
+func (h *AuthHandler) GoogleSignInDesktop(c *gin.Context) {
+	var req models.GoogleSignInDesktopRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrInvalidRequestBody, err.Error(), apperrors.ErrMalformedRequest)
+		return
+	}
+
+	oauth2Config := &oauth2.Config{
+		ClientID:     h.authConfig.GoogleWebClientID,
+		ClientSecret: h.authConfig.GoogleWebClientSecret,
+		RedirectURL:  req.RedirectURI,
+		Endpoint:     google.Endpoint,
+		Scopes: []string{
+			"openid",
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile",
+		},
+	}
+
+	token, err := oauth2Config.Exchange(
+		context.Background(),
+		req.Code,
+		oauth2.SetAuthURLParam("code_verifier", req.CodeVerifier))
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to exchange authorization code for tokens",
+			err.Error(), apperrors.ErrUnauthorized)
+		return
+	}
+
+	idToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		utils.SendErrorResponse(c, h.logger, "ID token not found in Google response",
+			"id_token missing", apperrors.ErrUnauthorized)
+		return
+	}
+
+	payload, err := idtoken.Validate(context.Background(), idToken, h.authConfig.GoogleWebClientID)
 	if err != nil {
 		utils.SendErrorResponse(c, h.logger, "Failed to verify Google ID token",
 			err.Error(), apperrors.ErrUnauthorized)

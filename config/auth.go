@@ -7,9 +7,10 @@ import (
 )
 
 type AuthConfig struct {
-	AccessSecret      string
-	RefreshSecret     string
-	GoogleWebClientID string
+	AccessSecret          string
+	RefreshSecret         string
+	GoogleWebClientID     string
+	GoogleWebClientSecret string
 }
 
 func LoadAuthConfig() (*AuthConfig, error) {
@@ -28,9 +29,15 @@ func LoadAuthConfig() (*AuthConfig, error) {
 		return nil, fmt.Errorf(messages.ErrGoogleWebClientIdNotFoundInEnvironment)
 	}
 
+	googleWebClientSecret, ok := os.LookupEnv("GOOGLE_WEB_CLIENT_SECRET")
+	if !ok {
+		return nil, fmt.Errorf(messages.ErrGoogleWebClientSecretNotFoundInEnvironment)
+	}
+
 	return &AuthConfig{
-		AccessSecret:      accessSecretKey,
-		RefreshSecret:     refreshSecretKey,
-		GoogleWebClientID: googleWebClientId,
+		AccessSecret:          accessSecretKey,
+		RefreshSecret:         refreshSecretKey,
+		GoogleWebClientID:     googleWebClientId,
+		GoogleWebClientSecret: googleWebClientSecret,
 	}, nil
 }

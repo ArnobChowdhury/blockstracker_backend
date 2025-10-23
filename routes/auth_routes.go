@@ -14,7 +14,8 @@ func RegisterAuthRoutes(rg *gin.RouterGroup, authHandler *handlers.AuthHandler, 
 		authGroup.POST("/signup", authHandler.SignupUser)
 		authGroup.POST("/signin", authHandler.EmailSignIn)
 		authGroup.POST("/refresh", authHandler.RefreshToken)
-		authGroup.POST("/google", authHandler.GoogleSignIn)
+		authGroup.POST("/google/mobile", authHandler.GoogleSignInMobile)
+		authGroup.POST("/google/desktop", authHandler.GoogleSignInDesktop)
 		authGroup.Use(authMiddleware.Handle).POST("/signout", authHandler.Signout)
 	}
 }
