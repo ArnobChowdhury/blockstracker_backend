@@ -16,6 +16,9 @@ func RegisterAuthRoutes(rg *gin.RouterGroup, authHandler *handlers.AuthHandler, 
 		authGroup.POST("/refresh", authHandler.RefreshToken)
 		authGroup.POST("/google/mobile", authHandler.GoogleSignInMobile)
 		authGroup.POST("/google/desktop", authHandler.GoogleSignInDesktop)
+		// probably has a problem since we are using auth middleware. What if the user is not authenticated?
+		// not a problem for now, since both front ends will try to automatically refresh the token and then log out
+		// but it could have been straightforward
 		authGroup.Use(authMiddleware.Handle).POST("/signout", authHandler.Signout)
 	}
 }
