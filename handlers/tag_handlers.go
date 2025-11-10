@@ -178,15 +178,29 @@ func (h *TagHandler) UpdateTag(c *gin.Context) {
 		}
 	}()
 
-	if err := h.tagRepo.UpdateTag(tx, &tag); err != nil {
+	existingTag, fetchErr := h.tagRepo.GetTagByID(tx, tagID, uid)
+	if fetchErr != nil {
 		tx.Rollback()
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			utils.SendErrorResponse(c, h.logger, messages.ErrTagUpdateFailed,
-				"Tag not found or does not belong to user", apperrors.ErrUnauthorized)
+		if errors.Is(fetchErr, gorm.ErrRecordNotFound) {
+			utils.SendErrorResponse(c, h.logger, messages.ErrTagUpdateFailed, "Tag not found or does not belong to user", apperrors.ErrNotFound)
 		} else {
 			utils.SendErrorResponse(c, h.logger, messages.ErrTagUpdateFailed,
-				err.Error(), apperrors.ErrInternalServerError)
+				fetchErr.Error(), apperrors.ErrInternalServerError)
 		}
+		return
+	}
+
+	if req.ModifiedAt.Before(existingTag.ModifiedAt) {
+		tx.Rollback()
+		logMsg := fmt.Sprintf("Stale update rejected for tag_id: %s. Incoming timestamp: %s, Database timestamp: %s",
+			tagID, req.ModifiedAt, existingTag.ModifiedAt)
+		utils.SendErrorResponse(c, h.logger, messages.ErrTagUpdateFailed, logMsg, apperrors.ErrStaleData)
+		return
+	}
+
+	if err := h.tagRepo.UpdateTag(tx, &tag); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, messages.ErrTagUpdateFailed, err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 

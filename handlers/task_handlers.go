@@ -228,7 +228,7 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 		tx.Rollback()
 		if errors.Is(fetchErr, gorm.ErrRecordNotFound) {
 			utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
-				"Task not found or does not belong to user", apperrors.ErrUnauthorized)
+				"Task not found or does not belong to user", apperrors.ErrNotFound)
 		} else {
 			utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
 				fetchErr.Error(), apperrors.ErrInternalServerError)
@@ -246,13 +246,8 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 
 	if err := h.taskRepo.UpdateTask(tx, &task); err != nil {
 		tx.Rollback()
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
-				"Task not found or does not belong to user", apperrors.ErrUnauthorized)
-		} else {
-			utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
-				err.Error(), apperrors.ErrInternalServerError)
-		}
+		utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
+			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
@@ -466,7 +461,7 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 		tx.Rollback()
 		if errors.Is(fetchErr, gorm.ErrRecordNotFound) {
 			utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
-				"Repetitive task template not found or does not belong to user", apperrors.ErrUnauthorized)
+				"Repetitive task template not found or does not belong to user", apperrors.ErrNotFound)
 		} else {
 			utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
 				fetchErr.Error(), apperrors.ErrInternalServerError)
@@ -484,13 +479,8 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 
 	if err := h.taskRepo.UpdateRepetitiveTaskTemplate(tx, &repetitiveTaskTemplate); err != nil {
 		tx.Rollback()
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
-				"Repetitive task template not found or does not belong to user", apperrors.ErrUnauthorized)
-		} else {
-			utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
-				err.Error(), apperrors.ErrInternalServerError)
-		}
+		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
+			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 

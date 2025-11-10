@@ -44,6 +44,7 @@ func NewInvalidReqErr(customMessage ...string) *CommonError {
 }
 
 var (
+	ErrNotFound                = NewCommonError("NOT_FOUND", "Resource not found", http.StatusNotFound)
 	ErrUnauthorized            = NewCommonError("UNAUTHORIZED", "Unauthorized", http.StatusUnauthorized)
 	ErrInternalServerError     = NewCommonError("INTERNAL_SERVER_ERROR", "Internal server error", http.StatusInternalServerError)
 	ErrUserIDNotFoundInContext = NewCommonError("USER_ID_NOT_FOUND_IN_CONTEXT", "User ID not found in context", http.StatusInternalServerError)

@@ -186,7 +186,7 @@ func (h *SpaceHandler) UpdateSpace(c *gin.Context) {
 		tx.Rollback()
 		if errors.Is(fetchErr, gorm.ErrRecordNotFound) {
 			utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed,
-				"Space not found or does not belong to user", apperrors.ErrUnauthorized)
+				"Space not found or does not belong to user", apperrors.ErrNotFound)
 		} else {
 			utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed,
 				fetchErr.Error(), apperrors.ErrInternalServerError)
@@ -202,13 +202,8 @@ func (h *SpaceHandler) UpdateSpace(c *gin.Context) {
 
 	if err := h.SpaceRepo.UpdateSpace(tx, &space); err != nil {
 		tx.Rollback()
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed,
-				"Space not found or does not belong to user", apperrors.ErrUnauthorized)
-		} else {
-			utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed,
-				err.Error(), apperrors.ErrInternalServerError)
-		}
+		utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed,
+			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
