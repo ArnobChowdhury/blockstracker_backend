@@ -99,9 +99,28 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 	}()
 
 	if err := h.taskRepo.CreateTask(tx, &task); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			if task.RepetitiveTaskTemplateID != nil && task.DueDate != nil {
+				existingTask, fetchErr := h.taskRepo.GetTaskByRepetitiveTemplateIDAndDueDate(tx, *task.RepetitiveTaskTemplateID, *task.DueDate, uid)
+				if fetchErr == nil {
+					tx.Rollback()
+					utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
+						"Duplicate task creation attempt",
+						apperrors.ErrDuplicateEntity,
+						gin.H{"canonical_id": existingTask.ID.String()})
+					return
+				}
+				h.logger.Errorw("Failed to find existing duplicate task after unique constraint violation",
+					"error", fetchErr.Error(), "repetitiveTaskTemplateId", task.RepetitiveTaskTemplateID, "dueDate", task.DueDate)
+			}
+			tx.Rollback()
+			utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
+				"Duplicate task creation attempt (could not determine canonical ID)",
+				apperrors.ErrDuplicateEntity)
+			return
+		}
 		tx.Rollback()
-		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
-			err.Error(), apperrors.ErrInternalServerError)
+		utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed, err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 

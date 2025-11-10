@@ -21,7 +21,7 @@ const (
 	RefreshTokenExpiry = 7 * 24 * time.Hour
 )
 
-func CreateJSONResponse(status string, message string, data interface{}) gin.H {
+func CreateJSONResponse(status string, message string, data any, code ...string) gin.H {
 	result := gin.H{
 		"status":  status,
 		"message": message,
@@ -29,6 +29,10 @@ func CreateJSONResponse(status string, message string, data interface{}) gin.H {
 
 	if data != nil {
 		result["data"] = data
+	}
+
+	if len(code) > 0 && code[0] != "" {
+		result["code"] = code[0]
 	}
 
 	return gin.H{"result": result}
@@ -94,10 +98,15 @@ func ParseToken(tokenString string, secretKey string) (*models.Claims, error) {
 }
 
 func SendErrorResponse(c *gin.Context, logger *zap.SugaredLogger, logTitle string,
-	logErrMsg string, resErr apperrors.AppError) {
+	logErrMsg string, resErr apperrors.AppError, data ...any) {
 
 	logger.Errorw(logTitle, messages.Error, logErrMsg)
-	c.JSON(resErr.StatusCode(), CreateJSONResponse(messages.Error, resErr.Error(), nil))
+	var responseData any
+	if len(data) > 0 {
+		responseData = data[0]
+	}
+
+	c.JSON(resErr.StatusCode(), CreateJSONResponse(messages.Error, resErr.Error(), responseData, resErr.Code()))
 }
 
 func ExtractUIDFromGinContext(c *gin.Context) (uuid.UUID, *apperrors.CommonError) {

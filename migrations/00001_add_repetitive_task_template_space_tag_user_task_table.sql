@@ -88,9 +88,10 @@ CREATE TABLE IF NOT EXISTS tasks (
     modified_at TIMESTAMPTZ,
     space_id UUID,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    deleted_at TIMESTAMPTZ,    
+    deleted_at TIMESTAMPTZ,
     FOREIGN KEY (repetitive_task_template_id) REFERENCES repetitive_task_templates(id) ON DELETE SET NULL,
-    FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE SET NULL
+    FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE SET NULL,
+    UNIQUE (repetitive_task_template_id, due_date)
 );
 
 

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"blockstracker_backend/models"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -22,6 +23,14 @@ func (r *TaskRepository) CreateTask(tx *gorm.DB, task *models.Task) error {
 func (r *TaskRepository) GetTaskByID(tx *gorm.DB, taskID uuid.UUID, userID uuid.UUID) (*models.Task, error) {
 	var task models.Task
 	if err := tx.Model(&models.Task{}).Preload("Tags").Where("id = ? AND user_id = ?", taskID, userID).First(&task).Error; err != nil {
+		return nil, err
+	}
+	return &task, nil
+}
+
+func (r *TaskRepository) GetTaskByRepetitiveTemplateIDAndDueDate(tx *gorm.DB, templateID uuid.UUID, dueDate time.Time, userID uuid.UUID) (*models.Task, error) {
+	var task models.Task
+	if err := tx.Model(&models.Task{}).Where("repetitive_task_template_id = ? AND due_date = ? AND user_id = ?", templateID, dueDate, userID).First(&task).Error; err != nil {
 		return nil, err
 	}
 	return &task, nil

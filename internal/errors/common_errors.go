@@ -31,6 +31,10 @@ func (e *CommonError) LogError() string {
 	return fmt.Sprintf("CommonError - Code: %s, Message: %s, Status Code: %d", e.code, e.message, e.statusCode)
 }
 
+func (e *CommonError) Code() string {
+	return e.code
+}
+
 func NewInvalidReqErr(customMessage ...string) *CommonError {
 	message := "Invalid request"
 	if len(customMessage) > 0 {
@@ -45,4 +49,5 @@ var (
 	ErrUserIDNotFoundInContext = NewCommonError("USER_ID_NOT_FOUND_IN_CONTEXT", "User ID not found in context", http.StatusInternalServerError)
 	ErrUserIDNotValidType      = NewCommonError("USER_ID_NOT_VALID_TYPE", "User ID is not of valid type", http.StatusInternalServerError)
 	ErrStaleData               = NewCommonError("STALE_DATA", "Stale data", http.StatusConflict)
+	ErrDuplicateEntity         = NewCommonError("DUPLICATE_ENTITY", "Duplicate entity found", http.StatusConflict)
 )

@@ -31,6 +31,10 @@ func (e *SpaceError) LogError() string {
 	return fmt.Sprintf("SpaceError - Code: %s, Message: %s, Status Code: %d", e.code, e.message, e.statusCode)
 }
 
+func (e *SpaceError) Code() string {
+	return e.code
+}
+
 var (
 	ErrSpaceDuplicateKey = NewSpaceError("DUPLICATE_NAME_FOR_SPACE", "Duplicate name for space", http.StatusBadRequest)
 )

@@ -31,6 +31,10 @@ func (e *RedisError) LogError() string {
 	return fmt.Sprintf("RedisError - Code: %s, Message: %s, Status Code: %d", e.code, e.message, e.statusCode)
 }
 
+func (e *RedisError) Code() string {
+	return e.code
+}
+
 var (
 	ErrRedisSet         = NewRedisError("REDIS_SET", "Redis set error", http.StatusInternalServerError)
 	ErrRedisKeyNotFound = NewRedisError("KEY_NOT_FOUND", "Key not found", http.StatusNotFound)

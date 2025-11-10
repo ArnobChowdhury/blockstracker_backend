@@ -31,6 +31,10 @@ func (e *AuthError) LogError() string {
 	return fmt.Sprintf("AuthError - Code: %s, Message: %s, Status Code: %d", e.code, e.message, e.statusCode)
 }
 
+func (e *AuthError) Code() string {
+	return e.code
+}
+
 var (
 	ErrNoAuthorizationHeader    = NewAuthError("NO_AUTH_HEADER", "No Authorization header", http.StatusUnauthorized)
 	ErrInvalidAuthHeader        = NewAuthError("INVALID_AUTH_HEADER", "Invalid Authorization header", http.StatusUnauthorized)

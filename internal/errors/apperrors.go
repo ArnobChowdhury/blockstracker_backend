@@ -4,4 +4,5 @@ type AppError interface {
 	Error() string
 	StatusCode() int
 	LogError() string
+	Code() string
 }

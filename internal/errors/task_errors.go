@@ -31,6 +31,10 @@ func (e *TaskError) LogError() string {
 	return fmt.Sprintf("TaskError - Code: %s, Message: %s, Status Code: %d", e.code, e.message, e.statusCode)
 }
 
+func (e *TaskError) Code() string {
+	return e.code
+}
+
 var (
 	ErrMalformedTaskRequest                   = NewTaskError("BAD_REQUEST", "Malformed request", http.StatusBadRequest)
 	ErrMalformedRepetitiveTaskTemplateRequest = NewTaskError("BAD_REQUEST", "Malformed request", http.StatusBadRequest)
