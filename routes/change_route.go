@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterChangeRoutes(router *gin.Engine, changeHandler *handlers.ChangeHandler, authMiddleware *middleware.AuthMiddleware) {
-	changeRoutes := router.Group("/changes")
+func RegisterChangeRoutes(rg *gin.RouterGroup, changeHandler *handlers.ChangeHandler, authMiddleware *middleware.AuthMiddleware) {
+	changeRoutes := rg.Group("/changes")
 
 	changeRoutes.Use(authMiddleware.Handle)
 	changeRoutes.GET("/sync", changeHandler.SyncChanges)

@@ -75,3 +75,14 @@ func InitializeSpaceHandler() (*handlers.SpaceHandler, error) {
 	spaceHandler := handlers.NewSpaceHandler(spaceRepository, changeRepository, db, sugaredLogger)
 	return spaceHandler, nil
 }
+
+func InitializeChangeHandler() (*handlers.ChangeHandler, error) {
+	db := database.DBProvider()
+	changeRepository := repositories.NewChangeRepository(db)
+	taskRepository := repositories.NewTaskRepository(db)
+	tagRepository := repositories.NewTagRepository(db)
+	spaceRepository := repositories.NewSpaceRepository(db)
+	sugaredLogger := logger.LoggerProvider()
+	changeHandler := handlers.NewChangeHandler(db, changeRepository, taskRepository, tagRepository, spaceRepository, sugaredLogger)
+	return changeHandler, nil
+}

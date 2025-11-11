@@ -67,11 +67,11 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 
 	task := models.Task{
 		ID:                       req.ID,
-		IsActive:                 req.IsActive,
+		IsActive:                 *req.IsActive,
 		Title:                    req.Title,
 		Description:              req.Description,
 		Schedule:                 req.Schedule,
-		Priority:                 req.Priority,
+		Priority:                 *req.Priority,
 		CompletionStatus:         req.CompletionStatus,
 		DueDate:                  req.DueDate,
 		ShouldBeScored:           req.ShouldBeScored,
@@ -193,11 +193,11 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 
 	task := models.Task{
 		ID:                       taskID,
-		IsActive:                 req.IsActive,
+		IsActive:                 *req.IsActive,
 		Title:                    req.Title,
 		Description:              req.Description,
 		Schedule:                 req.Schedule,
-		Priority:                 req.Priority,
+		Priority:                 *req.Priority,
 		CompletionStatus:         req.CompletionStatus,
 		DueDate:                  req.DueDate,
 		ShouldBeScored:           req.ShouldBeScored,
@@ -310,11 +310,11 @@ func (h *TaskHandler) CreateRepetitiveTaskTemplate(c *gin.Context) {
 
 	repetitiveTaskTemplate := models.RepetitiveTaskTemplate{
 		ID:                       req.ID,
-		IsActive:                 req.IsActive,
+		IsActive:                 *req.IsActive,
 		Title:                    req.Title,
 		Description:              req.Description,
 		Schedule:                 req.Schedule,
-		Priority:                 req.Priority,
+		Priority:                 *req.Priority,
 		ShouldBeScored:           req.ShouldBeScored,
 		Monday:                   req.Monday,
 		Tuesday:                  req.Tuesday,
@@ -420,27 +420,26 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 		return
 	}
 
-	repetitiveTaskTemplate := models.RepetitiveTaskTemplate{
-		ID:                       repetitiveTaskTemplateID,
-		IsActive:                 req.IsActive,
-		Title:                    req.Title,
-		Description:              req.Description,
-		Schedule:                 req.Schedule,
-		Priority:                 req.Priority,
-		ShouldBeScored:           req.ShouldBeScored,
-		Monday:                   req.Monday,
-		Tuesday:                  req.Tuesday,
-		Wednesday:                req.Wednesday,
-		Thursday:                 req.Thursday,
-		Friday:                   req.Friday,
-		Saturday:                 req.Saturday,
-		Sunday:                   req.Sunday,
-		TimeOfDay:                req.TimeOfDay,
-		LastDateOfTaskGeneration: req.LastDateOfTaskGeneration,
-		ModifiedAt:               req.ModifiedAt,
-		Tags:                     req.Tags,
-		SpaceID:                  req.SpaceID,
-		UserID:                   uid,
+	updateData := map[string]any{
+		"is_active":                    *req.IsActive,
+		"title":                        req.Title,
+		"description":                  req.Description,
+		"schedule":                     req.Schedule,
+		"priority":                     *req.Priority,
+		"should_be_scored":             req.ShouldBeScored,
+		"monday":                       req.Monday,
+		"tuesday":                      req.Tuesday,
+		"wednesday":                    req.Wednesday,
+		"thursday":                     req.Thursday,
+		"friday":                       req.Friday,
+		"saturday":                     req.Saturday,
+		"sunday":                       req.Sunday,
+		"time_of_day":                  req.TimeOfDay,
+		"last_date_of_task_generation": req.LastDateOfTaskGeneration,
+		"modified_at":                  req.ModifiedAt,
+		// Tags need to be handled separately if they are being updated
+		"space_id": req.SpaceID,
+		"user_id":  uid,
 	}
 
 	tx := h.db.Begin()
@@ -477,7 +476,7 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 		return
 	}
 
-	if err := h.taskRepo.UpdateRepetitiveTaskTemplate(tx, &repetitiveTaskTemplate); err != nil {
+	if err := h.taskRepo.UpdateRepetitiveTaskTemplate(tx, repetitiveTaskTemplateID, uid, updateData); err != nil {
 		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed,
 			err.Error(), apperrors.ErrInternalServerError)
@@ -487,7 +486,7 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 	change := models.Change{
 		UserID:     uid,
 		EntityType: "repetitive_task_template",
-		EntityID:   repetitiveTaskTemplate.ID,
+		EntityID:   repetitiveTaskTemplateID,
 		Operation:  "update",
 	}
 	if err := h.changeRepo.CreateChange(tx, &change); err != nil {
@@ -497,7 +496,7 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 		return
 	}
 
-	if err := tx.Model(&repetitiveTaskTemplate).Update("last_change_id", change.ChangeID).Error; err != nil {
+	if err := tx.Model(&models.RepetitiveTaskTemplate{}).Where("id = ?", repetitiveTaskTemplateID).Update("last_change_id", change.ChangeID).Error; err != nil {
 		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, "Failed to update repetitive task template with change ID",
 			err.Error(), apperrors.ErrInternalServerError)
@@ -510,6 +509,13 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 		return
 	}
 
-	repetitiveTaskTemplate.LastChangeID = change.ChangeID
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgRepetitiveTaskTemplateUpdateSuccess, repetitiveTaskTemplate))
+	updatedTemplate, getErr := h.taskRepo.GetRepetitiveTaskTemplateByID(h.db, repetitiveTaskTemplateID, uid)
+	if getErr != nil {
+		utils.SendErrorResponse(c, h.logger, "Update succeeded, but failed to fetch the updated record for response.",
+			getErr.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	updatedTemplate.LastChangeID = change.ChangeID
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgRepetitiveTaskTemplateUpdateSuccess, updatedTemplate))
 }

@@ -75,8 +75,8 @@ func (r *TaskRepository) GetRepetitiveTaskTemplatesByIDs(tx *gorm.DB, templateID
 	return templates, nil
 }
 
-func (r *TaskRepository) UpdateRepetitiveTaskTemplate(tx *gorm.DB, repetitiveTaskTemplate *models.RepetitiveTaskTemplate) error {
-	result := tx.Model(&models.RepetitiveTaskTemplate{}).Where("id = ? AND user_id = ?", repetitiveTaskTemplate.ID, repetitiveTaskTemplate.UserID).Updates(repetitiveTaskTemplate)
+func (r *TaskRepository) UpdateRepetitiveTaskTemplate(tx *gorm.DB, templateID, userID uuid.UUID, data map[string]any) error {
+	result := tx.Model(&models.RepetitiveTaskTemplate{}).Where("id = ? AND user_id = ?", templateID, userID).Updates(data)
 	if result.Error != nil {
 		return result.Error
 	}

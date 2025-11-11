@@ -7,15 +7,13 @@ import (
 	"gorm.io/gorm"
 )
 
-// todo:
-// change the name
 type TaskRequest struct {
 	ID                       uuid.UUID  `json:"id" binding:"required,uuid"`
-	IsActive                 bool       `json:"isActive" binding:"required"`
+	IsActive                 *bool      `json:"isActive" binding:"required"`
 	Title                    string     `json:"title" binding:"required"`
 	Description              string     `json:"description"`
 	Schedule                 string     `json:"schedule" binding:"required"`
-	Priority                 int        `json:"priority" binding:"required"`
+	Priority                 *int       `json:"priority" binding:"required"`
 	CompletionStatus         string     `json:"completionStatus" binding:"required"`
 	DueDate                  *time.Time `json:"dueDate"`
 	ShouldBeScored           *bool      `json:"shouldBeScored" binding:"required"`
@@ -30,20 +28,20 @@ type TaskRequest struct {
 
 type Task struct {
 	ID                       uuid.UUID               `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	IsActive                 bool                    `gorm:"default:true" json:"isActive" binding:"required"`
-	Title                    string                  `gorm:"not null" json:"title" binding:"required"`
+	IsActive                 bool                    `gorm:"default:true" json:"isActive"`
+	Title                    string                  `gorm:"not null" json:"title"`
 	Description              string                  `json:"description"`
-	Schedule                 string                  `json:"schedule" binding:"required"`
-	Priority                 int                     `gorm:"default:3" json:"priority" binding:"required"`
-	CompletionStatus         string                  `gorm:"default:'INCOMPLETE'" json:"completionStatus" binding:"required"`
+	Schedule                 string                  `json:"schedule"`
+	Priority                 int                     `gorm:"default:3" json:"priority"`
+	CompletionStatus         string                  `gorm:"default:'INCOMPLETE'" json:"completionStatus"`
 	DueDate                  *time.Time              `json:"dueDate"`
-	ShouldBeScored           *bool                   `json:"shouldBeScored" binding:"required"`
+	ShouldBeScored           *bool                   `json:"shouldBeScored"`
 	Score                    *int                    `json:"score"`
 	TimeOfDay                *string                 `json:"timeOfDay"`
 	RepetitiveTaskTemplate   *RepetitiveTaskTemplate `json:"repetitiveTaskTemplate"`
 	RepetitiveTaskTemplateID *uuid.UUID              `gorm:"type:uuid" json:"repetitiveTaskTemplateId"`
 	CreatedAt                time.Time               `json:"createdAt"`
-	ModifiedAt               time.Time               `json:"modifiedAt" binding:"required"`
+	ModifiedAt               time.Time               `json:"modifiedAt"`
 	Tags                     []Tag                   `gorm:"many2many:task_tags;" json:"tags"`
 	Space                    *Space                  `json:"space"`
 	SpaceID                  *uuid.UUID              `gorm:"type:uuid" json:"spaceId"`
@@ -60,13 +58,13 @@ type TaskResponseForSwagger struct {
 
 type RepetitiveTaskTemplate struct {
 	ID                       uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	IsActive                 bool           `gorm:"default:true" json:"isActive" binding:"required"`
-	Title                    string         `gorm:"not null" json:"title" binding:"required"`
+	IsActive                 bool           `gorm:"default:true" json:"isActive"`
+	Title                    string         `gorm:"not null" json:"title"`
 	Description              *string        `json:"description"`
-	Schedule                 string         `gorm:"not null" json:"schedule" binding:"required"`
-	Priority                 int            `gorm:"default:3" json:"priority" binding:"required"`
-	ShouldBeScored           *bool          `gorm:"default:false" json:"shouldBeScored" binding:"required"`
-	Monday                   *bool          `gorm:"default:false" json:"monday" binding:"required"`
+	Schedule                 string         `gorm:"not null" json:"schedule"`
+	Priority                 int            `gorm:"default:3" json:"priority"`
+	ShouldBeScored           *bool          `gorm:"default:false" json:"shouldBeScored"`
+	Monday                   *bool          `gorm:"default:false" json:"monday"`
 	Tuesday                  *bool          `gorm:"default:false" json:"tuesday"`
 	Wednesday                *bool          `gorm:"default:false" json:"wednesday"`
 	Thursday                 *bool          `gorm:"default:false" json:"thursday"`
@@ -88,11 +86,11 @@ type RepetitiveTaskTemplate struct {
 
 type RepetitiveTaskTemplateRequest struct {
 	ID                       uuid.UUID      `json:"id" binding:"required,uuid"`
-	IsActive                 bool           `json:"isActive" binding:"required"`
+	IsActive                 *bool          `json:"isActive" binding:"required"`
 	Title                    string         `json:"title" binding:"required"`
 	Description              *string        `json:"description"`
 	Schedule                 string         `json:"schedule" binding:"required"`
-	Priority                 int            `json:"priority" binding:"required"`
+	Priority                 *int           `json:"priority" binding:"required"`
 	ShouldBeScored           *bool          `json:"shouldBeScored" binding:"required"`
 	Monday                   *bool          `json:"monday" binding:"required"`
 	Tuesday                  *bool          `json:"tuesday" binding:"required"`

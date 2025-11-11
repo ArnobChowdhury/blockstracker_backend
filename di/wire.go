@@ -70,3 +70,16 @@ func InitializeSpaceHandler() (*handlers.SpaceHandler, error) {
 	)
 	return &handlers.SpaceHandler{}, nil
 }
+
+func InitializeChangeHandler() (*handlers.ChangeHandler, error) {
+	wire.Build(
+		database.DBProvider,
+		repositories.NewChangeRepository,
+		repositories.NewTaskRepository,
+		repositories.NewTagRepository,
+		repositories.NewSpaceRepository,
+		logger.LoggerProvider,
+		handlers.NewChangeHandler,
+	)
+	return &handlers.ChangeHandler{}, nil
+}
