@@ -160,12 +160,10 @@ func (h *SpaceHandler) UpdateSpace(c *gin.Context) {
 		return
 	}
 
-	space := models.Space{
-		ID:         spaceID,
-		Name:       req.Name,
-		CreatedAt:  req.CreatedAt,
-		ModifiedAt: req.ModifiedAt,
-		UserID:     uid,
+	updateData := map[string]any{
+		"name":        req.Name,
+		"modified_at": req.ModifiedAt,
+		"user_id":     uid,
 	}
 
 	tx := h.db.Begin()
@@ -200,7 +198,7 @@ func (h *SpaceHandler) UpdateSpace(c *gin.Context) {
 		return
 	}
 
-	if err := h.SpaceRepo.UpdateSpace(tx, &space); err != nil {
+	if err := h.SpaceRepo.UpdateSpace(tx, spaceID, uid, updateData); err != nil {
 		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed,
 			err.Error(), apperrors.ErrInternalServerError)
@@ -210,7 +208,7 @@ func (h *SpaceHandler) UpdateSpace(c *gin.Context) {
 	change := models.Change{
 		UserID:     uid,
 		EntityType: "space",
-		EntityID:   space.ID,
+		EntityID:   spaceID,
 		Operation:  "update",
 	}
 	if err := h.changeRepo.CreateChange(tx, &change); err != nil {
@@ -220,7 +218,7 @@ func (h *SpaceHandler) UpdateSpace(c *gin.Context) {
 		return
 	}
 
-	if err := tx.Model(&space).Update("last_change_id", change.ChangeID).Error; err != nil {
+	if err := tx.Model(&models.Space{}).Where("id = ?", spaceID).Update("last_change_id", change.ChangeID).Error; err != nil {
 		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, "Failed to update space with change ID",
 			err.Error(), apperrors.ErrInternalServerError)
@@ -232,8 +230,16 @@ func (h *SpaceHandler) UpdateSpace(c *gin.Context) {
 			err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
-	space.LastChangeID = change.ChangeID
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSpaceUpdateSuccess, space))
+
+	updatedSpace, getErr := h.SpaceRepo.GetSpaceByID(h.db, spaceID, uid)
+	if getErr != nil {
+		utils.SendErrorResponse(c, h.logger, "Update succeeded, but failed to fetch the updated record for response.",
+			getErr.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	updatedSpace.LastChangeID = change.ChangeID
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSpaceUpdateSuccess, updatedSpace))
 }
 
 func (h *SpaceHandler) GetSpacesFromVersion(c *gin.Context) {

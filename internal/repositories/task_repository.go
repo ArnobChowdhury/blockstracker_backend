@@ -44,8 +44,8 @@ func (r *TaskRepository) GetTasksByIDs(tx *gorm.DB, taskIDs []uuid.UUID, userID 
 	return tasks, nil
 }
 
-func (r *TaskRepository) UpdateTask(tx *gorm.DB, task *models.Task) error {
-	result := tx.Model(&models.Task{}).Where("id = ? AND user_id = ?", task.ID, task.UserID).Updates(task)
+func (r *TaskRepository) UpdateTask(tx *gorm.DB, taskID, userID uuid.UUID, data map[string]any) error {
+	result := tx.Model(&models.Task{}).Where("id = ? AND user_id = ?", taskID, userID).Updates(data)
 	if result.Error != nil {
 		return result.Error
 	}

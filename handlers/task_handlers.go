@@ -191,23 +191,21 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	task := models.Task{
-		ID:                       taskID,
-		IsActive:                 *req.IsActive,
-		Title:                    req.Title,
-		Description:              req.Description,
-		Schedule:                 req.Schedule,
-		Priority:                 *req.Priority,
-		CompletionStatus:         req.CompletionStatus,
-		DueDate:                  req.DueDate,
-		ShouldBeScored:           req.ShouldBeScored,
-		Score:                    req.Score,
-		TimeOfDay:                req.TimeOfDay,
-		RepetitiveTaskTemplateID: req.RepetitiveTaskTemplateID,
-		ModifiedAt:               req.ModifiedAt,
-		Tags:                     req.Tags,
-		SpaceID:                  req.SpaceID,
-		UserID:                   uid,
+	updateData := map[string]interface{}{
+		"is_active":                   *req.IsActive,
+		"title":                       req.Title,
+		"description":                 req.Description,
+		"schedule":                    req.Schedule,
+		"priority":                    *req.Priority,
+		"completion_status":           req.CompletionStatus,
+		"due_date":                    req.DueDate,
+		"should_be_scored":            req.ShouldBeScored,
+		"score":                       req.Score,
+		"time_of_day":                 req.TimeOfDay,
+		"repetitive_task_template_id": req.RepetitiveTaskTemplateID,
+		"modified_at":                 req.ModifiedAt,
+		"space_id":                    req.SpaceID,
+		"user_id":                     uid,
 	}
 
 	tx := h.db.Begin()
@@ -244,7 +242,7 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	if err := h.taskRepo.UpdateTask(tx, &task); err != nil {
+	if err := h.taskRepo.UpdateTask(tx, taskID, uid, updateData); err != nil {
 		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed,
 			err.Error(), apperrors.ErrInternalServerError)
@@ -254,7 +252,7 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 	change := models.Change{
 		UserID:     uid,
 		EntityType: "task",
-		EntityID:   task.ID,
+		EntityID:   taskID,
 		Operation:  "update",
 	}
 	if err := h.changeRepo.CreateChange(tx, &change); err != nil {
@@ -264,7 +262,7 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	if err := tx.Model(&task).Update("last_change_id", change.ChangeID).Error; err != nil {
+	if err := tx.Model(&models.Task{}).Where("id = ?", taskID).Update("last_change_id", change.ChangeID).Error; err != nil {
 		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, "Failed to update task with change ID",
 			err.Error(), apperrors.ErrInternalServerError)
@@ -277,8 +275,15 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	task.LastChangeID = change.ChangeID
-	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgTaskUpdateSuccess, task))
+	updatedTask, getErr := h.taskRepo.GetTaskByID(h.db, taskID, uid)
+	if getErr != nil {
+		utils.SendErrorResponse(c, h.logger, "Update succeeded, but failed to fetch the updated record for response.",
+			getErr.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	updatedTask.LastChangeID = change.ChangeID
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgTaskUpdateSuccess, updatedTask))
 }
 
 // CreateRepetitiveTaskTemplate godoc
