@@ -80,9 +80,9 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		RepetitiveTaskTemplateID: req.RepetitiveTaskTemplateID,
 		CreatedAt:                req.CreatedAt,
 		ModifiedAt:               req.ModifiedAt,
-		Tags:                     req.Tags,
-		SpaceID:                  req.SpaceID,
-		UserID:                   uid,
+		// Tags:                     req.Tags,
+		SpaceID: req.SpaceID,
+		UserID:  uid,
 	}
 
 	tx := h.db.Begin()
@@ -332,9 +332,9 @@ func (h *TaskHandler) CreateRepetitiveTaskTemplate(c *gin.Context) {
 		LastDateOfTaskGeneration: req.LastDateOfTaskGeneration,
 		CreatedAt:                req.CreatedAt,
 		ModifiedAt:               req.ModifiedAt,
-		Tags:                     req.Tags,
-		SpaceID:                  req.SpaceID,
-		UserID:                   uid,
+		// Tags:                     req.Tags,
+		SpaceID: req.SpaceID,
+		UserID:  uid,
 	}
 
 	tx := h.db.Begin()

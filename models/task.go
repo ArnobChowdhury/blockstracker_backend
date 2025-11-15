@@ -27,27 +27,25 @@ type TaskRequest struct {
 }
 
 type Task struct {
-	ID                       uuid.UUID               `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	IsActive                 bool                    `gorm:"default:true" json:"isActive"`
-	Title                    string                  `gorm:"not null" json:"title"`
-	Description              string                  `json:"description"`
-	Schedule                 string                  `json:"schedule"`
-	Priority                 int                     `gorm:"default:3" json:"priority"`
-	CompletionStatus         string                  `gorm:"default:'INCOMPLETE'" json:"completionStatus"`
-	DueDate                  *time.Time              `json:"dueDate"`
-	ShouldBeScored           *bool                   `json:"shouldBeScored"`
-	Score                    *int                    `json:"score"`
-	TimeOfDay                *string                 `json:"timeOfDay"`
-	RepetitiveTaskTemplate   *RepetitiveTaskTemplate `json:"repetitiveTaskTemplate"`
-	RepetitiveTaskTemplateID *uuid.UUID              `gorm:"type:uuid" json:"repetitiveTaskTemplateId"`
-	CreatedAt                time.Time               `json:"createdAt"`
-	ModifiedAt               time.Time               `json:"modifiedAt"`
-	Tags                     []Tag                   `gorm:"many2many:task_tags;" json:"tags"`
-	Space                    *Space                  `json:"space"`
-	SpaceID                  *uuid.UUID              `gorm:"type:uuid" json:"spaceId"`
-	UserID                   uuid.UUID               `gorm:"type:uuid" json:"userId"` // Add UserID here
-	LastChangeID             int64                   `gorm:"not null;default:0" json:"lastChangeId"`
-	DeletedAt                gorm.DeletedAt          `gorm:"index" json:"-"`
+	ID                       uuid.UUID  `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	IsActive                 bool       `gorm:"default:true" json:"isActive"`
+	Title                    string     `gorm:"not null" json:"title"`
+	Description              string     `json:"description"`
+	Schedule                 string     `json:"schedule"`
+	Priority                 int        `gorm:"default:3" json:"priority"`
+	CompletionStatus         string     `gorm:"default:'INCOMPLETE'" json:"completionStatus"`
+	DueDate                  *time.Time `json:"dueDate"`
+	ShouldBeScored           *bool      `json:"shouldBeScored"`
+	Score                    *int       `json:"score"`
+	TimeOfDay                *string    `json:"timeOfDay"`
+	RepetitiveTaskTemplateID *uuid.UUID `gorm:"type:uuid" json:"repetitiveTaskTemplateId"`
+	CreatedAt                time.Time  `json:"createdAt"`
+	ModifiedAt               time.Time  `json:"modifiedAt"`
+	// Tags                     []Tag          `gorm:"many2many:task_tags;" json:"tags"`
+	SpaceID      *uuid.UUID     `gorm:"type:uuid" json:"spaceId"`
+	UserID       uuid.UUID      `gorm:"type:uuid" json:"userId"` // Add UserID here
+	LastChangeID int64          `gorm:"not null;default:0" json:"lastChangeId"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // Create Task success response for swagger doc
@@ -57,31 +55,29 @@ type TaskResponseForSwagger struct {
 }
 
 type RepetitiveTaskTemplate struct {
-	ID                       uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	IsActive                 bool           `gorm:"default:true" json:"isActive"`
-	Title                    string         `gorm:"not null" json:"title"`
-	Description              *string        `json:"description"`
-	Schedule                 string         `gorm:"not null" json:"schedule"`
-	Priority                 int            `gorm:"default:3" json:"priority"`
-	ShouldBeScored           *bool          `gorm:"default:false" json:"shouldBeScored"`
-	Monday                   *bool          `gorm:"default:false" json:"monday"`
-	Tuesday                  *bool          `gorm:"default:false" json:"tuesday"`
-	Wednesday                *bool          `gorm:"default:false" json:"wednesday"`
-	Thursday                 *bool          `gorm:"default:false" json:"thursday"`
-	Friday                   *bool          `gorm:"default:false" json:"friday"`
-	Saturday                 *bool          `gorm:"default:false" json:"saturday"`
-	Sunday                   *bool          `gorm:"default:false" json:"sunday"`
-	TimeOfDay                *string        `json:"timeOfDay"`
-	LastDateOfTaskGeneration *time.Time     `json:"lastDateOfTaskGeneration"`
-	CreatedAt                time.Time      `json:"createdAt"`
-	ModifiedAt               time.Time      `json:"modifiedAt"`
-	Tags                     []Tag          `gorm:"many2many:repetitive_task_template_tags" json:"tags"`
-	Tasks                    []Task         `json:"tasks"`
-	Space                    *Space         `json:"space"`
-	SpaceID                  *uuid.UUID     `gorm:"type:uuid" json:"spaceId"`
-	UserID                   uuid.UUID      `gorm:"type:uuid" json:"userId"` // Add UserID here
-	LastChangeID             int64          `gorm:"not null;default:0" json:"lastChangeId"`
-	DeletedAt                gorm.DeletedAt `gorm:"index" json:"-"`
+	ID                       uuid.UUID  `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	IsActive                 bool       `gorm:"default:true" json:"isActive"`
+	Title                    string     `gorm:"not null" json:"title"`
+	Description              *string    `json:"description"`
+	Schedule                 string     `gorm:"not null" json:"schedule"`
+	Priority                 int        `gorm:"default:3" json:"priority"`
+	ShouldBeScored           *bool      `gorm:"default:false" json:"shouldBeScored"`
+	Monday                   *bool      `gorm:"default:false" json:"monday"`
+	Tuesday                  *bool      `gorm:"default:false" json:"tuesday"`
+	Wednesday                *bool      `gorm:"default:false" json:"wednesday"`
+	Thursday                 *bool      `gorm:"default:false" json:"thursday"`
+	Friday                   *bool      `gorm:"default:false" json:"friday"`
+	Saturday                 *bool      `gorm:"default:false" json:"saturday"`
+	Sunday                   *bool      `gorm:"default:false" json:"sunday"`
+	TimeOfDay                *string    `json:"timeOfDay"`
+	LastDateOfTaskGeneration *time.Time `json:"lastDateOfTaskGeneration"`
+	CreatedAt                time.Time  `json:"createdAt"`
+	ModifiedAt               time.Time  `json:"modifiedAt"`
+	// Tags                     []Tag          `gorm:"many2many:repetitive_task_template_tags" json:"tags"`
+	SpaceID      *uuid.UUID     `gorm:"type:uuid" json:"spaceId"`
+	UserID       uuid.UUID      `gorm:"type:uuid" json:"userId"` // Add UserID here
+	LastChangeID int64          `gorm:"not null;default:0" json:"lastChangeId"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 type RepetitiveTaskTemplateRequest struct {
