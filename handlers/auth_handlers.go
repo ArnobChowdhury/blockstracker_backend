@@ -232,17 +232,15 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 
 	refreshTokenInRedis, err := h.tokenRepo.GetRefreshToken(req.AccessToken)
 	if err != nil {
-		utils.SendErrorResponse(c, h.logger, messages.ErrGettingRefreshTokenFromRedis,
-			err.Error(), apperrors.ErrUnauthorized)
-		return
-	}
-
-	hashedRefreshToken := sha256.Sum256([]byte(req.RefreshToken))
-	hashedRefreshTokenString := hex.EncodeToString(hashedRefreshToken[:])
-	if hashedRefreshTokenString != refreshTokenInRedis {
-		utils.SendErrorResponse(c, h.logger, messages.ErrRefreshTokenDidNotMatchWithCachedToken,
-			"refresh token mismatch", apperrors.ErrUnauthorized)
-		return
+		h.logger.Errorw(messages.ErrGettingRefreshTokenFromRedis, err)
+	} else {
+		hashedRefreshToken := sha256.Sum256([]byte(req.RefreshToken))
+		hashedRefreshTokenString := hex.EncodeToString(hashedRefreshToken[:])
+		if hashedRefreshTokenString != refreshTokenInRedis {
+			utils.SendErrorResponse(c, h.logger, messages.ErrRefreshTokenDidNotMatchWithCachedToken,
+				"refresh token mismatch", apperrors.ErrUnauthorized)
+			return
+		}
 	}
 
 	parsedClaims, err := utils.ParseToken(req.RefreshToken, h.authConfig.RefreshSecret)
