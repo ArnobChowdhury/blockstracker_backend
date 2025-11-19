@@ -283,7 +283,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		h.logger.Errorw(messages.ErrInvalidatingOldTokens, messages.Error, err)
 	}
 	if deletedCount == 0 {
-		h.logger.Errorw(messages.ErrTokenNotFoundDuringLogout, "token", req.AccessToken)
+		h.logger.Errorw(messages.ErrTokenNotFoundDuringRefreshing, "token", req.AccessToken)
 	}
 
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgSuccessfulTokenRefresh, gin.H{
