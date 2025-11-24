@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/internal/repositories"
@@ -190,10 +191,11 @@ func (h *TagHandler) UpdateTag(c *gin.Context) {
 		return
 	}
 
-	if req.ModifiedAt.Before(existingTag.ModifiedAt) {
+	if time.Time(req.ModifiedAt).Before(time.Time(existingTag.ModifiedAt)) {
 		tx.Rollback()
 		logMsg := fmt.Sprintf("Stale update rejected for tag_id: %s. Incoming timestamp: %s, Database timestamp: %s",
-			tagID, req.ModifiedAt, existingTag.ModifiedAt)
+			tagID, time.Time(req.ModifiedAt).Format(time.RFC3339), time.Time(existingTag.ModifiedAt).Format(time.RFC3339))
+
 		utils.SendErrorResponse(c, h.logger, messages.ErrTagUpdateFailed, logMsg, apperrors.ErrStaleData)
 		return
 	}

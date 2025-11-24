@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/internal/repositories"
@@ -192,7 +193,7 @@ func (h *SpaceHandler) UpdateSpace(c *gin.Context) {
 		return
 	}
 
-	if req.ModifiedAt.Before(existingSpace.ModifiedAt) {
+	if time.Time(req.ModifiedAt).Before(time.Time(existingSpace.ModifiedAt)) {
 		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed, "Stale data", apperrors.ErrStaleData)
 		return

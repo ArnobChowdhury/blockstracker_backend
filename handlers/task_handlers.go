@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	apperrors "blockstracker_backend/internal/errors"
 	"blockstracker_backend/internal/repositories"
@@ -98,10 +99,13 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		}
 	}()
 
+	tx.SavePoint("before_create")
+
 	if err := h.taskRepo.CreateTask(tx, &task); err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			tx.RollbackTo("before_create")
 			if task.RepetitiveTaskTemplateID != nil && task.DueDate != nil {
-				existingTask, fetchErr := h.taskRepo.GetTaskByRepetitiveTemplateIDAndDueDate(tx, *task.RepetitiveTaskTemplateID, *task.DueDate, uid)
+				existingTask, fetchErr := h.taskRepo.GetTaskByRepetitiveTemplateIDAndDueDate(tx, *task.RepetitiveTaskTemplateID, time.Time(*task.DueDate), uid)
 				if fetchErr == nil {
 					tx.Rollback()
 					utils.SendErrorResponse(c, h.logger, messages.ErrTaskCreationFailed,
@@ -234,10 +238,10 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	if req.ModifiedAt.Before(existingTask.ModifiedAt) {
+	if time.Time(req.ModifiedAt).Before(time.Time(existingTask.ModifiedAt)) {
 		tx.Rollback()
-		logMsg := fmt.Sprintf("Stale update rejected for task_id: %s. Incoming timestamp: %s, Database timestamp: %s",
-			taskID, req.ModifiedAt, existingTask.ModifiedAt)
+		logMsg := fmt.Sprintf("Stale update rejected for task_id: %s. Incoming timestamp: %s, Database timestamp: %s", taskID, time.Time(req.ModifiedAt).Format(time.RFC3339), time.Time(existingTask.ModifiedAt).Format(time.RFC3339))
+
 		utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed, logMsg, apperrors.ErrStaleData)
 		return
 	}
@@ -473,7 +477,7 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 		return
 	}
 
-	if req.ModifiedAt.Before(existingTemplate.ModifiedAt) {
+	if time.Time(req.ModifiedAt).Before(time.Time(existingTemplate.ModifiedAt)) {
 		tx.Rollback()
 		logMsg := fmt.Sprintf("Stale update rejected for repetitive_task_template_id: %s. Incoming timestamp: %s, Database timestamp: %s",
 			repetitiveTaskTemplateID, req.ModifiedAt, existingTemplate.ModifiedAt)

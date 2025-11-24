@@ -9,8 +9,8 @@ definitions:
         example: Strongpassword123
         type: string
     required:
-    - email
-    - password
+      - email
+      - password
     type: object
   models.ErrorResult:
     properties:
@@ -24,12 +24,12 @@ definitions:
   models.GenericErrorResponse:
     properties:
       result:
-        $ref: '#/definitions/models.ErrorResult'
+        $ref: "#/definitions/models.ErrorResult"
     type: object
   models.GenericSuccessResponse:
     properties:
       result:
-        $ref: '#/definitions/models.SuccessResult'
+        $ref: "#/definitions/models.SuccessResult"
     type: object
   models.RefreshTokenRequest:
     properties:
@@ -40,8 +40,8 @@ definitions:
         example: refreshToken
         type: string
     required:
-    - accessToken
-    - refreshToken
+      - accessToken
+      - refreshToken
     type: object
   models.RepetitiveTaskTemplate:
     properties:
@@ -70,18 +70,18 @@ definitions:
       shouldBeScored:
         type: boolean
       space:
-        $ref: '#/definitions/models.Space'
+        $ref: "#/definitions/models.Space"
       spaceId:
         type: string
       sunday:
         type: boolean
       tags:
         items:
-          $ref: '#/definitions/models.Tag'
+          $ref: "#/definitions/models.Tag"
         type: array
       tasks:
         items:
-          $ref: '#/definitions/models.Task'
+          $ref: "#/definitions/models.Task"
         type: array
       thursday:
         type: boolean
@@ -97,12 +97,12 @@ definitions:
       wednesday:
         type: boolean
     required:
-    - isActive
-    - monday
-    - priority
-    - schedule
-    - shouldBeScored
-    - title
+      - isActive
+      - monday
+      - priority
+      - schedule
+      - shouldBeScored
+      - title
     type: object
   models.RepetitiveTaskTemplateRequest:
     properties:
@@ -134,11 +134,11 @@ definitions:
         type: boolean
       tags:
         items:
-          $ref: '#/definitions/models.Tag'
+          $ref: "#/definitions/models.Tag"
         type: array
       tasks:
         items:
-          $ref: '#/definitions/models.Task'
+          $ref: "#/definitions/models.Task"
         type: array
       thursday:
         type: boolean
@@ -151,20 +151,20 @@ definitions:
       wednesday:
         type: boolean
     required:
-    - createdAt
-    - friday
-    - isActive
-    - modifiedAt
-    - monday
-    - priority
-    - saturday
-    - schedule
-    - shouldBeScored
-    - sunday
-    - thursday
-    - title
-    - tuesday
-    - wednesday
+      - createdAt
+      - friday
+      - isActive
+      - modifiedAt
+      - monday
+      - priority
+      - saturday
+      - schedule
+      - shouldBeScored
+      - sunday
+      - thursday
+      - title
+      - tuesday
+      - wednesday
     type: object
   models.RepetitiveTaskTemplateResponseForSwagger:
     properties:
@@ -172,7 +172,7 @@ definitions:
         example: Success message
         type: string
       result:
-        $ref: '#/definitions/models.RepetitiveTaskTemplate'
+        $ref: "#/definitions/models.RepetitiveTaskTemplate"
       status:
         example: Success
         type: string
@@ -180,12 +180,12 @@ definitions:
   models.SignInSuccessResponse:
     properties:
       result:
-        $ref: '#/definitions/models.SignInSuccessResult'
+        $ref: "#/definitions/models.SignInSuccessResult"
     type: object
   models.SignInSuccessResult:
     properties:
       data:
-        $ref: '#/definitions/models.TokenResponse'
+        $ref: "#/definitions/models.TokenResponse"
       message:
         example: Success message
         type: string
@@ -202,8 +202,8 @@ definitions:
         example: Strongpassword123
         type: string
     required:
-    - email
-    - password
+      - email
+      - password
     type: object
   models.Space:
     properties:
@@ -218,9 +218,9 @@ definitions:
       userId:
         type: string
     required:
-    - createdAt
-    - modifiedAt
-    - name
+      - createdAt
+      - modifiedAt
+      - name
     type: object
   models.SpaceRequest:
     properties:
@@ -231,9 +231,9 @@ definitions:
       name:
         type: string
     required:
-    - createdAt
-    - modifiedAt
-    - name
+      - createdAt
+      - modifiedAt
+      - name
     type: object
   models.SpaceResponseForSwagger:
     properties:
@@ -241,7 +241,7 @@ definitions:
         example: Success message
         type: string
       result:
-        $ref: '#/definitions/models.Space'
+        $ref: "#/definitions/models.Space"
       status:
         example: Success
         type: string
@@ -268,9 +268,9 @@ definitions:
       userId:
         type: string
     required:
-    - createdAt
-    - modifiedAt
-    - name
+      - createdAt
+      - modifiedAt
+      - name
     type: object
   models.TagRequest:
     properties:
@@ -281,9 +281,9 @@ definitions:
       name:
         type: string
     required:
-    - createdAt
-    - modifiedAt
-    - name
+      - createdAt
+      - modifiedAt
+      - name
     type: object
   models.TagResponseForSwagger:
     properties:
@@ -291,7 +291,7 @@ definitions:
         example: Success message
         type: string
       result:
-        $ref: '#/definitions/models.Tag'
+        $ref: "#/definitions/models.Tag"
       status:
         example: Success
         type: string
@@ -315,7 +315,7 @@ definitions:
       priority:
         type: integer
       repetitiveTaskTemplate:
-        $ref: '#/definitions/models.RepetitiveTaskTemplate'
+        $ref: "#/definitions/models.RepetitiveTaskTemplate"
       repetitiveTaskTemplateId:
         type: string
       schedule:
@@ -325,12 +325,12 @@ definitions:
       shouldBeScored:
         type: boolean
       space:
-        $ref: '#/definitions/models.Space'
+        $ref: "#/definitions/models.Space"
       spaceId:
         type: string
       tags:
         items:
-          $ref: '#/definitions/models.Tag'
+          $ref: "#/definitions/models.Tag"
         type: array
       timeOfDay:
         type: string
@@ -340,15 +340,15 @@ definitions:
         description: Add UserID here
         type: string
     required:
-    - completionStatus
-    - isActive
-    - modifiedAt
-    - priority
-    - schedule
-    - shouldBeScored
-    - title
+      - completionStatus
+      - isActive
+      - modifiedAt
+      - priority
+      - schedule
+      - shouldBeScored
+      - title
     type: object
-  models.TaskRequest:
+  models.:
     properties:
       completionStatus:
         type: string
@@ -376,21 +376,21 @@ definitions:
         type: string
       tags:
         items:
-          $ref: '#/definitions/models.Tag'
+          $ref: "#/definitions/models.Tag"
         type: array
       timeOfDay:
         type: string
       title:
         type: string
     required:
-    - completionStatus
-    - createdAt
-    - isActive
-    - modifiedAt
-    - priority
-    - schedule
-    - shouldBeScored
-    - title
+      - completionStatus
+      - createdAt
+      - isActive
+      - modifiedAt
+      - priority
+      - schedule
+      - shouldBeScored
+      - title
     type: object
   models.TaskResponseForSwagger:
     properties:
@@ -398,7 +398,7 @@ definitions:
         example: Success message
         type: string
       result:
-        $ref: '#/definitions/models.Task'
+        $ref: "#/definitions/models.Task"
       status:
         example: Success
         type: string
@@ -420,122 +420,122 @@ paths:
   /auth/refresh:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Refreshes the access token using a valid refresh token
       parameters:
-      - description: Refresh token request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.RefreshTokenRequest'
+        - description: Refresh token request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/models.RefreshTokenRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Token refresh successful
           schema:
-            $ref: '#/definitions/models.SignInSuccessResponse'
+            $ref: "#/definitions/models.SignInSuccessResponse"
         "400":
           description: Malformed Request
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
       summary: Refresh access token
       tags:
-      - auth
+        - auth
   /auth/signin:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Sign in with email and password
       parameters:
-      - description: User sign in request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.EmailSignInRequest'
+        - description: User sign in request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/models.EmailSignInRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: User sign in successful
           schema:
-            $ref: '#/definitions/models.SignInSuccessResponse'
+            $ref: "#/definitions/models.SignInSuccessResponse"
         "400":
           description: Malformed Request
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "401":
           description: Invalid Credentials
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
       summary: Sign in with email and password
       tags:
-      - auth
+        - auth
   /auth/signout:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Invalidates the user's access and refresh tokens
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: User sign out successful
           schema:
-            $ref: '#/definitions/models.GenericSuccessResponse'
+            $ref: "#/definitions/models.GenericSuccessResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Sign out user
       tags:
-      - auth
+        - auth
   /auth/signup:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Signs up a new user with email and password
       parameters:
-      - description: User sign up request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.SignUpRequest'
+        - description: User sign up request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/models.SignUpRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: User creation successful
           schema:
-            $ref: '#/definitions/models.GenericSuccessResponse'
+            $ref: "#/definitions/models.GenericSuccessResponse"
         "400":
           description: Malformed Request
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
       summary: Sign up a new user
       tags:
-      - auth
+        - auth
   /ping:
     get:
       description: Returns pong
@@ -546,279 +546,279 @@ paths:
             type: string
       summary: Ping example
       tags:
-      - example
+        - example
   /spaces:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a new Space with the given details
       parameters:
-      - description: Space details
-        in: body
-        name: Space
-        required: true
-        schema:
-          $ref: '#/definitions/models.SpaceRequest'
+        - description: Space details
+          in: body
+          name: Space
+          required: true
+          schema:
+            $ref: "#/definitions/models.SpaceRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.SpaceResponseForSwagger'
+            $ref: "#/definitions/models.SpaceResponseForSwagger"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
       summary: Create a new Space
       tags:
-      - spaces
+        - spaces
   /spaces/{id}:
     put:
       consumes:
-      - application/json
+        - application/json
       description: Update an existing Space with the given details
       parameters:
-      - description: Space ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Space details
-        in: body
-        name: space
-        required: true
-        schema:
-          $ref: '#/definitions/models.SpaceRequest'
+        - description: Space ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Space details
+          in: body
+          name: space
+          required: true
+          schema:
+            $ref: "#/definitions/models.SpaceRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.SpaceResponseForSwagger'
+            $ref: "#/definitions/models.SpaceResponseForSwagger"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
       summary: Update an existing Space
       tags:
-      - spaces
+        - spaces
   /tags:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a new tag with the given details
       parameters:
-      - description: Tag details
-        in: body
-        name: tag
-        required: true
-        schema:
-          $ref: '#/definitions/models.TagRequest'
+        - description: Tag details
+          in: body
+          name: tag
+          required: true
+          schema:
+            $ref: "#/definitions/models.TagRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.TagResponseForSwagger'
+            $ref: "#/definitions/models.TagResponseForSwagger"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
       summary: Create a new tag
       tags:
-      - tags
+        - tags
   /tags/{id}:
     put:
       consumes:
-      - application/json
+        - application/json
       description: Update an existing tag with the given details
       parameters:
-      - description: Tag ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Tag details
-        in: body
-        name: tag
-        required: true
-        schema:
-          $ref: '#/definitions/models.TagRequest'
+        - description: Tag ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Tag details
+          in: body
+          name: tag
+          required: true
+          schema:
+            $ref: "#/definitions/models.TagRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.TagResponseForSwagger'
+            $ref: "#/definitions/models.TagResponseForSwagger"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
       summary: Update an existing tag
       tags:
-      - tags
+        - tags
   /tasks:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a new task with the given details
       parameters:
-      - description: Task details
-        in: body
-        name: task
-        required: true
-        schema:
-          $ref: '#/definitions/models.TaskRequest'
+        - description: Task details
+          in: body
+          name: task
+          required: true
+          schema:
+            $ref: "#/definitions/models."
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.TaskResponseForSwagger'
+            $ref: "#/definitions/models.TaskResponseForSwagger"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
       summary: Create a new task
       tags:
-      - tasks
+        - tasks
   /tasks/{id}:
     put:
       consumes:
-      - application/json
+        - application/json
       description: Update an existing task with the given details
       parameters:
-      - description: Task ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Task details
-        in: body
-        name: task
-        required: true
-        schema:
-          $ref: '#/definitions/models.TaskRequest'
+        - description: Task ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Task details
+          in: body
+          name: task
+          required: true
+          schema:
+            $ref: "#/definitions/models."
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.TaskResponseForSwagger'
+            $ref: "#/definitions/models.TaskResponseForSwagger"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
       summary: Update an existing task
       tags:
-      - tasks
+        - tasks
   /tasks/repetitive:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a new repetitive task template with the given details
       parameters:
-      - description: Repetitive task template details
-        in: body
-        name: task
-        required: true
-        schema:
-          $ref: '#/definitions/models.RepetitiveTaskTemplateRequest'
+        - description: Repetitive task template details
+          in: body
+          name: task
+          required: true
+          schema:
+            $ref: "#/definitions/models.RepetitiveTaskTemplateRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.RepetitiveTaskTemplateResponseForSwagger'
+            $ref: "#/definitions/models.RepetitiveTaskTemplateResponseForSwagger"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
       summary: Create a new repetitive task template
       tags:
-      - tasks
+        - tasks
   /tasks/repetitive/{id}:
     put:
       consumes:
-      - application/json
+        - application/json
       description: Update an existing repetitive task template with the given details
       parameters:
-      - description: Repetitive Task Template ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Repetitive task template details
-        in: body
-        name: task
-        required: true
-        schema:
-          $ref: '#/definitions/models.RepetitiveTaskTemplateRequest'
+        - description: Repetitive Task Template ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Repetitive task template details
+          in: body
+          name: task
+          required: true
+          schema:
+            $ref: "#/definitions/models.RepetitiveTaskTemplateRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.RepetitiveTaskTemplateResponseForSwagger'
+            $ref: "#/definitions/models.RepetitiveTaskTemplateResponseForSwagger"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.GenericErrorResponse'
+            $ref: "#/definitions/models.GenericErrorResponse"
       summary: Update an existing repetitive task template
       tags:
-      - tasks
+        - tasks
 securityDefinitions:
   BearerAuth:
     in: header

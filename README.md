@@ -70,7 +70,12 @@ Then, from within the container's shell, run the `goose create` command, replaci
 
 ```bash
 goose create <your_migration_name> sql
+
 ```
+
+## 🏛️ Architectural Decisions
+
+This project uses Architectural Decision Records (ADRs) to document important architectural choices, their context, and their consequences. You can find them in the `docs/adr` directory.
 
 ## ⚖️ License
 

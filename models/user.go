@@ -1,8 +1,6 @@
 package models
 
 import (
-	"time"
-
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -13,8 +11,8 @@ type User struct {
 	Email      string         `gorm:"not null;unique" json:"email"`
 	Password   *string        `gorm:"type:varchar" json:"-"`        // Nullable, hidden in JSON
 	Provider   *string        `gorm:"type:varchar" json:"provider"` // Nullable
-	CreatedAt  time.Time      `gorm:"autoCreateTime" json:"createdAt"`
-	ModifiedAt time.Time      `gorm:"autoUpdateTime" json:"modifiedAt"`
+	CreatedAt  JSONTime       `gorm:"autoCreateTime" json:"createdAt"`
+	ModifiedAt JSONTime       `gorm:"autoUpdateTime" json:"modifiedAt"`
 	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deletedAt"`
 }
 
