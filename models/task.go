@@ -24,6 +24,18 @@ type TaskRequest struct {
 	SpaceID                  *uuid.UUID `gorm:"type:uuid" json:"spaceId"`
 }
 
+// TimeStampedEntity is an interface for models that have ModifiedAt and LastChangeID fields.
+// The type parameter P is expected to be a pointer to the struct type (e.g., *Task).
+type TimeStampedEntity interface {
+	GetModifiedAt() JSONTime
+	SetLastChangeID(id int64)
+}
+
+func (t *Task) GetModifiedAt() JSONTime                    { return t.ModifiedAt }
+func (t *Task) SetLastChangeID(id int64)                   { t.LastChangeID = id }
+func (t *RepetitiveTaskTemplate) GetModifiedAt() JSONTime  { return t.ModifiedAt }
+func (t *RepetitiveTaskTemplate) SetLastChangeID(id int64) { t.LastChangeID = id }
+
 type Task struct {
 	ID                       uuid.UUID  `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	IsActive                 bool       `gorm:"default:true" json:"isActive"`
@@ -111,4 +123,9 @@ type RepetitiveTaskTemplateResponseForSwagger struct {
 type UpdateRepetitiveTaskRequest struct {
 	TaskID    int    `json:"task_id" binding:"required"`
 	Frequency string `json:"frequency" binding:"required"`
+}
+
+type UpdateRepetitiveTaskTemplateLastGenDateRequest struct {
+	LastDateOfTaskGeneration JSONTime `json:"lastDateOfTaskGeneration" binding:"required"`
+	ModifiedAt               JSONTime `json:"modifiedAt" binding:"required"`
 }

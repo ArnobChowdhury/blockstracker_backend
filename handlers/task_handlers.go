@@ -528,3 +528,134 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 	updatedTemplate.LastChangeID = change.ChangeID
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgRepetitiveTaskTemplateUpdateSuccess, updatedTemplate))
 }
+
+// entityUpdater defines a function type for updating an entity in the database.
+type entityUpdater func(tx *gorm.DB, id, userID uuid.UUID, data map[string]any) error
+
+// entityGetter defines a function type for getting an entity from the database.
+// The generic type P must be a pointer to a model struct (e.g., *models.Task).
+type entityGetter[P models.TimeStampedEntity] func(tx *gorm.DB, id, userID uuid.UUID) (P, error)
+
+// updateEntity is a generic helper to handle the common logic for updating entities.
+// The generic type P is a pointer to a struct (e.g., *models.Task) that must
+// implement the TimeStampedEntity interface.
+func updateEntity[P interface {
+	models.TimeStampedEntity
+	*E
+}, E any](
+	c *gin.Context,
+	h *TaskHandler,
+	entityID uuid.UUID,
+	uid uuid.UUID,
+	updateData map[string]any,
+	modifiedAt models.JSONTime,
+	entityType string,
+	updater entityUpdater,
+	getter entityGetter[P],
+) {
+	tx := h.db.Begin()
+	if tx.Error != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to begin transaction", tx.Error.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	existingEntity, fetchErr := getter(tx, entityID, uid)
+	if fetchErr != nil {
+		tx.Rollback()
+		if errors.Is(fetchErr, gorm.ErrRecordNotFound) {
+			utils.SendErrorResponse(c, h.logger, "Update failed", "Entity not found or does not belong to user", apperrors.ErrNotFound)
+		} else {
+			utils.SendErrorResponse(c, h.logger, "Update failed", fetchErr.Error(), apperrors.ErrInternalServerError)
+		}
+		return
+	}
+
+	if time.Time(modifiedAt).Before(time.Time(existingEntity.GetModifiedAt())) {
+		tx.Rollback()
+		logMsg := fmt.Sprintf("Stale update rejected for %s_id: %s. Incoming: %s, DB: %s",
+			entityType, entityID, modifiedAt, existingEntity.GetModifiedAt())
+		utils.SendErrorResponse(c, h.logger, "Update failed", logMsg, apperrors.ErrStaleData)
+		return
+	}
+
+	if err := updater(tx, entityID, uid, updateData); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Update failed", err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	change := models.Change{
+		UserID:     uid,
+		EntityType: entityType,
+		EntityID:   entityID,
+		Operation:  "update",
+	}
+	if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to create change record", err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	// We need a new instance of the entity type to pass to tx.Model().
+	// new(E) creates a pointer to the zero value of the element type of P.
+	if err := tx.Model(new(E)).Where("id = ?", entityID).Update("last_change_id", change.ChangeID).Error; err != nil {
+		tx.Rollback()
+		utils.SendErrorResponse(c, h.logger, "Failed to update entity with change ID", err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to commit transaction", err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	updatedEntity, getErr := getter(h.db, entityID, uid)
+	if getErr != nil {
+		utils.SendErrorResponse(c, h.logger, "Update succeeded, but failed to fetch updated record.", getErr.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	updatedEntity.SetLastChangeID(change.ChangeID)
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, "Update successful", updatedEntity))
+}
+
+func (h *TaskHandler) UpdateRepetitiveTaskTemplateLastGenDate(c *gin.Context) {
+	uid, err := utils.ExtractUIDFromGinContext(c)
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed, err.LogError(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	repetitiveTaskTemplateIDStr := c.Param("id")
+	repetitiveTaskTemplateID, parseErr := uuid.Parse(repetitiveTaskTemplateIDStr)
+	if parseErr != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed, fmt.Sprintf("Invalid ID format: %s", repetitiveTaskTemplateIDStr), apperrors.NewInvalidReqErr("Invalid ID"))
+		return
+	}
+
+	var req models.UpdateRepetitiveTaskTemplateLastGenDateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		invalidReqErr := apperrors.NewInvalidReqErr(err.Error())
+		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed, err.Error(), invalidReqErr)
+		return
+	}
+
+	updateData := map[string]any{
+		"last_date_of_task_generation": req.LastDateOfTaskGeneration,
+		"modified_at":                  req.ModifiedAt,
+	}
+
+	updateEntity(
+		c, h,
+		repetitiveTaskTemplateID, uid,
+		updateData, req.ModifiedAt,
+		"repetitive_task_template",
+		h.taskRepo.UpdateRepetitiveTaskTemplate,
+		h.taskRepo.GetRepetitiveTaskTemplateByID,
+	)
+}
