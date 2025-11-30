@@ -529,16 +529,10 @@ func (h *TaskHandler) UpdateRepetitiveTaskTemplate(c *gin.Context) {
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, messages.MsgRepetitiveTaskTemplateUpdateSuccess, updatedTemplate))
 }
 
-// entityUpdater defines a function type for updating an entity in the database.
 type entityUpdater func(tx *gorm.DB, id, userID uuid.UUID, data map[string]any) error
 
-// entityGetter defines a function type for getting an entity from the database.
-// The generic type P must be a pointer to a model struct (e.g., *models.Task).
 type entityGetter[P models.TimeStampedEntity] func(tx *gorm.DB, id, userID uuid.UUID) (P, error)
 
-// updateEntity is a generic helper to handle the common logic for updating entities.
-// The generic type P is a pointer to a struct (e.g., *models.Task) that must
-// implement the TimeStampedEntity interface.
 func updateEntity[P interface {
 	models.TimeStampedEntity
 	*E
@@ -601,8 +595,6 @@ func updateEntity[P interface {
 		return
 	}
 
-	// We need a new instance of the entity type to pass to tx.Model().
-	// new(E) creates a pointer to the zero value of the element type of P.
 	if err := tx.Model(new(E)).Where("id = ?", entityID).Update("last_change_id", change.ChangeID).Error; err != nil {
 		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, "Failed to update entity with change ID", err.Error(), apperrors.ErrInternalServerError)
@@ -624,6 +616,19 @@ func updateEntity[P interface {
 	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, "Update successful", updatedEntity))
 }
 
+// UpdateRepetitiveTaskTemplateLastGenDate godoc
+// @Summary      Update a repetitive task template's last generation date
+// @Description  Partially updates a repetitive task template, specifically its lastDateOfTaskGeneration field. This is used by the system after generating due tasks.
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Repetitive Task Template ID"
+// @Param        lastGenDate body models.UpdateRepetitiveTaskTemplateLastGenDateRequest true "Last generation date details"
+// @Success      200 {object} models.RepetitiveTaskTemplateResponseForSwagger
+// @Failure      400 {object} models.GenericErrorResponse
+// @Failure      404 {object} models.GenericErrorResponse
+// @Failure      500 {object} models.GenericErrorResponse
+// @Router       /tasks/repetitive/{id}/last-gen-date [put]
 func (h *TaskHandler) UpdateRepetitiveTaskTemplateLastGenDate(c *gin.Context) {
 	uid, err := utils.ExtractUIDFromGinContext(c)
 	if err != nil {
