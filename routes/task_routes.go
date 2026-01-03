@@ -10,6 +10,7 @@ import (
 func RegisterTaskRoutes(rg *gin.RouterGroup, taskHandler *handlers.TaskHandler, authMiddleware *middleware.AuthMiddleware) {
 	taskGroup := rg.Group("/tasks")
 	taskGroup.Use(authMiddleware.Handle)
+	taskGroup.Use(authMiddleware.RequirePremium)
 
 	{
 		taskGroup.POST("/", taskHandler.CreateTask)

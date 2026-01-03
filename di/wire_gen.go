@@ -86,3 +86,24 @@ func InitializeChangeHandler() (*handlers.ChangeHandler, error) {
 	changeHandler := handlers.NewChangeHandler(db, changeRepository, taskRepository, tagRepository, spaceRepository, sugaredLogger)
 	return changeHandler, nil
 }
+
+func InitializeBillingHandler() (*handlers.BillingHandler, error) {
+	db := database.DBProvider()
+	userRepository := repositories.NewUserRepository(db)
+	redisConfig, err := config.LoadRedisConfig()
+	if err != nil {
+		return nil, err
+	}
+	client, err := redis.NewRedisClient(redisConfig)
+	if err != nil {
+		return nil, err
+	}
+	tokenRepository := repositories.NewTokenRepository(client)
+	authConfig, err := config.LoadAuthConfig()
+	if err != nil {
+		return nil, err
+	}
+	sugaredLogger := logger.LoggerProvider()
+	billingHandler := handlers.NewBillingHandler(db, userRepository, tokenRepository, authConfig, sugaredLogger)
+	return billingHandler, nil
+}

@@ -62,6 +62,11 @@ func main() {
 		log.Fatalf("Error initializing change handler: %s", err.Error())
 	}
 
+	billingHandler, err := di.InitializeBillingHandler()
+	if err != nil {
+		log.Fatalf("Error initializing billing handler: %s", err.Error())
+	}
+
 	r := gin.Default()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -74,6 +79,7 @@ func main() {
 		routes.RegisterTagRoutes(v1, tagHandler, authMiddleware)
 		routes.RegisterSpaceRoutes(v1, spaceHandler, authMiddleware)
 		routes.RegisterChangeRoutes(v1, changeHandler, authMiddleware)
+		routes.RegisterBillingRoutes(v1, billingHandler, authMiddleware)
 	}
 
 	fmt.Println(strings.Repeat("🚀", 25))

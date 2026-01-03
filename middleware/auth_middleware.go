@@ -6,6 +6,7 @@ import (
 	"blockstracker_backend/internal/utils"
 	"blockstracker_backend/messages"
 	"errors"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -64,5 +65,20 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 
 	c.Set("userID", claims.UserID)
 	c.Set("email", claims.Email)
+	c.Set("is_premium", claims.IsPremium)
+	c.Next()
+}
+
+func (m *AuthMiddleware) RequirePremium(c *gin.Context) {
+	isPremium := c.GetBool("is_premium")
+	if !isPremium {
+		c.JSON(http.StatusForbidden, gin.H{
+			"status":  "error",
+			"message": "This feature requires a premium subscription.",
+			"code":    "PREMIUM_REQUIRED",
+		})
+		c.Abort()
+		return
+	}
 	c.Next()
 }

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"blockstracker_backend/models"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -21,6 +22,18 @@ func (r *UserRepository) CreateUser(user *models.User) error {
 func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepository) UpdatePremiumExpiry(userID string, expiresAt time.Time) error {
+	return r.db.Table("users").Where("id = ?", userID).Update("premium_expires_at", expiresAt).Error
+}
+
+func (r *UserRepository) GetUserByID(userID string) (*models.User, error) {
+	var user models.User
+	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil

@@ -11,5 +11,6 @@ func RegisterChangeRoutes(rg *gin.RouterGroup, changeHandler *handlers.ChangeHan
 	changeRoutes := rg.Group("/changes")
 
 	changeRoutes.Use(authMiddleware.Handle)
+	changeRoutes.Use(authMiddleware.RequirePremium)
 	changeRoutes.GET("/sync", changeHandler.SyncChanges)
 }
