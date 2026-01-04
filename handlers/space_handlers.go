@@ -87,7 +87,48 @@ func (h *SpaceHandler) CreateSpace(c *gin.Context) {
 		}
 	}()
 
+	tx.SavePoint("before_create")
+
 	if err := h.SpaceRepo.CreateSpace(tx, &Space); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			tx.RollbackTo("before_create")
+
+			existingSpace, fetchErr := h.SpaceRepo.GetSpaceByID(tx, Space.ID, uid)
+			if fetchErr == nil {
+				if time.Time(Space.ModifiedAt).After(time.Time(existingSpace.ModifiedAt)) {
+					updateData := map[string]any{
+						"name":        Space.Name,
+						"modified_at": Space.ModifiedAt,
+						"user_id":     uid,
+					}
+					if err := h.SpaceRepo.UpdateSpace(tx, Space.ID, uid, updateData); err != nil {
+						tx.Rollback()
+						utils.SendErrorResponse(c, h.logger, messages.ErrSpaceUpdateFailed, err.Error(), apperrors.ErrInternalServerError)
+						return
+					}
+					change := models.Change{UserID: uid, EntityType: "space", EntityID: Space.ID, Operation: "update"}
+					if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+						tx.Rollback()
+						utils.SendErrorResponse(c, h.logger, "Failed to create change record", err.Error(), apperrors.ErrInternalServerError)
+						return
+					}
+					if err := tx.Model(&models.Space{}).Where("id = ?", Space.ID).Update("last_change_id", change.ChangeID).Error; err != nil {
+						tx.Rollback()
+						utils.SendErrorResponse(c, h.logger, "Failed to update space with change ID", err.Error(), apperrors.ErrInternalServerError)
+						return
+					}
+					Space.LastChangeID = change.ChangeID
+				} else {
+					Space = *existingSpace
+				}
+				if err := tx.Commit().Error; err != nil {
+					utils.SendErrorResponse(c, h.logger, "Failed to commit transaction", err.Error(), apperrors.ErrInternalServerError)
+					return
+				}
+				c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, "Space synced successfully (upsert)", Space))
+				return
+			}
+		}
 		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, messages.ErrSpaceCreationFailed,
 			err.Error(), apperrors.ErrInternalServerError)

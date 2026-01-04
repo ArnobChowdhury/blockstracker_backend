@@ -104,6 +104,62 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 	if err := h.taskRepo.CreateTask(tx, &task); err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			tx.RollbackTo("before_create")
+
+			// 1. Check for ID collision (Hydration/Restore case)
+			existingTask, fetchErr := h.taskRepo.GetTaskByID(tx, task.ID, uid)
+			if fetchErr == nil {
+				// ID exists. Check timestamps.
+				if time.Time(task.ModifiedAt).After(time.Time(existingTask.ModifiedAt)) {
+					// Incoming is newer. Update.
+					updateData := map[string]interface{}{
+						"is_active":                   task.IsActive,
+						"title":                       task.Title,
+						"description":                 task.Description,
+						"schedule":                    task.Schedule,
+						"priority":                    task.Priority,
+						"completion_status":           task.CompletionStatus,
+						"due_date":                    task.DueDate,
+						"should_be_scored":            task.ShouldBeScored,
+						"score":                       task.Score,
+						"time_of_day":                 task.TimeOfDay,
+						"repetitive_task_template_id": task.RepetitiveTaskTemplateID,
+						"modified_at":                 task.ModifiedAt,
+						"space_id":                    task.SpaceID,
+						"user_id":                     uid,
+					}
+
+					if err := h.taskRepo.UpdateTask(tx, task.ID, uid, updateData); err != nil {
+						tx.Rollback()
+						utils.SendErrorResponse(c, h.logger, messages.ErrTaskUpdateFailed, err.Error(), apperrors.ErrInternalServerError)
+						return
+					}
+
+					change := models.Change{UserID: uid, EntityType: "task", EntityID: task.ID, Operation: "update"}
+					if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+						tx.Rollback()
+						utils.SendErrorResponse(c, h.logger, "Failed to create change record", err.Error(), apperrors.ErrInternalServerError)
+						return
+					}
+					if err := tx.Model(&models.Task{}).Where("id = ?", task.ID).Update("last_change_id", change.ChangeID).Error; err != nil {
+						tx.Rollback()
+						utils.SendErrorResponse(c, h.logger, "Failed to update task with change ID", err.Error(), apperrors.ErrInternalServerError)
+						return
+					}
+					task.LastChangeID = change.ChangeID
+				} else {
+					// Incoming is older or equal. Server wins. Return existing state.
+					task = *existingTask
+				}
+
+				if err := tx.Commit().Error; err != nil {
+					utils.SendErrorResponse(c, h.logger, "Failed to commit transaction", err.Error(), apperrors.ErrInternalServerError)
+					return
+				}
+				c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, "Task synced successfully (upsert)", task))
+				return
+			}
+
+			// 2. Check for Logic Collision (Unique Constraint on TemplateID + DueDate)
 			if task.RepetitiveTaskTemplateID != nil && task.DueDate != nil {
 				existingTask, fetchErr := h.taskRepo.GetTaskByRepetitiveTemplateIDAndDueDate(tx, *task.RepetitiveTaskTemplateID, time.Time(*task.DueDate), uid)
 				if fetchErr == nil {
@@ -354,7 +410,68 @@ func (h *TaskHandler) CreateRepetitiveTaskTemplate(c *gin.Context) {
 		}
 	}()
 
+	tx.SavePoint("before_create")
+
 	if err := h.taskRepo.CreateRepetitiveTaskTemplate(tx, &repetitiveTaskTemplate); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			tx.RollbackTo("before_create")
+
+			// Check for ID collision
+			existingTemplate, fetchErr := h.taskRepo.GetRepetitiveTaskTemplateByID(tx, repetitiveTaskTemplate.ID, uid)
+			if fetchErr == nil {
+				if time.Time(repetitiveTaskTemplate.ModifiedAt).After(time.Time(existingTemplate.ModifiedAt)) {
+					updateData := map[string]any{
+						"is_active":                    repetitiveTaskTemplate.IsActive,
+						"title":                        repetitiveTaskTemplate.Title,
+						"description":                  repetitiveTaskTemplate.Description,
+						"schedule":                     repetitiveTaskTemplate.Schedule,
+						"priority":                     repetitiveTaskTemplate.Priority,
+						"should_be_scored":             repetitiveTaskTemplate.ShouldBeScored,
+						"monday":                       repetitiveTaskTemplate.Monday,
+						"tuesday":                      repetitiveTaskTemplate.Tuesday,
+						"wednesday":                    repetitiveTaskTemplate.Wednesday,
+						"thursday":                     repetitiveTaskTemplate.Thursday,
+						"friday":                       repetitiveTaskTemplate.Friday,
+						"saturday":                     repetitiveTaskTemplate.Saturday,
+						"sunday":                       repetitiveTaskTemplate.Sunday,
+						"time_of_day":                  repetitiveTaskTemplate.TimeOfDay,
+						"last_date_of_task_generation": repetitiveTaskTemplate.LastDateOfTaskGeneration,
+						"modified_at":                  repetitiveTaskTemplate.ModifiedAt,
+						"space_id":                     repetitiveTaskTemplate.SpaceID,
+						"user_id":                      uid,
+					}
+
+					if err := h.taskRepo.UpdateRepetitiveTaskTemplate(tx, repetitiveTaskTemplate.ID, uid, updateData); err != nil {
+						tx.Rollback()
+						utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateUpdateFailed, err.Error(), apperrors.ErrInternalServerError)
+						return
+					}
+
+					change := models.Change{UserID: uid, EntityType: "repetitive_task_template", EntityID: repetitiveTaskTemplate.ID, Operation: "update"}
+					if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+						tx.Rollback()
+						utils.SendErrorResponse(c, h.logger, "Failed to create change record", err.Error(), apperrors.ErrInternalServerError)
+						return
+					}
+					if err := tx.Model(&models.RepetitiveTaskTemplate{}).Where("id = ?", repetitiveTaskTemplate.ID).Update("last_change_id", change.ChangeID).Error; err != nil {
+						tx.Rollback()
+						utils.SendErrorResponse(c, h.logger, "Failed to update template with change ID", err.Error(), apperrors.ErrInternalServerError)
+						return
+					}
+					repetitiveTaskTemplate.LastChangeID = change.ChangeID
+				} else {
+					repetitiveTaskTemplate = *existingTemplate
+				}
+
+				if err := tx.Commit().Error; err != nil {
+					utils.SendErrorResponse(c, h.logger, "Failed to commit transaction", err.Error(), apperrors.ErrInternalServerError)
+					return
+				}
+				c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, "Repetitive Task Template synced successfully (upsert)", repetitiveTaskTemplate))
+				return
+			}
+		}
+
 		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, messages.ErrRepetitiveTaskTemplateCreationFailed,
 			err.Error(), apperrors.ErrInternalServerError)
