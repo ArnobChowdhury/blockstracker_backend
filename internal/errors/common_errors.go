@@ -47,6 +47,7 @@ var (
 	ErrNotFound                = NewCommonError("NOT_FOUND", "Resource not found", http.StatusNotFound)
 	ErrUnauthorized            = NewCommonError("UNAUTHORIZED", "Unauthorized", http.StatusUnauthorized)
 	ErrInternalServerError     = NewCommonError("INTERNAL_SERVER_ERROR", "Internal server error", http.StatusInternalServerError)
+	ErrUserNotFound            = NewCommonError("USER_NOT_FOUND", "User not found", http.StatusNotFound)
 	ErrUserIDNotFoundInContext = NewCommonError("USER_ID_NOT_FOUND_IN_CONTEXT", "User ID not found in context", http.StatusInternalServerError)
 	ErrUserIDNotValidType      = NewCommonError("USER_ID_NOT_VALID_TYPE", "User ID is not of valid type", http.StatusInternalServerError)
 	ErrStaleData               = NewCommonError("STALE_DATA", "Stale data", http.StatusConflict)
