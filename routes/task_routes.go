@@ -10,6 +10,7 @@ import (
 func RegisterTaskRoutes(rg *gin.RouterGroup, taskHandler *handlers.TaskHandler, authMiddleware *middleware.AuthMiddleware) {
 	taskGroup := rg.Group("/tasks")
 	taskGroup.Use(authMiddleware.Handle)
+	taskGroup.Use(authMiddleware.RequirePremium)
 
 	{
 		taskGroup.POST("/", taskHandler.CreateTask)
@@ -17,5 +18,6 @@ func RegisterTaskRoutes(rg *gin.RouterGroup, taskHandler *handlers.TaskHandler, 
 
 		taskGroup.POST("/repetitive", taskHandler.CreateRepetitiveTaskTemplate)
 		taskGroup.PUT("/repetitive/:id", taskHandler.UpdateRepetitiveTaskTemplate)
+		taskGroup.PUT("/repetitive/:id/last-gen-date", taskHandler.UpdateRepetitiveTaskTemplateLastGenDate)
 	}
 }

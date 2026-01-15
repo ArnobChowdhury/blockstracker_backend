@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     provider VARCHAR,
     created_at TIMESTAMPTZ,
     modified_at TIMESTAMPTZ,
+    premium_expires_at TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ,
     CONSTRAINT password_or_provider CHECK (
         password IS NOT NULL OR provider IS NOT NULL

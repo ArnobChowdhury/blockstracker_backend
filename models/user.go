@@ -7,13 +7,14 @@ import (
 )
 
 type User struct {
-	ID         uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	Email      string         `gorm:"not null;unique" json:"email"`
-	Password   *string        `gorm:"type:varchar" json:"-"`        // Nullable, hidden in JSON
-	Provider   *string        `gorm:"type:varchar" json:"provider"` // Nullable
-	CreatedAt  JSONTime       `gorm:"autoCreateTime" json:"createdAt"`
-	ModifiedAt JSONTime       `gorm:"autoUpdateTime" json:"modifiedAt"`
-	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deletedAt"`
+	ID               uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	Email            string         `gorm:"not null;unique" json:"email"`
+	Password         *string        `gorm:"type:varchar" json:"-"`        // Nullable, hidden in JSON
+	Provider         *string        `gorm:"type:varchar" json:"provider"` // Nullable
+	CreatedAt        JSONTime       `gorm:"autoCreateTime" json:"createdAt"`
+	ModifiedAt       JSONTime       `gorm:"autoUpdateTime" json:"modifiedAt"`
+	PremiumExpiresAt *JSONTime      `json:"premiumExpiresAt"`
+	DeletedAt        gorm.DeletedAt `gorm:"index" json:"deletedAt"`
 }
 
 type SignUpRequest struct {
@@ -32,8 +33,9 @@ type RefreshTokenRequest struct {
 }
 
 type Claims struct {
-	UserID uuid.UUID `json:"user_id"`
-	Email  string    `json:"email"`
+	UserID    uuid.UUID `json:"user_id"`
+	Email     string    `json:"email"`
+	IsPremium bool      `json:"is_premium"`
 	jwt.RegisteredClaims
 }
 

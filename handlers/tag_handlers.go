@@ -87,7 +87,44 @@ func (h *TagHandler) CreateTag(c *gin.Context) {
 		}
 	}()
 
+	tx.SavePoint("before_create")
+
 	if err := h.tagRepo.CreateTag(tx, &tag); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			tx.RollbackTo("before_create")
+
+			existingTag, fetchErr := h.tagRepo.GetTagByID(tx, tag.ID, uid)
+			if fetchErr == nil {
+				if time.Time(tag.ModifiedAt).After(time.Time(existingTag.ModifiedAt)) {
+					// Update
+					if err := h.tagRepo.UpdateTag(tx, &tag); err != nil {
+						tx.Rollback()
+						utils.SendErrorResponse(c, h.logger, messages.ErrTagUpdateFailed, err.Error(), apperrors.ErrInternalServerError)
+						return
+					}
+					change := models.Change{UserID: uid, EntityType: "tag", EntityID: tag.ID, Operation: "update"}
+					if err := h.changeRepo.CreateChange(tx, &change); err != nil {
+						tx.Rollback()
+						utils.SendErrorResponse(c, h.logger, "Failed to create change record", err.Error(), apperrors.ErrInternalServerError)
+						return
+					}
+					if err := tx.Model(&tag).Update("last_change_id", change.ChangeID).Error; err != nil {
+						tx.Rollback()
+						utils.SendErrorResponse(c, h.logger, "Failed to update tag with change ID", err.Error(), apperrors.ErrInternalServerError)
+						return
+					}
+					tag.LastChangeID = change.ChangeID
+				} else {
+					tag = *existingTag
+				}
+				if err := tx.Commit().Error; err != nil {
+					utils.SendErrorResponse(c, h.logger, "Failed to commit transaction", err.Error(), apperrors.ErrInternalServerError)
+					return
+				}
+				c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, "Tag synced successfully (upsert)", tag))
+				return
+			}
+		}
 		tx.Rollback()
 		utils.SendErrorResponse(c, h.logger, messages.ErrTagCreationFailed,
 			err.Error(), apperrors.ErrInternalServerError)

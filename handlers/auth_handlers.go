@@ -250,9 +250,12 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	user := &models.User{
-		ID:    parsedClaims.UserID,
-		Email: parsedClaims.Email,
+	user, err := h.userRepo.GetUserByID(parsedClaims.UserID.String())
+
+	if err != nil {
+		utils.SendErrorResponse(c, h.logger, apperrors.ErrUserNotFound.Error(),
+			err.Error(), apperrors.ErrUserNotFound)
+		return
 	}
 
 	accessTokenClaims := utils.GetClaims(user, "access")

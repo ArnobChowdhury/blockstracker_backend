@@ -83,3 +83,17 @@ func InitializeChangeHandler() (*handlers.ChangeHandler, error) {
 	)
 	return &handlers.ChangeHandler{}, nil
 }
+
+func InitializeBillingHandler() (*handlers.BillingHandler, error) {
+	wire.Build(
+		database.DBProvider,
+		repositories.NewUserRepository,
+		repositories.NewTokenRepository,
+		config.LoadAuthConfig,
+		config.LoadRedisConfig,
+		redis.NewRedisClient,
+		logger.LoggerProvider,
+		handlers.NewBillingHandler,
+	)
+	return &handlers.BillingHandler{}, nil
+}

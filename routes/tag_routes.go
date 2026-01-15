@@ -11,6 +11,7 @@ func RegisterTagRoutes(rg *gin.RouterGroup, tagHandler *handlers.TagHandler, aut
 
 	tagGroup := rg.Group("/tags")
 	tagGroup.Use(authMiddleware.Handle)
+	tagGroup.Use(authMiddleware.RequirePremium)
 
 	{
 		tagGroup.POST("/", tagHandler.CreateTag)

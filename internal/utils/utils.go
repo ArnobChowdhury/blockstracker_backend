@@ -60,8 +60,9 @@ func GetClaims(user *models.User, tokenType string) *models.Claims {
 	}
 
 	claims := &models.Claims{
-		UserID: user.ID,
-		Email:  user.Email,
+		UserID:    user.ID,
+		Email:     user.Email,
+		IsPremium: user.PremiumExpiresAt != nil && time.Time(*user.PremiumExpiresAt).After(time.Now()),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

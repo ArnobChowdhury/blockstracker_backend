@@ -11,6 +11,7 @@ func RegisterSpaceRoutes(rg *gin.RouterGroup, spaceHandler *handlers.SpaceHandle
 
 	spaceGroup := rg.Group("/spaces")
 	spaceGroup.Use(authMiddleware.Handle)
+	spaceGroup.Use(authMiddleware.RequirePremium)
 
 	{
 		spaceGroup.POST("/", spaceHandler.CreateSpace)
