@@ -6,11 +6,13 @@ import (
 	"blockstracker_backend/internal/repositories"
 	"blockstracker_backend/internal/utils"
 	"blockstracker_backend/messages"
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"google.golang.org/api/androidpublisher/v3"
 	"gorm.io/gorm"
 )
 
@@ -68,54 +70,74 @@ func (h *BillingHandler) Verify(c *gin.Context) {
 	}
 	userId := uid.String()
 
-	// 1. Development/Mock Flow
+	var expiry time.Time
+
+	// 1. Development/Mock Flow // TODO: Remove before production
 	// This matches the "mock-purchase-token" we set in the React Native IAPService
 	if req.PurchaseToken == "mock-purchase-token" {
 		// Directly update the user status for testing
 		// For mock purchases, we grant 1 year of premium
-		expiry := time.Now().AddDate(1, 0, 0)
-		if err := h.userRepo.UpdatePremiumExpiry(userId, expiry); err != nil {
-			utils.SendErrorResponse(c, h.logger, "Failed to update user premium status", err.Error(), apperrors.ErrInternalServerError)
-			return
-		}
-
-		// 2. Fetch the updated user to generate new claims
-		user, err := h.userRepo.GetUserByID(userId)
+		expiry = time.Now().AddDate(1, 0, 0)
+	} else {
+		// 2. Production Flow
+		// Requires GOOGLE_APPLICATION_CREDENTIALS env var to be set to the path of the service account JSON file
+		ctx := context.Background()
+		service, err := androidpublisher.NewService(ctx)
 		if err != nil {
-			utils.SendErrorResponse(c, h.logger, "Failed to fetch updated user", err.Error(), apperrors.ErrInternalServerError)
+			utils.SendErrorResponse(c, h.logger, "Failed to initialize Google Play service", err.Error(), apperrors.ErrInternalServerError)
 			return
 		}
 
-		// 3. Generate new tokens with is_premium = true
-		accessTokenClaims := utils.GetClaims(user, "access")
-		refreshTokenClaims := utils.GetClaims(user, "refresh")
+		// TODO: Move package name to config
+		packageName := "com.blockstrackerapp"
 
-		accessToken, err := utils.GenerateJWT(accessTokenClaims, h.authConfig.AccessSecret)
+		sub, err := service.Purchases.Subscriptions.Get(packageName, req.ProductId, req.PurchaseToken).Do()
 		if err != nil {
-			utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT, err.Error(), apperrors.ErrInternalServerError)
+			h.logger.Errorw("Google Play API Error", "error", err)
+			utils.SendErrorResponse(c, h.logger, "Failed to verify subscription with Google", err.Error(), apperrors.ErrInvalidCredentials)
 			return
 		}
 
-		refreshToken, err := utils.GenerateJWT(refreshTokenClaims, h.authConfig.RefreshSecret)
-		if err != nil {
-			utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT, err.Error(), apperrors.ErrInternalServerError)
+		expiry = time.Unix(sub.ExpiryTimeMillis/1000, 0)
+		if time.Now().After(expiry) {
+			utils.SendErrorResponse(c, h.logger, "Subscription expired", "Subscription expired", apperrors.ErrUnauthorized)
 			return
 		}
+	}
 
-		// 4. Store new tokens in Redis
-		if err := h.tokenRepo.StoreAccessTokenAndRefreshToken(accessToken, refreshToken); err != nil {
-			utils.SendErrorResponse(c, h.logger, apperrors.ErrRedisSet.LogError(), err.Error(), apperrors.ErrInternalServerError)
-			return
-		}
-
-		c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, "Mock purchase verified successfully", gin.H{
-			"accessToken":  accessToken,
-			"refreshToken": refreshToken,
-		}))
+	if err := h.userRepo.UpdatePremiumExpiry(userId, expiry); err != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to update user premium status", err.Error(), apperrors.ErrInternalServerError)
 		return
 	}
 
-	// 2. Production Flow (TODO)
-	// Here you would use the Google Play Developer API to verify the token with Google.
-	c.JSON(http.StatusNotImplemented, utils.CreateJSONResponse(messages.Error, "Real Google Play verification is not yet configured. Please use the mock flow.", nil))
+	user, userGetErr := h.userRepo.GetUserByID(userId)
+	if userGetErr != nil {
+		utils.SendErrorResponse(c, h.logger, "Failed to fetch updated user", userGetErr.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	accessTokenClaims := utils.GetClaims(user, "access")
+	refreshTokenClaims := utils.GetClaims(user, "refresh")
+
+	accessToken, jwtGenErr := utils.GenerateJWT(accessTokenClaims, h.authConfig.AccessSecret)
+	if jwtGenErr != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT, jwtGenErr.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	refreshToken, jwtGenErr := utils.GenerateJWT(refreshTokenClaims, h.authConfig.RefreshSecret)
+	if jwtGenErr != nil {
+		utils.SendErrorResponse(c, h.logger, messages.ErrGeneratingJWT, jwtGenErr.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	if err := h.tokenRepo.StoreAccessTokenAndRefreshToken(accessToken, refreshToken); err != nil {
+		utils.SendErrorResponse(c, h.logger, apperrors.ErrRedisSet.LogError(), err.Error(), apperrors.ErrInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, utils.CreateJSONResponse(messages.Success, "Purchase verified successfully", gin.H{
+		"accessToken":  accessToken,
+		"refreshToken": refreshToken,
+	}))
 }

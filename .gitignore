@@ -19,6 +19,7 @@ Thumbs.db
 
 # Docker
 *.env
+service-account.json
 
 # Air (if using Air for hot reloading)
 .air.toml
