@@ -12,6 +12,7 @@ type TaskRequest struct {
 	Description              string     `json:"description"`
 	Schedule                 string     `json:"schedule" binding:"required"`
 	Priority                 *int       `json:"priority" binding:"required"`
+	SortOrder                float64    `json:"sortOrder"`
 	CompletionStatus         string     `json:"completionStatus" binding:"required"`
 	DueDate                  *JSONTime  `json:"dueDate"`
 	ShouldBeScored           *bool      `json:"shouldBeScored" binding:"required"`
@@ -43,6 +44,7 @@ type Task struct {
 	Description              string     `json:"description"`
 	Schedule                 string     `json:"schedule"`
 	Priority                 int        `gorm:"default:3" json:"priority"`
+	SortOrder                float64    `gorm:"type:double precision;default:0" json:"sortOrder"`
 	CompletionStatus         string     `gorm:"default:'INCOMPLETE'" json:"completionStatus"`
 	DueDate                  *JSONTime  `json:"dueDate"`
 	ShouldBeScored           *bool      `json:"shouldBeScored"`
@@ -71,6 +73,7 @@ type RepetitiveTaskTemplate struct {
 	Description              *string   `json:"description"`
 	Schedule                 string    `gorm:"not null" json:"schedule"`
 	Priority                 int       `gorm:"default:3" json:"priority"`
+	SortOrder                float64   `gorm:"type:double precision;default:0" json:"sortOrder"`
 	ShouldBeScored           *bool     `gorm:"default:false" json:"shouldBeScored"`
 	Monday                   *bool     `gorm:"default:false" json:"monday"`
 	Tuesday                  *bool     `gorm:"default:false" json:"tuesday"`
@@ -97,6 +100,7 @@ type RepetitiveTaskTemplateRequest struct {
 	Description              *string        `json:"description"`
 	Schedule                 string         `json:"schedule" binding:"required"`
 	Priority                 *int           `json:"priority" binding:"required"`
+	SortOrder                float64        `json:"sortOrder"`
 	ShouldBeScored           *bool          `json:"shouldBeScored" binding:"required"`
 	Monday                   *bool          `json:"monday" binding:"required"`
 	Tuesday                  *bool          `json:"tuesday" binding:"required"`
